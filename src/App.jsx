@@ -628,308 +628,258 @@ Sois direct, comme un vrai coach. Pas de titres, juste des paragraphes. Maximum 
   return (
     <>
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Bebas+Neue&display=swap');
         * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
-        html, body { height: 100%; overscroll-behavior: none; background: #F2F2F7; }
-        ::-webkit-scrollbar { width: 3px; }
-        ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: #C7C7CC; border-radius: 2px; }
+        html, body { height: 100%; background: #0a0a0a; }
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-track { background: #111; }
+        ::-webkit-scrollbar-thumb { background: #333; border-radius: 2px; }
 
+        /* ── APP SHELL ── */
         .app {
+          font-family: 'DM Mono', monospace;
+          background: #0a0a0a; color: #d4d4d4;
           display: flex; flex-direction: column;
-          height: 100dvh; font-family: 'Inter', -apple-system, sans-serif;
-          background: #F2F2F7; color: #1C1C1E;
+          height: 100dvh;
           padding-top: env(safe-area-inset-top);
         }
 
-        /* ── HEADER ── */
-        .header {
-          display: none; padding: 0 20px;
-          border-bottom: 1px solid #E5E5EA; background: rgba(242,242,247,0.95);
-          backdrop-filter: blur(10px); flex-shrink: 0; align-items: stretch;
-        }
+        /* ── DESKTOP HEADER ── */
+        .header { display: none; padding: 0 24px; border-bottom: 1px solid #1e1e1e; background: #0a0a0a; align-items: stretch; flex-shrink: 0; }
         @media (min-width: 768px) { .header { display: flex; } }
-        .header-brand { display: flex; align-items: center; padding: 12px 20px 12px 0; border-right: 1px solid #E5E5EA; margin-right: 8px; }
-        .header-brand h1 { font-size: 1.3rem; font-weight: 800; color: #1C1C1E; letter-spacing: -0.5px; }
-        .header-brand span { color: #007AFF; }
-        .nav-tab { font-family: inherit; font-size: 0.8rem; font-weight: 500; background: none; border: none; color: #8E8E93; cursor: pointer; padding: 0 14px; border-bottom: 2px solid transparent; transition: all 0.15s; }
-        .nav-tab.active { color: #007AFF; border-bottom-color: #007AFF; }
+        .header-brand { display: flex; align-items: center; padding: 12px 20px 12px 0; border-right: 1px solid #1e1e1e; margin-right: 4px; }
+        .header-brand h1 { font-family: 'Bebas Neue', sans-serif; font-size: 1.6rem; letter-spacing: 3px; color: #fff; }
+        .header-brand span { color: #ff6b35; }
+        .nav-tab { font-family: 'DM Mono', monospace; font-size: 0.68rem; letter-spacing: 2px; text-transform: uppercase; background: none; border: none; color: #555; cursor: pointer; padding: 0 14px; border-bottom: 2px solid transparent; transition: all 0.15s; }
+        .nav-tab.active { color: #ff6b35; border-bottom-color: #ff6b35; }
         .header-spacer { flex: 1; }
         .header-actions { display: flex; align-items: center; gap: 8px; padding: 10px 0; }
-
-        /* ── MOBILE HEADER ── */
-        .mobile-header {
-          display: flex; align-items: center; justify-content: space-between;
-          padding: 10px 16px 8px; background: rgba(242,242,247,0.95);
-          backdrop-filter: blur(10px); border-bottom: 1px solid #E5E5EA; flex-shrink: 0;
-        }
-        @media (min-width: 768px) { .mobile-header { display: none; } }
-        .mobile-title { font-size: 1.1rem; font-weight: 700; color: #1C1C1E; }
-        .mobile-right { display: flex; align-items: center; gap: 6px; }
-
-        /* ── SAVE STATUS ── */
-        .save-dot { width: 7px; height: 7px; border-radius: 50%; background: #C7C7CC; transition: background 0.3s; flex-shrink: 0; }
-        .save-dot.saving { background: #FF9500; }
-        .save-dot.saved { background: #34C759; }
-        .save-dot.error { background: #FF3B30; }
-
-        /* ── HDR BUTTONS ── */
-        .hdr-btn { font-family: inherit; font-size: 0.78rem; font-weight: 500; padding: 6px 14px; border-radius: 20px; cursor: pointer; transition: all 0.15s; }
-        .hdr-btn-ghost { background: #FFFFFF; border: 1px solid #E5E5EA; color: #1C1C1E; }
-        .hdr-btn-ghost:hover { border-color: #007AFF; color: #007AFF; }
-        .hdr-btn-solid { background: #007AFF; border: none; color: #fff; }
-        .hdr-btn-solid:hover { background: #0063D1; }
-        .icon-btn-round { background: #FFFFFF; border: none; color: #007AFF; font-size: 1rem; cursor: pointer; padding: 6px 10px; border-radius: 20px; display: flex; align-items: center; gap: 4px; font-weight: 500; font-size: 0.78rem; font-family: inherit; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
-        .icon-btn-round:active { background: #F2F2F7; }
+        .hdr-btn { font-family: 'DM Mono', monospace; font-size: 0.62rem; letter-spacing: 1.5px; padding: 5px 12px; border-radius: 3px; cursor: pointer; transition: all 0.15s; text-transform: uppercase; }
+        .hdr-btn-ghost { background: none; border: 1px solid #222; color: #555; }
+        .hdr-btn-ghost:hover { border-color: #ff6b35; color: #ff6b35; }
+        .hdr-btn-solid { background: #ff6b35; border: none; color: #000; }
+        .hdr-btn-solid:hover { background: #ff8c5a; }
 
         /* ── PROG SWITCHER ── */
-        .prog-switcher { display: flex; align-items: center; gap: 6px; padding: 6px 14px; background: #FFFFFF; border: none; border-radius: 20px; cursor: pointer; box-shadow: 0 1px 3px rgba(0,0,0,0.1); max-width: 200px; }
-        .prog-switcher:active { background: #F2F2F7; }
-        .prog-switcher-name { font-family: inherit; font-size: 0.82rem; font-weight: 600; color: #1C1C1E; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .prog-switcher-chevron { color: #007AFF; font-size: 0.65rem; flex-shrink: 0; }
+        .prog-switcher { display: flex; align-items: center; gap: 6px; padding: 5px 12px; background: #1a1a1a; border: 1px solid #2a2a2a; border-radius: 4px; cursor: pointer; max-width: 200px; }
+        .prog-switcher:hover { border-color: #ff6b35; }
+        .prog-switcher-name { font-family: 'DM Mono', monospace; font-size: 0.72rem; color: #d4d4d4; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .prog-switcher-chevron { color: #ff6b35; font-size: 0.6rem; flex-shrink: 0; }
 
-        /* ── CONTENT + LAYOUT ── */
-        /* Mobile: content is the single scroll container */
-        .content { flex: 1; overflow-y: auto; min-height: 0; }
-        .desktop-layout { display: flex; flex-direction: column; }
-        .desktop-right { display: none; }
-        .page { padding: 16px; display: flex; flex-direction: column; gap: 16px; }
+        /* ── SAVE DOT ── */
+        .save-dot { width: 6px; height: 6px; border-radius: 50%; background: #333; transition: background 0.3s; }
+        .save-dot.saving { background: #ffb84d; }
+        .save-dot.saved { background: #4dff91; }
+        .save-dot.error { background: #ff4d4d; }
 
-        /* Desktop: two-column grid, each column scrolls independently */
+        /* ── MOBILE HEADER ── */
+        .mobile-header { display: flex; align-items: center; justify-content: space-between; padding: 10px 16px; background: #0a0a0a; border-bottom: 1px solid #1e1e1e; flex-shrink: 0; }
+        @media (min-width: 768px) { .mobile-header { display: none; } }
+        .mobile-right { display: flex; align-items: center; gap: 8px; }
+        .mob-btn { background: none; border: 1px solid #222; color: #555; font-family: 'DM Mono', monospace; font-size: 0.6rem; padding: 5px 10px; border-radius: 3px; cursor: pointer; text-transform: uppercase; }
+        .mob-btn:active { border-color: #ff6b35; color: #ff6b35; }
+
+        /* ── MAIN CONTENT ── */
+        /* Mobile: one scrollable column */
+        .content { flex: 1; min-height: 0; overflow-y: auto; }
+        /* Desktop: two columns, each scrolls */
         @media (min-width: 768px) {
-          .content { overflow: hidden; display: flex; flex-direction: column; }
-          .desktop-layout { display: grid !important; grid-template-columns: 1fr 300px; flex: 1; min-height: 0; height: 100%; }
-          .page { padding: 20px 24px; overflow-y: auto; height: 100%; }
-          .desktop-right { display: flex !important; flex-direction: column; overflow-y: auto; border-left: 1px solid #E5E5EA; padding: 20px; background: #FFFFFF; height: 100%; }
+          .content { overflow: hidden; display: grid; grid-template-columns: 1fr 300px; }
+          .content > * { overflow-y: auto; }
         }
 
+        /* ── PAGE ── */
+        .page { padding: 20px; display: flex; flex-direction: column; gap: 16px; }
+        @media (min-width: 768px) { .page { padding: 24px; } }
+
         /* ── PAGE TITLE ── */
-        .page-title { font-size: 2rem; font-weight: 800; color: #1C1C1E; letter-spacing: -0.5px; }
-        .page-title-accent { display: block; width: 36px; height: 3px; background: #007AFF; border-radius: 2px; margin-top: 6px; }
+        .page-title { font-family: 'Bebas Neue', sans-serif; font-size: 2rem; letter-spacing: 2px; color: #fff; }
+        .page-title-accent { display: block; width: 32px; height: 2px; background: #ff6b35; margin-top: 4px; border-radius: 1px; }
 
-        /* ── CARD ── */
-        .card { background: #FFFFFF; border-radius: 16px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
-        @media (min-width: 768px) { .card { border-radius: 12px; } }
-
-        /* ── DAY HEADER ── */
-        .day-header { display: flex; align-items: center; gap: 10px; padding: 14px 16px; cursor: pointer; user-select: none; }
-        .day-header:active { background: #F9F9F9; }
-        @media (min-width: 768px) { .day-header:hover { background: #F9F9F9; } }
-        .day-header-divider { border-bottom: 1px solid #F2F2F7; }
-        .day-name { font-size: 0.72rem; font-weight: 700; letter-spacing: 0.8px; text-transform: uppercase; color: #007AFF; flex: 1; }
-        .day-name-input { background: transparent; border: none; border-bottom: 2px solid #007AFF; color: #1C1C1E; font-family: inherit; font-size: 0.9rem; font-weight: 700; outline: none; flex: 1; }
-        .day-collapse-icon { color: #C7C7CC; font-size: 0.75rem; transition: transform 0.2s; flex-shrink: 0; }
-        .day-collapse-icon.open { transform: rotate(90deg); }
-        .day-edit-btn { background: none; border: none; color: #C7C7CC; font-size: 0.8rem; cursor: pointer; padding: 4px 6px; border-radius: 6px; min-width: 30px; min-height: 30px; display: flex; align-items: center; justify-content: center; }
-        .day-edit-btn:active { color: #007AFF; background: #EBF4FF; }
-        .day-delete-btn { background: none; border: none; color: #C7C7CC; font-size: 0.9rem; cursor: pointer; padding: 4px 8px; border-radius: 8px; min-width: 32px; min-height: 32px; display: flex; align-items: center; justify-content: center; }
-        .day-delete-btn:active { color: #FF3B30; background: #FFF2F2; }
+        /* ── DAY CARD ── */
+        .day-card { border: 1px solid #1e1e1e; border-radius: 6px; overflow: hidden; }
+        .day-header { display: flex; align-items: center; gap: 8px; padding: 11px 14px; background: #111; cursor: pointer; user-select: none; }
+        .day-header:hover { background: #141414; }
+        .day-header.open { border-bottom: 1px solid #1e1e1e; }
+        .day-collapse-icon { color: #444; font-size: 0.7rem; transition: transform 0.2s; flex-shrink: 0; }
+        .day-collapse-icon.open { transform: rotate(90deg); color: #ff6b35; }
+        .day-name { font-family: 'Bebas Neue', sans-serif; font-size: 1rem; letter-spacing: 2px; color: #fff; flex: 1; }
+        .day-name-input { background: transparent; border: none; border-bottom: 1px solid #ff6b35; color: #fff; font-family: 'Bebas Neue', sans-serif; font-size: 1rem; letter-spacing: 2px; outline: none; flex: 1; }
+        .day-count { font-size: 0.6rem; color: #444; letter-spacing: 1px; }
+        .day-edit-btn { background: none; border: none; color: #444; font-size: 0.8rem; cursor: pointer; padding: 4px 6px; border-radius: 3px; min-width: 28px; min-height: 28px; display: flex; align-items: center; justify-content: center; }
+        .day-edit-btn:hover, .day-edit-btn:active { color: #ffb84d; }
+        .day-del-btn { background: none; border: none; color: #333; font-size: 0.75rem; cursor: pointer; padding: 4px 6px; border-radius: 3px; min-width: 28px; min-height: 28px; display: flex; align-items: center; justify-content: center; }
+        .day-del-btn:hover, .day-del-btn:active { color: #ff4d4d; }
 
         /* ── EXERCISE ROW ── */
         .ex-list { display: flex; flex-direction: column; }
-        .ex-row { display: flex; align-items: center; gap: 12px; padding: 13px 16px; border-bottom: 1px solid #F2F2F7; }
+        .ex-row { display: flex; align-items: center; gap: 10px; padding: 11px 14px; border-bottom: 1px solid #111; }
         .ex-row:last-of-type { border-bottom: none; }
-        .ex-row:active { background: #F9F9F9; }
-        @media (min-width: 768px) { .ex-row:hover { background: #F9F9F9; } .ex-row { cursor: grab; } }
-        .ex-idx-pill { font-size: 0.65rem; font-weight: 700; color: #8E8E93; min-width: 20px; display: none; }
-        @media (min-width: 768px) { .ex-idx-pill { display: block; } }
+        .ex-row:hover { background: #0d0d0d; }
+        @media (min-width: 768px) { .ex-row { cursor: grab; } }
+        .ex-idx { font-size: 0.58rem; color: #333; width: 16px; flex-shrink: 0; display: none; }
+        @media (min-width: 768px) { .ex-idx { display: block; } }
         .ex-info { flex: 1; min-width: 0; }
-        .ex-name { font-size: 0.95rem; font-weight: 600; color: #1C1C1E; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .ex-sub { font-size: 0.75rem; color: #8E8E93; margin-top: 2px; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
-        .ex-sets-badge { display: inline-flex; align-items: center; justify-content: center; background: #F2F2F7; color: #1C1C1E; font-size: 0.72rem; font-weight: 600; padding: 2px 8px; border-radius: 10px; }
-        .muscle-pill { font-size: 0.65rem; font-weight: 500; padding: 2px 7px; border-radius: 10px; }
+        .ex-name { font-size: 0.82rem; color: #d4d4d4; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .ex-sub { display: flex; gap: 5px; flex-wrap: wrap; align-items: center; margin-top: 4px; }
+        .ex-sets-badge { font-size: 0.6rem; background: #1a1a1a; color: #888; padding: 2px 7px; border-radius: 3px; border: 1px solid #222; }
+        .muscle-pill { font-size: 0.55rem; padding: 2px 6px; border-radius: 3px; }
+        .tier-badge { font-size: 0.58rem; font-weight: 500; padding: 1px 6px; border-radius: 3px; letter-spacing: 0.3px; white-space: nowrap; flex-shrink: 0; border: 1px solid transparent; }
 
         /* ── SETS CONTROL ── */
         .sets-ctrl { display: flex; align-items: center; gap: 2px; flex-shrink: 0; }
-        .sets-btn { background: #F2F2F7; border: none; color: #007AFF; width: 32px; height: 32px; border-radius: 50%; cursor: pointer; font-size: 1.1rem; font-weight: 500; display: flex; align-items: center; justify-content: center; transition: all 0.1s; }
-        .sets-btn:active { background: #007AFF; color: #fff; }
-        @media (min-width: 768px) { .sets-btn { width: 26px; height: 26px; font-size: 0.9rem; } }
-        .sets-val { font-size: 0.9rem; font-weight: 700; color: #1C1C1E; min-width: 24px; text-align: center; }
+        .sets-btn { background: #1a1a1a; border: 1px solid #222; color: #888; width: 32px; height: 32px; border-radius: 4px; cursor: pointer; font-size: 1rem; display: flex; align-items: center; justify-content: center; }
+        .sets-btn:active { border-color: #ff6b35; color: #ff6b35; }
+        @media (min-width: 768px) { .sets-btn { width: 22px; height: 22px; font-size: 0.8rem; border-radius: 2px; } }
+        .sets-val { font-size: 0.9rem; color: #fff; font-weight: 600; min-width: 26px; text-align: center; }
+        @media (min-width: 768px) { .sets-val { font-size: 0.78rem; min-width: 18px; } }
 
-        /* ── ROW ACTIONS (mobile) ── */
-        .ex-actions-mobile { display: flex; gap: 4px; flex-shrink: 0; }
-        @media (min-width: 768px) { .ex-actions-mobile { display: none; } }
-        .ex-mob-btn { background: #F2F2F7; border: none; color: #8E8E93; font-size: 0.8rem; font-weight: 500; border-radius: 10px; padding: 6px 10px; cursor: pointer; min-height: 32px; display: flex; align-items: center; }
-        .ex-mob-btn:active { background: #E5E5EA; color: #1C1C1E; }
-        .ex-mob-btn.del:active { background: #FFF2F2; color: #FF3B30; }
-        /* Row chevron (desktop) */
-        .ex-chevron { color: #C7C7CC; font-size: 0.75rem; display: none; }
+        /* Mobile action buttons */
+        .ex-mob-btns { display: flex; gap: 4px; flex-shrink: 0; }
+        @media (min-width: 768px) { .ex-mob-btns { display: none; } }
+        .ex-mob-btn { background: #1a1a1a; border: 1px solid #222; color: #555; font-size: 0.75rem; font-family: 'DM Mono', monospace; border-radius: 4px; padding: 6px 10px; cursor: pointer; min-height: 32px; display: flex; align-items: center; }
+        .ex-mob-btn:active { border-color: #ff6b35; color: #ff6b35; }
+        .ex-mob-btn.del:active { border-color: #ff4d4d; color: #ff4d4d; }
+
+        /* Desktop icon buttons */
+        .icon-btn { background: none; border: none; cursor: pointer; color: #2a2a2a; font-size: 0.75rem; padding: 3px 5px; border-radius: 3px; display: none; align-items: center; justify-content: center; min-width: 28px; min-height: 28px; transition: color 0.12s; }
+        @media (min-width: 768px) { .icon-btn { display: flex; } .icon-btn:hover { color: #888; } .icon-btn.del:hover { color: #ff4d4d; } .icon-btn.rep:hover { color: #ffb84d; } }
+        .ex-chevron { color: #2a2a2a; font-size: 0.7rem; display: none; }
         @media (min-width: 768px) { .ex-chevron { display: block; } }
-        /* Icon buttons desktop */
-        .icon-btn { background: none; border: none; cursor: pointer; color: #C7C7CC; font-size: 0.8rem; padding: 4px 6px; border-radius: 6px; display: none; align-items: center; min-width: 30px; min-height: 30px; justify-content: center; }
-        @media (min-width: 768px) { .icon-btn { display: flex; } .icon-btn:hover { color: #1C1C1E; background: #F2F2F7; } .icon-btn.del:hover { color: #FF3B30; background: #FFF2F2; } .icon-btn.rep:hover { color: #FF9500; background: #FFF8F0; } }
 
-        /* ── ADD EXERCISE ── */
-        .add-ex-btn { display: flex; align-items: center; gap: 8px; padding: 14px 16px; font-family: inherit; font-size: 0.9rem; font-weight: 500; color: #007AFF; background: none; border: none; cursor: pointer; width: 100%; }
-        .add-ex-btn:active { background: #F0F8FF; }
-        @media (min-width: 768px) { .add-ex-btn { font-size: 0.82rem; padding: 11px 16px; } }
-
-        /* ── ADD DAY ── */
-        .add-day-btn { font-family: inherit; font-size: 0.9rem; font-weight: 600; color: #007AFF; background: #FFFFFF; border: 1.5px dashed #C7C7CC; padding: 14px; cursor: pointer; border-radius: 16px; width: 100%; text-align: center; }
-        .add-day-btn:active { border-color: #007AFF; background: #F0F8FF; }
-        @media (min-width: 768px) { .add-day-btn { border-radius: 12px; width: auto; align-self: flex-start; padding: 10px 20px; } }
-
-        /* ── TIER BADGE ── */
-        .tier-badge { font-size: 0.6rem; font-weight: 700; padding: 2px 6px; border-radius: 6px; letter-spacing: 0.3px; white-space: nowrap; flex-shrink: 0; border: 1px solid transparent; }
+        /* ── ADD EXERCISE / DAY ── */
+        .add-ex-btn { display: flex; align-items: center; gap: 8px; padding: 12px 14px; font-family: 'DM Mono', monospace; font-size: 0.7rem; color: #444; background: none; border: none; cursor: pointer; width: 100%; letter-spacing: 1px; }
+        .add-ex-btn:hover, .add-ex-btn:active { color: #ff6b35; }
+        .add-day-btn { font-family: 'Bebas Neue', sans-serif; letter-spacing: 2px; font-size: 0.9rem; background: none; border: 1px dashed #222; color: #444; padding: 13px 20px; cursor: pointer; border-radius: 6px; width: 100%; text-align: center; }
+        .add-day-btn:hover, .add-day-btn:active { border-color: #ff6b35; color: #ff6b35; }
+        @media (min-width: 768px) { .add-day-btn { width: auto; align-self: flex-start; } }
 
         /* ── ANALYSIS PANEL ── */
-        .analysis-section { display: flex; flex-direction: column; gap: 10px; }
-        .analysis-label { font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; color: #8E8E93; }
-        .muscle-row { display: flex; flex-direction: column; gap: 5px; }
+        .panel-title { font-family: 'Bebas Neue', sans-serif; font-size: 0.95rem; letter-spacing: 3px; color: #555; margin-bottom: 14px; }
+        .muscle-row { display: flex; flex-direction: column; gap: 4px; margin-bottom: 12px; }
         .muscle-info { display: flex; justify-content: space-between; align-items: center; }
         .muscle-name-row { display: flex; align-items: center; gap: 6px; }
-        .muscle-label { font-size: 0.78rem; font-weight: 500; color: #1C1C1E; }
-        .muscle-sets { font-size: 0.78rem; font-weight: 700; color: #1C1C1E; }
-        .bar-bg { height: 6px; background: #F2F2F7; border-radius: 3px; position: relative; }
-        .bar-fill { height: 6px; border-radius: 3px; transition: width 0.4s cubic-bezier(0.4,0,0.2,1); }
-        .bar-marker { position: absolute; top: -3px; width: 2px; border-radius: 1px; height: 12px; }
-        .status-badge { font-size: 0.58rem; font-weight: 700; letter-spacing: 0.5px; padding: 2px 7px; border-radius: 10px; }
+        .muscle-label { font-size: 0.68rem; color: #888; }
+        .muscle-sets { font-size: 0.7rem; color: #fff; }
+        .bar-bg { height: 4px; background: #1a1a1a; border-radius: 2px; position: relative; }
+        .bar-fill { height: 4px; border-radius: 2px; transition: width 0.3s; }
+        .bar-marker { position: absolute; top: -3px; width: 2px; height: 10px; border-radius: 1px; }
+        .status-badge { font-size: 0.52rem; letter-spacing: 1.5px; padding: 1px 5px; border-radius: 3px; }
+        .legend-row { display: flex; align-items: center; gap: 6px; font-size: 0.6rem; color: #444; }
+        .legend-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+        .divider { height: 1px; background: #1a1a1a; margin: 12px 0; }
+        .analysis-label { font-size: 0.62rem; font-weight: 500; text-transform: uppercase; letter-spacing: 1px; color: #555; }
 
         /* ── AI ANALYSIS ── */
-        .ai-card { background: linear-gradient(135deg, #EBF4FF, #F5F0FF); border-radius: 16px; padding: 16px; }
-        @media (min-width: 768px) { .ai-card { border-radius: 12px; } }
-        .ai-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
-        .ai-title { font-size: 0.82rem; font-weight: 700; color: #1C1C1E; display: flex; align-items: center; gap: 6px; }
-        .ai-generate-btn { font-family: inherit; font-size: 0.75rem; font-weight: 600; padding: 7px 14px; background: #007AFF; border: none; color: #fff; border-radius: 20px; cursor: pointer; }
-        .ai-generate-btn:active { background: #0063D1; }
-        .ai-generate-btn:disabled { background: #C7C7CC; cursor: default; }
-        .ai-text { font-size: 0.85rem; line-height: 1.7; color: #3A3A3C; }
-        .ai-loading { display: flex; align-items: center; gap: 8px; color: #8E8E93; font-size: 0.82rem; }
-        .ai-spinner { width: 16px; height: 16px; border: 2px solid #E5E5EA; border-top-color: #007AFF; border-radius: 50%; animation: spin 0.7s linear infinite; }
+        .ai-card { background: #111; border: 1px solid #1e1e1e; border-radius: 6px; padding: 14px; }
+        .ai-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+        .ai-title { font-size: 0.78rem; color: #d4d4d4; display: flex; align-items: center; gap: 6px; }
+        .ai-generate-btn { font-family: 'DM Mono', monospace; font-size: 0.68rem; padding: 6px 12px; background: #ff6b35; border: none; color: #000; border-radius: 3px; cursor: pointer; letter-spacing: 0.5px; }
+        .ai-generate-btn:hover { background: #ff8c5a; }
+        .ai-generate-btn:disabled { background: #333; color: #666; cursor: default; }
+        .ai-text { font-size: 0.8rem; line-height: 1.7; color: #aaa; }
+        .ai-loading { display: flex; align-items: center; gap: 8px; color: #555; font-size: 0.78rem; }
+        .ai-spinner { width: 14px; height: 14px; border: 2px solid #222; border-top-color: #ff6b35; border-radius: 50%; animation: spin 0.7s linear infinite; }
         @keyframes spin { to { transform: rotate(360deg); } }
 
-        /* ── LEGEND ── */
-        .legend-row { display: flex; align-items: center; gap: 8px; font-size: 0.72rem; color: #8E8E93; }
-        .legend-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
-        .divider { height: 1px; background: #F2F2F7; margin: 8px 0; }
-
-        /* ── LIBRARY PAGE ── */
+        /* ── LIBRARY ── */
         .lib-toolbar { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
-        .lib-search { flex: 1; min-width: 160px; background: #FFFFFF; border: 1px solid #E5E5EA; border-radius: 12px; padding: 11px 16px 11px 36px; color: #1C1C1E; font-family: inherit; font-size: 0.9rem; outline: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%238E8E93' viewBox='0 0 16 16'%3E%3Cpath d='M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.099zm-5.242 1.656a5.5 5.5 0 1 1 0-11 5.5 5.5 0 0 1 0 11z'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: 12px center; }
-        .lib-search:focus { border-color: #007AFF; }
-        .lib-select { background: #FFFFFF; border: 1px solid #E5E5EA; border-radius: 12px; padding: 10px 12px; color: #1C1C1E; font-family: inherit; font-size: 0.82rem; outline: none; cursor: pointer; }
-        .lib-select:focus { border-color: #007AFF; }
-        .lib-count { font-size: 0.72rem; color: #8E8E93; white-space: nowrap; }
-        .lib-add-btn { font-family: inherit; font-size: 0.82rem; font-weight: 600; padding: 10px 16px; background: #007AFF; border: none; color: #fff; border-radius: 12px; cursor: pointer; white-space: nowrap; }
-        .lib-add-btn:active { background: #0063D1; }
-        .lib-grid { display: flex; flex-direction: column; gap: 2px; }
-        .lib-ex-row { display: flex; align-items: center; gap: 12px; padding: 13px 16px; background: #FFFFFF; }
-        .lib-ex-row:first-child { border-radius: 16px 16px 0 0; }
-        .lib-ex-row:last-child { border-radius: 0 0 16px 16px; }
-        .lib-ex-row:only-child { border-radius: 16px; }
-        .lib-ex-row + .lib-ex-row { border-top: 1px solid #F2F2F7; }
-        .lib-ex-row:active { background: #F9F9F9; }
-        @media (min-width: 768px) { .lib-ex-row:hover { background: #F9F9F9; } .lib-ex-row { border-radius: 0 !important; } .lib-grid .card { border-radius: 12px; overflow: hidden; } }
-        .lib-ex-name { font-size: 0.9rem; font-weight: 600; color: #1C1C1E; }
-        .lib-ex-sub { font-size: 0.74rem; color: #8E8E93; margin-top: 3px; display: flex; gap: 5px; flex-wrap: wrap; align-items: center; }
-        .lib-actions { display: flex; gap: 6px; flex-shrink: 0; }
-        .lib-btn { background: #F2F2F7; border: none; color: #8E8E93; font-family: inherit; font-size: 0.75rem; font-weight: 500; padding: 6px 12px; border-radius: 10px; cursor: pointer; min-height: 32px; display: flex; align-items: center; }
-        .lib-btn:active { background: #E5E5EA; color: #1C1C1E; }
-        .lib-btn.del:active { background: #FFF2F2; color: #FF3B30; }
-        @media (min-width: 768px) {
-          .lib-btn.edit:hover { background: #FFF8E6; color: #FF9500; }
-          .lib-btn.del:hover { background: #FFF2F2; color: #FF3B30; }
-        }
-        .lib-empty { font-size: 0.9rem; color: #8E8E93; padding: 40px 0; text-align: center; }
+        .lib-search { flex: 1; min-width: 140px; background: #111; border: 1px solid #1e1e1e; border-radius: 4px; padding: 9px 12px; color: #d4d4d4; font-family: 'DM Mono', monospace; font-size: 0.78rem; outline: none; }
+        .lib-search:focus { border-color: #ff6b35; }
+        .lib-select { background: #111; border: 1px solid #1e1e1e; border-radius: 4px; padding: 8px 10px; color: #888; font-family: 'DM Mono', monospace; font-size: 0.72rem; outline: none; cursor: pointer; }
+        .lib-select:focus { border-color: #ff6b35; }
+        .lib-count { font-size: 0.62rem; color: #444; }
+        .lib-add-btn { font-family: 'DM Mono', monospace; font-size: 0.68rem; letter-spacing: 1px; padding: 8px 14px; background: #ff6b35; border: none; color: #000; border-radius: 4px; cursor: pointer; }
+        .lib-add-btn:hover, .lib-add-btn:active { background: #ff8c5a; }
+        .lib-ex-row { display: flex; align-items: center; gap: 12px; padding: 12px 14px; background: #0d0d0d; border-bottom: 1px solid #111; cursor: pointer; }
+        .lib-ex-row:first-child { border-radius: 6px 6px 0 0; }
+        .lib-ex-row:last-child { border-radius: 0 0 6px 6px; border-bottom: none; }
+        .lib-ex-row:only-child { border-radius: 6px; border-bottom: none; }
+        .lib-ex-row:hover, .lib-ex-row:active { background: #111; }
+        .lib-ex-name { font-size: 0.8rem; color: #d4d4d4; }
+        .lib-ex-sub { display: flex; gap: 5px; flex-wrap: wrap; margin-top: 3px; align-items: center; }
+        .lib-actions { display: flex; gap: 5px; flex-shrink: 0; }
+        .lib-btn { background: none; border: 1px solid #222; color: #444; font-family: 'DM Mono', monospace; font-size: 0.62rem; padding: 5px 10px; border-radius: 3px; cursor: pointer; min-height: 30px; display: flex; align-items: center; }
+        .lib-btn:hover, .lib-btn:active { border-color: #ff6b35; color: #ff6b35; }
+        .lib-btn.del:hover, .lib-btn.del:active { border-color: #ff4d4d; color: #ff4d4d; }
+        .lib-empty { font-size: 0.8rem; color: #444; padding: 30px; text-align: center; background: #0d0d0d; border-radius: 6px; }
 
-        /* ── BOTTOM NAV ── */
-        .bottom-nav {
-          display: flex; align-items: center; justify-content: space-around;
-          background: rgba(255,255,255,0.95); backdrop-filter: blur(10px);
-          border-top: 1px solid #E5E5EA;
-          padding: 8px 8px calc(8px + env(safe-area-inset-bottom));
-          flex-shrink: 0;
-        }
+        /* ── BOTTOM NAV (mobile only) ── */
+        .bottom-nav { display: flex; align-items: center; background: #0a0a0a; border-top: 1px solid #1e1e1e; padding-bottom: env(safe-area-inset-bottom); flex-shrink: 0; }
         @media (min-width: 768px) { .bottom-nav { display: none; } }
-        .bottom-nav-btn { flex: 1; background: none; border: none; cursor: pointer; padding: 6px 4px; display: flex; flex-direction: column; align-items: center; gap: 3px; border-radius: 12px; transition: all 0.15s; }
-        .bottom-nav-btn.active { background: #EBF4FF; }
-        .bottom-nav-icon { font-size: 1.4rem; line-height: 1; }
-        .bottom-nav-label { font-family: inherit; font-size: 0.58rem; font-weight: 500; color: #8E8E93; letter-spacing: 0.2px; }
-        .bottom-nav-btn.active .bottom-nav-label { color: #007AFF; font-weight: 700; }
+        .bnav-btn { flex: 1; background: none; border: none; cursor: pointer; padding: 10px 4px 8px; display: flex; flex-direction: column; align-items: center; gap: 3px; }
+        .bnav-icon { font-size: 1.3rem; line-height: 1; }
+        .bnav-label { font-family: 'DM Mono', monospace; font-size: 0.52rem; letter-spacing: 0.5px; color: #444; }
+        .bnav-btn.active .bnav-label { color: #ff6b35; }
 
         /* ── MODAL ── */
-        .overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 100; display: flex; align-items: flex-end; justify-content: center; }
+        .overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 100; display: flex; align-items: flex-end; justify-content: center; }
         @media (min-width: 768px) { .overlay { align-items: center; padding: 20px; } }
-        .modal {
-          background: #F2F2F7; border-radius: 20px 20px 0 0;
-          width: 100%; max-height: 92dvh; display: flex; flex-direction: column;
-          padding-bottom: env(safe-area-inset-bottom);
-        }
-        @media (min-width: 768px) {
-          .modal { border-radius: 16px; width: 520px; max-height: 88vh; padding-bottom: 0; }
-          .modal-lg { width: 580px; }
-        }
-        .modal-handle { width: 36px; height: 4px; background: #C7C7CC; border-radius: 2px; margin: 10px auto 0; flex-shrink: 0; }
+        .modal { background: #111; border: 1px solid #222; border-radius: 14px 14px 0 0; width: 100%; max-height: 90dvh; display: flex; flex-direction: column; padding-bottom: env(safe-area-inset-bottom); }
+        @media (min-width: 768px) { .modal { border-radius: 8px; width: 500px; max-height: 85vh; padding-bottom: 0; } .modal-lg { width: 560px; } }
+        .modal-handle { width: 36px; height: 4px; background: #333; border-radius: 2px; margin: 10px auto 0; flex-shrink: 0; }
         @media (min-width: 768px) { .modal-handle { display: none; } }
-        .modal-header { padding: 16px 18px 12px; display: flex; justify-content: space-between; align-items: center; flex-shrink: 0; }
-        .modal-title { font-size: 1rem; font-weight: 700; color: #1C1C1E; }
-        .modal-close { background: #E5E5EA; border: none; color: #8E8E93; font-size: 0.8rem; font-weight: 700; cursor: pointer; width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
-        .modal-close:active { background: #C7C7CC; }
-
-        /* Search in picker */
-        .modal-search-wrap { padding: 0 14px 10px; flex-shrink: 0; }
-        .modal-search { width: 100%; background: #FFFFFF; border: 1px solid #E5E5EA; border-radius: 12px; padding: 11px 16px 11px 36px; color: #1C1C1E; font-family: inherit; font-size: 0.95rem; outline: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%238E8E93' viewBox='0 0 16 16'%3E%3Cpath d='M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.099zm-5.242 1.656a5.5 5.5 0 1 1 0-11 5.5 5.5 0 0 1 0 11z'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: 12px center; }
-        .modal-search:focus { border-color: #007AFF; }
-        .ex-picker { overflow-y: auto; flex: 1; background: #FFFFFF; border-radius: 12px; margin: 0 14px; }
-        .ex-option { display: flex; align-items: center; justify-content: space-between; padding: 13px 16px; border-bottom: 1px solid #F2F2F7; cursor: pointer; gap: 12px; }
-        .ex-option:last-child { border-bottom: none; }
-        .ex-option:active { background: #F0F8FF; }
-        @media (min-width: 768px) { .ex-option:hover { background: #F0F8FF; } }
-        .ex-opt-name { font-size: 0.9rem; font-weight: 600; color: #1C1C1E; }
-        .ex-opt-sub { font-size: 0.72rem; color: #8E8E93; margin-top: 2px; }
-        .picker-footer { height: 14px; flex-shrink: 0; }
+        .modal-header { padding: 14px 18px 12px; border-bottom: 1px solid #1a1a1a; display: flex; justify-content: space-between; align-items: center; flex-shrink: 0; }
+        .modal-title { font-family: 'Bebas Neue', sans-serif; letter-spacing: 2px; font-size: 1rem; color: #fff; }
+        .modal-close { background: #1a1a1a; border: none; color: #888; font-size: 0.75rem; cursor: pointer; width: 26px; height: 26px; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
+        .modal-close:hover, .modal-close:active { background: #333; color: #fff; }
+        .modal-search-wrap { padding: 10px 14px 8px; flex-shrink: 0; }
+        .modal-search { width: 100%; background: #0a0a0a; border: 1px solid #1e1e1e; border-radius: 6px; padding: 10px 14px; color: #fff; font-family: 'DM Mono', monospace; font-size: 0.85rem; outline: none; }
+        .modal-search:focus { border-color: #ff6b35; }
+        .ex-picker { overflow-y: auto; flex: 1; }
+        .ex-option { display: flex; align-items: center; justify-content: space-between; padding: 12px 18px; border-bottom: 1px solid #0d0d0d; cursor: pointer; gap: 10px; }
+        .ex-option:active, .ex-option:hover { background: #161616; }
+        .ex-opt-name { font-size: 0.82rem; color: #d4d4d4; }
+        .ex-opt-sub { font-size: 0.65rem; color: #555; margin-top: 2px; }
+        .picker-footer { height: 10px; flex-shrink: 0; }
 
         /* Programs modal */
-        .prog-list { display: flex; flex-direction: column; gap: 2px; padding: 0 14px; overflow-y: auto; flex: 1; }
-        .prog-item { display: flex; align-items: center; gap: 12px; padding: 14px 16px; background: #FFFFFF; border-radius: 12px; cursor: pointer; transition: all 0.12s; border: 2px solid transparent; }
-        .prog-item:active { background: #F0F8FF; }
-        @media (min-width: 768px) { .prog-item:hover { background: #F0F8FF; } }
-        .prog-item.active-prog { border-color: #007AFF; background: #F0F8FF; }
-        .prog-checkmark { width: 22px; height: 22px; border-radius: 50%; border: 2px solid #C7C7CC; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
-        .prog-item.active-prog .prog-checkmark { background: #007AFF; border-color: #007AFF; color: #fff; font-size: 0.7rem; }
-        .prog-item-name { font-size: 0.9rem; font-weight: 600; color: #1C1C1E; flex: 1; }
-        .prog-item.active-prog .prog-item-name { color: #007AFF; }
-        .prog-item-days { font-size: 0.72rem; color: #8E8E93; margin-top: 2px; }
-        .prog-item-actions { display: flex; gap: 4px; }
-        .prog-icon-btn { background: #F2F2F7; border: none; color: #8E8E93; font-size: 0.85rem; cursor: pointer; padding: 6px 8px; border-radius: 8px; min-width: 32px; min-height: 32px; display: flex; align-items: center; justify-content: center; }
-        .prog-icon-btn:active { background: #E5E5EA; }
-        .prog-footer { padding: 12px 14px; flex-shrink: 0; }
-        .prog-new-btn { width: 100%; font-family: inherit; font-size: 0.9rem; font-weight: 600; padding: 14px; background: #007AFF; border: none; color: #fff; border-radius: 14px; cursor: pointer; }
-        .prog-new-btn:active { background: #0063D1; }
+        .prog-list { display: flex; flex-direction: column; gap: 2px; padding: 10px; overflow-y: auto; flex: 1; }
+        .prog-item { display: flex; align-items: center; gap: 10px; padding: 12px 14px; background: #1a1a1a; border-radius: 6px; cursor: pointer; border: 1px solid transparent; }
+        .prog-item:hover, .prog-item:active { background: #1e1e1e; }
+        .prog-item.active-prog { border-color: #ff6b35; background: #1a1a1a; }
+        .prog-checkmark { width: 20px; height: 20px; border-radius: 50%; border: 1px solid #333; display: flex; align-items: center; justify-content: center; font-size: 0.65rem; color: #555; flex-shrink: 0; }
+        .prog-item.active-prog .prog-checkmark { background: #ff6b35; border-color: #ff6b35; color: #000; }
+        .prog-item-name { font-size: 0.8rem; color: #d4d4d4; flex: 1; }
+        .prog-item.active-prog .prog-item-name { color: #ff6b35; }
+        .prog-item-days { font-size: 0.62rem; color: #555; margin-top: 2px; }
+        .prog-item-actions { display: flex; gap: 3px; }
+        .prog-icon-btn { background: #111; border: 1px solid #222; color: #555; font-size: 0.8rem; cursor: pointer; padding: 5px 7px; border-radius: 4px; min-width: 30px; min-height: 30px; display: flex; align-items: center; justify-content: center; }
+        .prog-icon-btn:hover, .prog-icon-btn:active { border-color: #ff6b35; color: #ff6b35; }
+        .prog-footer { padding: 10px; border-top: 1px solid #1a1a1a; flex-shrink: 0; }
+        .prog-new-btn { width: 100%; font-family: 'DM Mono', monospace; font-size: 0.75rem; letter-spacing: 1px; padding: 12px; background: #ff6b35; border: none; color: #000; border-radius: 6px; cursor: pointer; }
+        .prog-new-btn:hover, .prog-new-btn:active { background: #ff8c5a; }
 
         /* Forms */
         .modal-form { padding: 14px; display: flex; flex-direction: column; gap: 14px; overflow-y: auto; }
-        .form-label { font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; color: #8E8E93; margin-bottom: 4px; display: block; }
-        .form-input { width: 100%; background: #FFFFFF; border: 1px solid #E5E5EA; border-radius: 12px; padding: 13px 16px; color: #1C1C1E; font-family: inherit; font-size: 1rem; outline: none; }
-        .form-input:focus { border-color: #007AFF; }
-        .form-select { width: 100%; background: #FFFFFF; border: 1px solid #E5E5EA; border-radius: 12px; padding: 13px 16px; color: #1C1C1E; font-family: inherit; font-size: 1rem; outline: none; cursor: pointer; }
-        .form-select:focus { border-color: #007AFF; }
-        .muscle-grid { display: flex; flex-wrap: wrap; gap: 8px; }
-        .muscle-toggle { font-size: 0.78rem; font-weight: 500; padding: 7px 14px; border-radius: 20px; border: 1.5px solid #E5E5EA; background: #FFFFFF; color: #8E8E93; cursor: pointer; transition: all 0.12s; font-family: inherit; }
-        .muscle-toggle.active-primary { border-color: var(--mc); color: var(--mc); background: color-mix(in srgb, var(--mc) 10%, white); }
-        .muscle-toggle.active-secondary { border-color: #C7C7CC; color: #3A3A3C; background: #F2F2F7; }
-        .form-error { font-size: 0.78rem; color: #FF3B30; font-weight: 500; }
-        .form-footer { display: flex; justify-content: flex-end; gap: 10px; padding-top: 4px; }
-        .btn-cancel { background: #F2F2F7; border: none; color: #8E8E93; font-family: inherit; font-size: 0.88rem; font-weight: 600; padding: 12px 18px; border-radius: 12px; cursor: pointer; }
-        .btn-cancel:active { background: #E5E5EA; }
-        .btn-save { background: #007AFF; border: none; color: #fff; font-family: inherit; font-size: 0.88rem; font-weight: 600; padding: 12px 22px; border-radius: 12px; cursor: pointer; }
-        .btn-save:active { background: #0063D1; }
-
-        /* Import */
+        .form-label { font-size: 0.6rem; text-transform: uppercase; letter-spacing: 1.5px; color: #555; margin-bottom: 5px; display: block; }
+        .form-input { width: 100%; background: #0a0a0a; border: 1px solid #1e1e1e; border-radius: 6px; padding: 11px 14px; color: #d4d4d4; font-family: 'DM Mono', monospace; font-size: 0.9rem; outline: none; }
+        .form-input:focus { border-color: #ff6b35; }
+        .form-select { width: 100%; background: #0a0a0a; border: 1px solid #1e1e1e; border-radius: 6px; padding: 11px 14px; color: #d4d4d4; font-family: 'DM Mono', monospace; font-size: 0.88rem; outline: none; cursor: pointer; }
+        .form-select:focus { border-color: #ff6b35; }
+        .muscle-grid { display: flex; flex-wrap: wrap; gap: 7px; }
+        .muscle-toggle { font-size: 0.65rem; padding: 6px 12px; border-radius: 20px; border: 1px solid #1e1e1e; background: #0d0d0d; color: #555; cursor: pointer; font-family: 'DM Mono', monospace; }
+        .muscle-toggle.active-primary { border-color: var(--mc); color: var(--mc); background: color-mix(in srgb, var(--mc) 10%, transparent); }
+        .muscle-toggle.active-secondary { border-color: #333; color: #888; background: #1a1a1a; }
+        .form-error { font-size: 0.7rem; color: #ff4d4d; }
+        .form-footer { display: flex; justify-content: flex-end; gap: 8px; padding-top: 4px; }
+        .btn-cancel { background: #1a1a1a; border: 1px solid #222; color: #555; font-family: 'DM Mono', monospace; font-size: 0.72rem; padding: 10px 16px; border-radius: 6px; cursor: pointer; }
+        .btn-cancel:hover, .btn-cancel:active { color: #888; }
+        .btn-save { background: #ff6b35; border: none; color: #000; font-family: 'DM Mono', monospace; font-size: 0.72rem; padding: 10px 18px; border-radius: 6px; cursor: pointer; }
+        .btn-save:hover, .btn-save:active { background: #ff8c5a; }
         .import-body { padding: 14px; display: flex; flex-direction: column; gap: 12px; overflow-y: auto; }
-        .import-textarea { background: #FFFFFF; border: 1px solid #E5E5EA; border-radius: 12px; color: #1C1C1E; font-family: monospace; font-size: 0.75rem; padding: 12px; height: 140px; resize: vertical; outline: none; }
-        .import-textarea:focus { border-color: #007AFF; }
-        .import-error { font-size: 0.78rem; color: #FF3B30; font-weight: 500; }
-        .import-confirm { font-family: inherit; font-size: 0.9rem; font-weight: 600; padding: 13px; background: #007AFF; border: none; color: #fff; border-radius: 12px; cursor: pointer; }
-        .import-confirm:active { background: #0063D1; }
+        .import-textarea { background: #0a0a0a; border: 1px solid #1e1e1e; border-radius: 6px; color: #d4d4d4; font-family: monospace; font-size: 0.72rem; padding: 10px; height: 130px; resize: vertical; outline: none; }
+        .import-textarea:focus { border-color: #ff6b35; }
+        .import-error { font-size: 0.7rem; color: #ff4d4d; }
+        .import-confirm { font-family: 'DM Mono', monospace; font-size: 0.75rem; padding: 12px; background: #ff6b35; border: none; color: #000; border-radius: 6px; cursor: pointer; }
+        .import-confirm:hover { background: #ff8c5a; }
       `}</style>
 
       <div className="app">
+
         {/* ── DESKTOP HEADER ── */}
         <div className="header">
-          <div className="header-brand">
-            <h1>Work<span>out</span></h1>
-          </div>
+          <div className="header-brand"><h1>Work<span>out</span></h1></div>
           <button className={`nav-tab ${page === "program" ? "active" : ""}`} onClick={() => setPage("program")}>Programme</button>
           <button className={`nav-tab ${page === "stats" ? "active" : ""}`} onClick={() => setPage("stats")}>Analyse</button>
           <button className={`nav-tab ${page === "library" ? "active" : ""}`} onClick={() => setPage("library")}>Bibliothèque ({Object.keys(db).length})</button>
@@ -939,7 +889,7 @@ Sois direct, comme un vrai coach. Pas de titres, juste des paragraphes. Maximum 
               <span className="prog-switcher-name">{activeProgName}</span>
               <span className="prog-switcher-chevron">▼</span>
             </button>
-            <div className={`save-dot ${saveStatus}`} title={saveStatus === "saved" ? "Sauvegardé" : saveStatus === "saving" ? "Sauvegarde..." : ""} />
+            <div className={`save-dot ${saveStatus}`} />
             <button className="hdr-btn hdr-btn-ghost" onClick={() => fileInputRef.current?.click()}>Importer</button>
             <button className="hdr-btn hdr-btn-solid" onClick={exportJSON}>Exporter</button>
             <input ref={fileInputRef} type="file" accept=".json" style={{ display: "none" }} onChange={handleImportFile} />
@@ -954,148 +904,114 @@ Sois direct, comme un vrai coach. Pas de titres, juste des paragraphes. Maximum 
           </button>
           <div className="mobile-right">
             <div className={`save-dot ${saveStatus}`} />
-            <button className="icon-btn-round" onClick={() => fileInputRef.current?.click()}>↑ Import</button>
-            <button className="icon-btn-round" onClick={exportJSON}>↓ Export</button>
+            <button className="mob-btn" onClick={() => fileInputRef.current?.click()}>↑</button>
+            <button className="mob-btn" onClick={exportJSON}>↓</button>
             <input ref={fileInputRef} type="file" accept=".json" style={{ display: "none" }} onChange={handleImportFile} />
           </div>
         </div>
 
-        {/* ── CONTENT ── */}
+        {/* ── MAIN CONTENT ── */}
         <div className="content">
 
-          {(page === "program" || page === "stats") && (
-            <div className="desktop-layout">
-
-              {/* Programme */}
-              {page === "program" && (
-                <div className="page">
-                  <div>
-                    <div className="page-title">Programme</div>
-                    <span className="page-title-accent" />
-                  </div>
-
-                  {program.map(day => {
-                    const isCollapsed = collapsedDays[day.id];
-                    return (
-                    <div key={day.id} className="card">
-                      <div
-                        className={`day-header ${!isCollapsed ? "day-header-divider" : ""}`}
-                        onClick={() => toggleCollapse(day.id)}
-                      >
-                        <span className={`day-collapse-icon ${!isCollapsed ? "open" : ""}`}>›</span>
-                        {editingDay === day.id ? (
-                          <input className="day-name-input" value={editingDayName} autoFocus
-                            onClick={e => e.stopPropagation()}
-                            onChange={e => setEditingDayName(e.target.value)}
-                            onBlur={() => renameDay(day.id, editingDayName || day.name)}
-                            onKeyDown={e => e.key === "Enter" && renameDay(day.id, editingDayName || day.name)} />
-                        ) : (
-                          <span className="day-name">{day.name}</span>
-                        )}
-                        <span style={{ fontSize: "0.7rem", color: "#C7C7CC", marginRight: 4 }}>
-                          {day.exercises.length} ex.
-                        </span>
-                        <button className="day-edit-btn" onClick={e => { e.stopPropagation(); setEditingDay(day.id); setEditingDayName(day.name); }} title="Renommer">✏️</button>
-                        <button className="day-delete-btn" onClick={e => { e.stopPropagation(); deleteDay(day.id); }} title="Supprimer">✕</button>
-                      </div>
-
-                      {!isCollapsed && (
-                        <div className="ex-list"
-                          onDragOver={e => e.preventDefault()}
-                          onDrop={() => onDrop(day.id, day.exercises.length)}>
-                          {day.exercises.map((ex, idx) => {
-                            const data = db[ex.name];
-                            return (
-                              <div key={ex.id} className="ex-row" draggable
-                                onDragStart={() => onDragStart(day.id, idx)}
-                                onDragOver={e => e.preventDefault()}
-                                onDrop={e => { e.stopPropagation(); onDrop(day.id, idx); }}>
-                                <span className="ex-idx-pill">{idx + 1}</span>
-                                <div className="ex-info">
-                                  <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                                    <span className="ex-name">{ex.name}</span>
-                                    {data?.tier && <span className="tier-badge" style={{ background: TIER_META[data.tier]?.bg, color: TIER_META[data.tier]?.color, borderColor: TIER_META[data.tier]?.color + "44" }}>{data.tier}</span>}
-                                  </div>
-                                  <div className="ex-sub">
-                                    <span className="ex-sets-badge">{ex.sets} séries</span>
-                                    {data?.primary.map(m => <span key={m} className="muscle-pill" style={{ background: MUSCLE_META[m]?.color + "18", color: MUSCLE_META[m]?.color }}>{m}</span>)}
-                                  </div>
+          {/* Programme */}
+          {page === "program" && (
+            <div className="page">
+              <div><div className="page-title">Programme</div><span className="page-title-accent" /></div>
+              {program.map(day => {
+                const isOpen = !collapsedDays[day.id];
+                return (
+                  <div key={day.id} className="day-card">
+                    <div className={`day-header ${isOpen ? "open" : ""}`} onClick={() => toggleCollapse(day.id)}>
+                      <span className={`day-collapse-icon ${isOpen ? "open" : ""}`}>›</span>
+                      {editingDay === day.id ? (
+                        <input className="day-name-input" value={editingDayName} autoFocus
+                          onClick={e => e.stopPropagation()}
+                          onChange={e => setEditingDayName(e.target.value)}
+                          onBlur={() => renameDay(day.id, editingDayName || day.name)}
+                          onKeyDown={e => e.key === "Enter" && renameDay(day.id, editingDayName || day.name)} />
+                      ) : (
+                        <span className="day-name">{day.name}</span>
+                      )}
+                      <span className="day-count">{day.exercises.length} ex.</span>
+                      <button className="day-edit-btn" onClick={e => { e.stopPropagation(); setEditingDay(day.id); setEditingDayName(day.name); }}>✏️</button>
+                      <button className="day-del-btn" onClick={e => { e.stopPropagation(); deleteDay(day.id); }}>✕</button>
+                    </div>
+                    {isOpen && (
+                      <div className="ex-list" onDragOver={e => e.preventDefault()} onDrop={() => onDrop(day.id, day.exercises.length)}>
+                        {day.exercises.map((ex, idx) => {
+                          const data = db[ex.name];
+                          return (
+                            <div key={ex.id} className="ex-row" draggable
+                              onDragStart={() => onDragStart(day.id, idx)}
+                              onDragOver={e => e.preventDefault()}
+                              onDrop={e => { e.stopPropagation(); onDrop(day.id, idx); }}>
+                              <span className="ex-idx">{idx + 1}</span>
+                              <div className="ex-info">
+                                <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
+                                  <span className="ex-name">{ex.name}</span>
+                                  {data?.tier && <span className="tier-badge" style={{ background: TIER_META[data.tier]?.bg, color: TIER_META[data.tier]?.color, borderColor: TIER_META[data.tier]?.color + "44" }}>{data.tier}</span>}
                                 </div>
-
-                                {/* Mobile: sets + actions */}
-                                <div className="ex-actions-mobile">
-                                  <div className="sets-ctrl">
-                                    <button className="sets-btn" onClick={() => updateSets(day.id, ex.id, ex.sets - 1)}>−</button>
-                                    <span className="sets-val">{ex.sets}</span>
-                                    <button className="sets-btn" onClick={() => updateSets(day.id, ex.id, ex.sets + 1)}>+</button>
-                                  </div>
-                                  <button className="ex-mob-btn" onClick={() => { setModal({ type: "replace", dayId: day.id, exId: ex.id }); setSearch(""); }}>⇄</button>
-                                  <button className="ex-mob-btn del" onClick={() => deleteExercise(day.id, ex.id)}>✕</button>
+                                <div className="ex-sub">
+                                  <span className="ex-sets-badge">{ex.sets} séries</span>
+                                  {data?.primary.map(m => <span key={m} className="muscle-pill" style={{ background: MUSCLE_META[m]?.color + "18", color: MUSCLE_META[m]?.color }}>{m}</span>)}
                                 </div>
-
-                                {/* Desktop controls */}
-                                <div className="sets-ctrl icon-btn" style={{ cursor: "default", gap: "4px" }}>
+                              </div>
+                              {/* Mobile */}
+                              <div className="ex-mob-btns">
+                                <div className="sets-ctrl">
                                   <button className="sets-btn" onClick={() => updateSets(day.id, ex.id, ex.sets - 1)}>−</button>
                                   <span className="sets-val">{ex.sets}</span>
                                   <button className="sets-btn" onClick={() => updateSets(day.id, ex.id, ex.sets + 1)}>+</button>
                                 </div>
-                                <button className="icon-btn" onClick={() => moveExercise(day.id, idx, -1)}>↑</button>
-                                <button className="icon-btn rep" onClick={() => { setModal({ type: "replace", dayId: day.id, exId: ex.id }); setSearch(""); }}>⇄</button>
-                                <button className="icon-btn del" onClick={() => deleteExercise(day.id, ex.id)}>✕</button>
-                                <span className="ex-chevron">›</span>
+                                <button className="ex-mob-btn" onClick={() => { setModal({ type: "replace", dayId: day.id, exId: ex.id }); setSearch(""); }}>⇄</button>
+                                <button className="ex-mob-btn del" onClick={() => deleteExercise(day.id, ex.id)}>✕</button>
                               </div>
-                            );
-                          })}
-                          <button className="add-ex-btn" onClick={() => { setModal({ type: "add", dayId: day.id }); setSearch(""); }}>
-                            + Ajouter un exercice
-                          </button>
-                        </div>
-                      )}
-                    </div>
-                    );
-                  })}
-                  <button className="add-day-btn" onClick={addDay}>+ Ajouter une séance</button>
-                </div>
-              )}
-
-              {/* Stats (mobile standalone + full desktop) */}
-              {page === "stats" && (
-                <div className="page" style={{ gridColumn: "1 / -1" }}>
-                  <div>
-                    <div className="page-title">Analyse</div>
-                    <span className="page-title-accent" />
+                              {/* Desktop */}
+                              <div className="sets-ctrl icon-btn" style={{ cursor: "default", gap: "3px" }}>
+                                <button className="sets-btn" onClick={() => updateSets(day.id, ex.id, ex.sets - 1)}>−</button>
+                                <span className="sets-val">{ex.sets}</span>
+                                <button className="sets-btn" onClick={() => updateSets(day.id, ex.id, ex.sets + 1)}>+</button>
+                              </div>
+                              <button className="icon-btn" onClick={() => moveExercise(day.id, idx, -1)}>↑</button>
+                              <button className="icon-btn rep" onClick={() => { setModal({ type: "replace", dayId: day.id, exId: ex.id }); setSearch(""); }}>⇄</button>
+                              <button className="icon-btn del" onClick={() => deleteExercise(day.id, ex.id)}>✕</button>
+                              <span className="ex-chevron">›</span>
+                            </div>
+                          );
+                        })}
+                        <button className="add-ex-btn" onClick={() => { setModal({ type: "add", dayId: day.id }); setSearch(""); }}>
+                          + Ajouter un exercice
+                        </button>
+                      </div>
+                    )}
                   </div>
-                  {renderAnalysisContent()}
-                </div>
-              )}
+                );
+              })}
+              <button className="add-day-btn" onClick={addDay}>+ Ajouter une séance</button>
+            </div>
+          )}
 
-              {/* Desktop stats sidebar — only visible on programme page */}
-              {page === "program" && (
-              <div className="desktop-right">
-                <div style={{ fontSize: "0.75rem", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.8px", color: "#8E8E93", marginBottom: 14 }}>
-                  Volume hebdomadaire
-                </div>
-                {renderMuscleRows()}
-                <div className="divider" style={{ margin: "12px 0" }} />
-                <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-                  {[{c: "#34C759", l: "OPTIMAL"}, {c: "#FF9500", l: "BON"}, {c: "#FF3B30", l: "EXCESSIF"}].map(({c, l}) => (
-                    <div key={l} className="legend-row"><div className="legend-dot" style={{ background: c }} />{l}</div>
-                  ))}
-                </div>
-              </div>
-              )}
+          {/* Stats — mobile standalone, hidden on desktop in favour of sidebar */}
+          {page === "stats" && (
+            <div className="page">
+              <div><div className="page-title">Analyse</div><span className="page-title-accent" /></div>
+              {renderAnalysisContent()}
+            </div>
+          )}
+
+          {/* Desktop sidebar — always shown alongside Programme */}
+          {page === "program" && (
+            <div style={{ padding: 20, background: "#080808", borderLeft: "1px solid #1e1e1e", display: "none" }} className="desktop-sidebar">
+              {/* shown via CSS below */}
             </div>
           )}
 
           {/* Library */}
           {page === "library" && (
             <div className="page">
-              <div>
-                <div className="page-title">Bibliothèque</div>
-                <span className="page-title-accent" />
-              </div>
+              <div><div className="page-title">Bibliothèque</div><span className="page-title-accent" /></div>
               <div className="lib-toolbar">
-                <input className="lib-search" placeholder="Rechercher un exercice..." value={libSearch} onChange={e => setLibSearch(e.target.value)} />
+                <input className="lib-search" placeholder="Rechercher..." value={libSearch} onChange={e => setLibSearch(e.target.value)} />
                 <select className="lib-select" value={libMuscle} onChange={e => setLibMuscle(e.target.value)}>
                   <option>Tous</option>
                   {ALL_MUSCLES.map(m => <option key={m}>{m}</option>)}
@@ -1107,20 +1023,20 @@ Sois direct, comme un vrai coach. Pas de titres, juste des paragraphes. Maximum 
                 <span className="lib-count">{filteredLib.length}/{Object.keys(db).length}</span>
                 <button className="lib-add-btn" onClick={openAddEx}>+ Nouveau</button>
               </div>
-              <div className="card lib-grid">
+              <div>
                 {filteredLib.length === 0 && <div className="lib-empty">Aucun exercice trouvé.</div>}
                 {filteredLib.map(name => {
                   const d = db[name];
                   return (
-                    <div key={name} className="lib-ex-row" style={{ cursor: "pointer" }} onClick={() => openEditEx(name)}>
+                    <div key={name} className="lib-ex-row" onClick={() => openEditEx(name)}>
                       <div style={{ flex: 1, minWidth: 0 }}>
-                        <div style={{ display: "flex", alignItems: "center", gap: 7 }}>
+                        <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
                           <span className="lib-ex-name">{name}</span>
                           {d.tier && <span className="tier-badge" style={{ background: TIER_META[d.tier]?.bg, color: TIER_META[d.tier]?.color, borderColor: TIER_META[d.tier]?.color + "44" }}>{d.tier}</span>}
                         </div>
                         <div className="lib-ex-sub">
                           {d.primary.map(m => <span key={m} className="muscle-pill" style={{ background: MUSCLE_META[m]?.color + "18", color: MUSCLE_META[m]?.color }}>{m}</span>)}
-                          {d.secondary.map(m => <span key={m} style={{ color: "#C7C7CC", fontSize: "0.65rem" }}>{m} ½</span>)}
+                          {d.secondary.map(m => <span key={m} style={{ color: "#444", fontSize: "0.58rem" }}>{m} ½</span>)}
                         </div>
                       </div>
                       <div className="lib-actions" onClick={e => e.stopPropagation()}>
@@ -1133,21 +1049,19 @@ Sois direct, comme un vrai coach. Pas de titres, juste des paragraphes. Maximum 
               </div>
             </div>
           )}
+
         </div>
 
         {/* ── BOTTOM NAV ── */}
         <div className="bottom-nav">
-          <button className={`bottom-nav-btn ${page === "program" ? "active" : ""}`} onClick={() => setPage("program")}>
-            <span className="bottom-nav-icon">📋</span>
-            <span className="bottom-nav-label">Programme</span>
+          <button className={`bnav-btn ${page === "program" ? "active" : ""}`} onClick={() => setPage("program")}>
+            <span className="bnav-icon">📋</span><span className="bnav-label">Programme</span>
           </button>
-          <button className={`bottom-nav-btn ${page === "stats" ? "active" : ""}`} onClick={() => setPage("stats")}>
-            <span className="bottom-nav-icon">📊</span>
-            <span className="bottom-nav-label">Analyse</span>
+          <button className={`bnav-btn ${page === "stats" ? "active" : ""}`} onClick={() => setPage("stats")}>
+            <span className="bnav-icon">📊</span><span className="bnav-label">Analyse</span>
           </button>
-          <button className={`bottom-nav-btn ${page === "library" ? "active" : ""}`} onClick={() => setPage("library")}>
-            <span className="bottom-nav-icon">📚</span>
-            <span className="bottom-nav-label">Bibliothèque</span>
+          <button className={`bnav-btn ${page === "library" ? "active" : ""}`} onClick={() => setPage("library")}>
+            <span className="bnav-icon">📚</span><span className="bnav-label">Biblio</span>
           </button>
         </div>
       </div>
@@ -1159,25 +1073,21 @@ Sois direct, comme un vrai coach. Pas de titres, juste des paragraphes. Maximum 
             <div className="modal-handle" />
             <div className="modal-header">
               <span className="modal-title">
-                {modal.type === "replace" ? "Remplacer l'exercice"
-                  : modal.type === "add" ? "Ajouter un exercice"
-                  : modal.type === "import" ? "Importer"
-                  : modal.type === "programs" ? "Mes programmes"
+                {modal.type === "replace" ? "Remplacer" : modal.type === "add" ? "Ajouter un exercice"
+                  : modal.type === "import" ? "Importer" : modal.type === "programs" ? "Mes programmes"
                   : modal.type === "progForm" ? (editingProgId ? "Renommer" : "Nouveau programme")
-                  : modal.type === "editEx" && exFormOldName ? "Modifier l'exercice"
-                  : "Nouvel exercice"}
+                  : modal.type === "editEx" && exFormOldName ? "Modifier l'exercice" : "Nouvel exercice"}
               </span>
               <button className="modal-close" onClick={() => setModal(null)}>✕</button>
             </div>
 
-            {/* Exercise picker */}
             {(modal.type === "add" || modal.type === "replace") && <>
               <div className="modal-search-wrap">
                 <input ref={searchRef} className="modal-search" placeholder="Rechercher un exercice..." value={search} onChange={e => setSearch(e.target.value)} />
               </div>
               <div className="ex-picker">
                 {filteredPicker.length === 0
-                  ? <div style={{ padding: "24px", color: "#8E8E93", fontSize: "0.9rem", textAlign: "center" }}>Aucun résultat</div>
+                  ? <div style={{ padding: "20px", color: "#555", fontSize: "0.8rem", textAlign: "center" }}>Aucun résultat</div>
                   : filteredPicker.map(name => {
                     const d = db[name];
                     return (
@@ -1194,7 +1104,6 @@ Sois direct, comme un vrai coach. Pas de titres, juste des paragraphes. Maximum 
               <div className="picker-footer" />
             </>}
 
-            {/* Programs list */}
             {modal.type === "programs" && <>
               <div className="prog-list">
                 {programs.map(p => (
@@ -1213,19 +1122,16 @@ Sois direct, comme un vrai coach. Pas de titres, juste des paragraphes. Maximum 
                 ))}
               </div>
               <div className="prog-footer">
-                <button className="prog-new-btn" onClick={() => { setModal(null); setTimeout(openNewProgram, 50); }}>
-                  + Nouveau programme
-                </button>
+                <button className="prog-new-btn" onClick={() => { setModal(null); setTimeout(openNewProgram, 50); }}>+ Nouveau programme</button>
               </div>
             </>}
 
-            {/* Program form */}
             {modal.type === "progForm" && (
               <div className="modal-form">
                 <div>
                   <label className="form-label">{editingProgId ? "Nouveau nom" : "Nom du programme"}</label>
                   <input className="form-input" autoFocus value={progFormName} onChange={e => setProgFormName(e.target.value)}
-                    placeholder="Ex: PPL Hypertrophie, Full Body..." onKeyDown={e => e.key === "Enter" && saveProgForm()} />
+                    placeholder="Ex: PPL, Full Body..." onKeyDown={e => e.key === "Enter" && saveProgForm()} />
                 </div>
                 {progFormError && <div className="form-error">{progFormError}</div>}
                 <div className="form-footer">
@@ -1235,17 +1141,15 @@ Sois direct, comme un vrai coach. Pas de titres, juste des paragraphes. Maximum 
               </div>
             )}
 
-            {/* Import */}
             {modal.type === "import" && (
               <div className="import-body">
-                <div style={{ fontSize: "0.85rem", color: "#8E8E93" }}>Confirmer le remplacement du programme et de la bibliothèque ?</div>
+                <div style={{ fontSize: "0.8rem", color: "#555" }}>Confirmer le remplacement du programme et de la bibliothèque ?</div>
                 <textarea className="import-textarea" value={importText} onChange={e => setImportText(e.target.value)} spellCheck={false} />
                 {importError && <div className="import-error">{importError}</div>}
-                <button className="import-confirm" onClick={confirmImport}>Confirmer l'import</button>
+                <button className="import-confirm" onClick={confirmImport}>Confirmer</button>
               </div>
             )}
 
-            {/* Exercise form */}
             {modal.type === "editEx" && (
               <div className="modal-form">
                 <div>
