@@ -702,7 +702,7 @@ Sois direct, comme un vrai coach. Pas de titres, juste des paragraphes. Maximum 
         }
 
         /* ── DAY CARD ── */
-        .day-card { background: #FFFFFF; border: 1.5px solid #D1D1D6; border-radius: 10px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.06); }
+        .day-card { background: #FFFFFF; border: 1.5px solid #D1D1D6; border-radius: 10px; box-shadow: 0 1px 3px rgba(0,0,0,0.06); }
         .day-header { display: flex; align-items: center; gap: 8px; padding: 12px 16px; background: #FFFFFF; cursor: pointer; user-select: none; min-height: 48px; }
         .day-header:hover { background: #F7F7F7; }
         .day-header.open { border-bottom: 1.5px solid #E5E5EA; }
@@ -1259,50 +1259,55 @@ Sois direct, comme un vrai coach. Pas de titres, juste des paragraphes. Maximum 
 
   function renderAnalysisContent() {
     const PRIO_OPTIONS = [
-      { value: "priority", label: "🎯 Priorité", desc: "Développer", bg: "#EBF4FF", color: "#007AFF" },
-      { value: "balanced", label: "⚖️ Équilibré", desc: "Standard", bg: "#F2F2F7", color: "#3A3A3C" },
-      { value: "maintain", label: "🔒 Maintien", desc: "Conserver", bg: "#F2F2F7", color: "#8E8E93" },
+      { value: "priority", label: "🎯 Priorité",  activeBg: "#FFF3EE", activeColor: "#C94209", activeBorder: "#E8500A" },
+      { value: "balanced", label: "⚖️ Équilibré",  activeBg: "#E5E5EA", activeColor: "#1C1C1E", activeBorder: "#AEAEB2" },
+      { value: "maintain", label: "🔒 Maintien",   activeBg: "#F0F8FF", activeColor: "#1D4ED8", activeBorder: "#60A5FA" },
     ];
 
     return (
       <>
         {/* Priorities card */}
-        <div className="card" style={{ padding: 16 }}>
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 14 }}>
+        <div style={{ background: "#FFFFFF", border: "1.5px solid #D1D1D6", borderRadius: 10, padding: 18, boxShadow: "0 1px 3px rgba(0,0,0,0.06)" }}>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
             <div>
-              <div className="analysis-label">Objectifs musculaires</div>
-              <div style={{ fontSize: "0.75rem", color: "#8E8E93", marginTop: 2 }}>
+              <div style={{ fontSize: "0.68rem", fontWeight: 700, textTransform: "uppercase", letterSpacing: "1px", color: "#6B6B6B" }}>Objectifs musculaires</div>
+              <div style={{ fontSize: "0.75rem", color: "#8E8E93", marginTop: 3 }}>
                 Définis tes priorités pour adapter l'analyse
               </div>
             </div>
             {hasPriorities && (
-              <button onClick={resetPriorities} style={{ background: "none", border: "none", color: "#007AFF", fontSize: "0.78rem", fontWeight: 600, cursor: "pointer", fontFamily: "inherit", padding: "4px 0" }}>
-                Tout équilibré
+              <button onClick={resetPriorities} style={{ background: "none", border: "1.5px solid #D1D1D6", color: "#6B6B6B", fontSize: "0.75rem", fontWeight: 600, cursor: "pointer", fontFamily: "inherit", padding: "6px 12px", borderRadius: 8 }}>
+                Réinitialiser
               </button>
             )}
           </div>
 
-          <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+          <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
             {ALL_MUSCLES.map(muscle => {
               const prio = musclePriorities[muscle];
               return (
                 <div key={muscle} style={{ display: "flex", alignItems: "center", gap: 10 }}>
                   <span style={{ fontSize: "1rem", width: 22, flexShrink: 0 }}>{MUSCLE_META[muscle].emoji}</span>
                   <span style={{ fontSize: "0.85rem", fontWeight: 500, color: "#1C1C1E", flex: 1, minWidth: 0 }}>{muscle}</span>
-                  <div style={{ display: "flex", gap: 4, flexShrink: 0 }}>
-                    {PRIO_OPTIONS.map(opt => (
-                      <button key={opt.value} onClick={() => setPriority(muscle, opt.value)}
-                        style={{
-                          background: prio === opt.value ? opt.color : "#F2F2F7",
-                          color: prio === opt.value ? "#fff" : "#8E8E93",
-                          border: "none", borderRadius: 10, padding: "5px 10px",
-                          fontSize: "0.7rem", fontWeight: 600, cursor: "pointer",
-                          fontFamily: "inherit", transition: "all 0.15s",
-                          whiteSpace: "nowrap",
-                        }}>
-                        {opt.label}
-                      </button>
-                    ))}
+                  <div style={{ display: "flex", gap: 5, flexShrink: 0 }}>
+                    {PRIO_OPTIONS.map(opt => {
+                      const isActive = prio === opt.value;
+                      return (
+                        <button key={opt.value} onClick={() => setPriority(muscle, opt.value)}
+                          style={{
+                            background: isActive ? opt.activeBg : "#F2F2F7",
+                            color: isActive ? opt.activeColor : "#8E8E93",
+                            border: isActive ? `1.5px solid ${opt.activeBorder}` : "1.5px solid #E5E5EA",
+                            borderRadius: 8, padding: "6px 11px",
+                            fontSize: "0.72rem", fontWeight: isActive ? 700 : 500,
+                            cursor: "pointer", fontFamily: "inherit",
+                            transition: "all 0.12s", whiteSpace: "nowrap",
+                            minHeight: 32,
+                          }}>
+                          {opt.label}
+                        </button>
+                      );
+                    })}
                   </div>
                 </div>
               );
@@ -1335,7 +1340,7 @@ Sois direct, comme un vrai coach. Pas de titres, juste des paragraphes. Maximum 
         </div>
 
         {/* Volume bars */}
-        <div className="card" style={{ padding: 16 }}>
+        <div style={{ background: "#FFFFFF", border: "1.5px solid #D1D1D6", borderRadius: 10, padding: 18, boxShadow: "0 1px 3px rgba(0,0,0,0.06)" }}>
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 14 }}>
             <div className="analysis-label">Volume hebdomadaire</div>
           </div>
