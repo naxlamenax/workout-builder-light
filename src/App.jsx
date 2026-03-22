@@ -688,21 +688,20 @@ Sois direct, comme un vrai coach. Pas de titres, juste des paragraphes. Maximum 
         .prog-switcher-name { font-family: inherit; font-size: 0.82rem; font-weight: 600; color: #1C1C1E; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .prog-switcher-chevron { color: #007AFF; font-size: 0.65rem; flex-shrink: 0; }
 
-        /* ── CONTENT ── */
-        .content { flex: 1; overflow-y: auto; display: flex; flex-direction: column; }
-
-        /* ── DESKTOP LAYOUT ── */
+        /* ── CONTENT + LAYOUT ── */
+        /* Mobile: content is the single scroll container */
+        .content { flex: 1; overflow-y: auto; min-height: 0; }
         .desktop-layout { display: flex; flex-direction: column; }
-        @media (min-width: 768px) {
-          .content { overflow: hidden; }
-          .desktop-layout { display: grid !important; grid-template-columns: 1fr 300px; flex: 1; min-height: 0; }
-          .desktop-right { display: flex !important; flex-direction: column; }
-        }
-        .desktop-right { display: none; border-left: 1px solid #E5E5EA; overflow-y: auto; padding: 20px; background: #FFFFFF; }
-
-        /* ── PAGE ── */
+        .desktop-right { display: none; }
         .page { padding: 16px; display: flex; flex-direction: column; gap: 16px; }
-        @media (min-width: 768px) { .page { padding: 20px 24px; overflow-y: auto; } }
+
+        /* Desktop: two-column grid, each column scrolls independently */
+        @media (min-width: 768px) {
+          .content { overflow: hidden; display: flex; flex-direction: column; }
+          .desktop-layout { display: grid !important; grid-template-columns: 1fr 300px; flex: 1; min-height: 0; height: 100%; }
+          .page { padding: 20px 24px; overflow-y: auto; height: 100%; }
+          .desktop-right { display: flex !important; flex-direction: column; overflow-y: auto; border-left: 1px solid #E5E5EA; padding: 20px; background: #FFFFFF; height: 100%; }
+        }
 
         /* ── PAGE TITLE ── */
         .page-title { font-size: 2rem; font-weight: 800; color: #1C1C1E; letter-spacing: -0.5px; }
