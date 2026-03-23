@@ -995,47 +995,63 @@ export default function WorkoutDashboard() {
                           onDragOver={e => e.preventDefault()}
                           onDrop={e => { e.stopPropagation(); onDrop(session.id, idx2); }}>
 
-                          <span style={{ fontSize:"0.7rem", color:C.textGhost, width:16, flexShrink:0, textAlign:"center" }}>{idx2+1}</span>
+                          {/* Index */}
+                          <span className="ex-idx">{idx2+1}</span>
 
-                          <div style={{ flex:1, minWidth:0 }}>
-                            <div style={{ display:"flex", alignItems:"center", gap:4 }}>
+                          {/* Two-line content */}
+                          <div style={{ flex:1, minWidth:0, display:"flex", flexDirection:"column", gap:6 }}>
+
+                            {/* Line 1 — name + tier */}
+                            <div style={{ display:"flex", alignItems:"center", gap:6 }}>
                               <span className="ex-name" onClick={() => setModal({ type:"exDetail", name:ex.name })}>
                                 {ex.name}
                               </span>
                               <TierBadge tier={exData?.tier} />
                             </div>
-                            {exData && (
-                              <div style={{ display:"flex", gap:3, marginTop:2, flexWrap:"wrap" }}>
-                                {exData.primary.map(m => (
-                                  <span key={m} style={{ fontSize:"0.68rem", fontWeight:600, padding:"2px 7px",
-                                    borderRadius:4, background:MUSCLE_COLOR[m]+"18", color:MUSCLE_COLOR[m] }}>{m}</span>
+
+                            {/* Line 2 — muscles + sets + actions */}
+                            <div style={{ display:"flex", alignItems:"center", gap:6, flexWrap:"nowrap" }}>
+                              {/* Muscle pills */}
+                              <div style={{ display:"flex", gap:4, flex:1, minWidth:0, flexWrap:"wrap" }}>
+                                {exData?.primary.map(m => (
+                                  <span key={m} style={{ fontSize:"0.7rem", fontWeight:600, padding:"2px 8px",
+                                    borderRadius:4, background:MUSCLE_COLOR[m]+"18", color:MUSCLE_COLOR[m],
+                                    whiteSpace:"nowrap" }}>{m}</span>
+                                ))}
+                                {exData?.secondary.map(m => (
+                                  <span key={m} style={{ fontSize:"0.65rem", fontWeight:500, padding:"2px 6px",
+                                    borderRadius:4, background:"#F2F2F7", color:C.textFaint,
+                                    whiteSpace:"nowrap" }}>{m} ½</span>
                                 ))}
                               </div>
-                            )}
-                          </div>
 
-                          {/* Sets — inline input on click */}
-                          <div style={{ display:"flex", alignItems:"center", gap:2, flexShrink:0 }}>
-                            <button className="sets-btn" onClick={() => setSets(session.id, ex.id, ex.sets-1)}>−</button>
-                            <input
-                              className="sets-input"
-                              type="number" min={MIN_SETS} max={MAX_SETS}
-                              value={ex.sets}
-                              onChange={e => setSets(session.id, ex.id, e.target.value)}
-                              onFocus={() => setFocusedSets({ dayId:session.id, exId:ex.id })}
-                              onBlur={() => setFocusedSets(null)}
-                            />
-                            <button className="sets-btn" onClick={() => setSets(session.id, ex.id, ex.sets+1)}>+</button>
-                          </div>
+                              {/* Sets control */}
+                              <div style={{ display:"flex", alignItems:"center", gap:3, flexShrink:0 }}>
+                                <button className="sets-btn" onClick={() => setSets(session.id, ex.id, ex.sets-1)}>−</button>
+                                <input
+                                  className="sets-input"
+                                  type="number" min={MIN_SETS} max={MAX_SETS}
+                                  value={ex.sets}
+                                  onChange={e => setSets(session.id, ex.id, e.target.value)}
+                                  onFocus={() => setFocusedSets({ dayId:session.id, exId:ex.id })}
+                                  onBlur={() => setFocusedSets(null)}
+                                />
+                                <button className="sets-btn" onClick={() => setSets(session.id, ex.id, ex.sets+1)}>+</button>
+                                <span style={{ fontSize:"0.65rem", color:C.textFaint, marginLeft:1 }}>sér.</span>
+                              </div>
 
-                          <div className="ex-actions">
-                            <button className="ex-btn" title="Remplacer"
-                              onClick={() => { setModal({ type:"replaceEx", dayId:session.id, exId:ex.id }); setPickerSearch(""); }}>
-                              ⇄
-                            </button>
-                            <button className="ex-btn del" title="Supprimer" onClick={() => deleteEx(session.id, ex.id)}>
-                              ✕
-                            </button>
+                              {/* Actions */}
+                              <div style={{ display:"flex", gap:2, flexShrink:0 }}>
+                                <button className="ex-btn" title="Remplacer"
+                                  onClick={() => { setModal({ type:"replaceEx", dayId:session.id, exId:ex.id }); setPickerSearch(""); }}>
+                                  ⇄
+                                </button>
+                                <button className="ex-btn del" title="Supprimer" onClick={() => deleteEx(session.id, ex.id)}>
+                                  ✕
+                                </button>
+                              </div>
+                            </div>
+
                           </div>
                         </div>
                       );
@@ -1598,10 +1614,11 @@ const CSS = `
 
   /* ── Exercise row ── */
   .ex-list { display:flex; flex-direction:column; }
-  .ex-row { display:flex; align-items:center; gap:8px; padding:11px 10px 11px 14px; border-bottom:1px solid #F2F2F7; cursor:grab; transition:background 0.1s; }
+  .ex-row { display:flex; align-items:flex-start; gap:10px; padding:12px 12px 12px 14px; border-bottom:1px solid #F2F2F7; cursor:grab; transition:background 0.1s; }
   .ex-row:last-of-type { border-bottom:none; }
   .ex-row:hover { background:#FAFAFA; }
-  .ex-name { font-size:0.86rem; font-weight:600; color:#1C1C1E; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; flex:1; cursor:pointer; }
+  .ex-idx { font-size:0.72rem; font-weight:600; color:#AEAEB2; width:16px; text-align:center; flex-shrink:0; padding-top:2px; }
+  .ex-name { font-size:0.9rem; font-weight:600; color:#1C1C1E; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; flex:1; cursor:pointer; }
   .ex-name:hover { color:#E8500A; }
 
   /* Sets — inline input */
@@ -1611,7 +1628,6 @@ const CSS = `
   .sets-input:focus { border-color:#E8500A; background:#FFF3EE; }
   .sets-input::-webkit-inner-spin-button, .sets-input::-webkit-outer-spin-button { -webkit-appearance:none; }
 
-  .ex-actions { display:flex; gap:2px; flex-shrink:0; }
   .ex-btn { background:none; border:none; font-size:0.7rem; color:#AEAEB2; cursor:pointer; padding:2px 4px; border-radius:4px; min-width:22px; min-height:22px; display:flex; align-items:center; justify-content:center; transition:all 0.1s; }
   .ex-btn:hover { background:#F2F2F7; color:#3A3A3C; }
   .ex-btn.del:hover { background:#FFF0F0; color:#EF4444; }
