@@ -384,7 +384,7 @@ function buildScoreSummary(weeklyVol, priorities, sessions, db, backToBack) {
   const prioOk = ALL_MUSCLES.filter(m => priorities[m] === "priority" && classifyVolume(weeklyVol[m]??0) === "bon");
   const covered = MAJOR_MUSCLES.filter(m => (weeklyVol[m]??0) > 0);
 
-  if (prioOk.length) parts.push(`✓ Priorités couvertes : ${prioOk.join(", ")}`);
+  if (prioOk.length) parts.push("✓ Priorités couvertes");
   else if (covered.length === MAJOR_MUSCLES.length) parts.push("✓ Tous les groupes majeurs travaillés");
 
   // Push/pull
@@ -403,9 +403,9 @@ function buildScoreSummary(weeklyVol, priorities, sessions, db, backToBack) {
   if (absent.length) parts.push(`⚠ Absent : ${absent.join(", ")}`);
 
   const prioLow = ALL_MUSCLES.filter(m => priorities[m] === "priority" && (classifyVolume(weeklyVol[m]??0) === "neutral" || classifyVolume(weeklyVol[m]??0) === "maintain"));
-  if (prioLow.length) parts.push(`⚠ Volume insuffisant : ${prioLow.join(", ")}`);
+  if (prioLow.length) parts.push("⚠ Priorités sous-entraînées");
 
-  return parts.slice(0, 3).join("  ·  ");
+  return parts.slice(0, 3);
 }
 
 function detectSplit(sessions) {
@@ -603,7 +603,7 @@ export default function WorkoutDashboard() {
   const scoreData  = computeProgramScore(weeklyVol, priorities, backToBack, sessions, db);
   const summary    = buildNaturalSummary(week, weeklyVol, priorities, db);
   const suggestions = buildSuggestions(weeklyVol, priorities, sessions, db, backToBack);
-  const scoreSummary = buildScoreSummary(weeklyVol, priorities, sessions, db, backToBack);
+  const scoreSummaryLines = buildScoreSummary(weeklyVol, priorities, sessions, db, backToBack);
 
   // ── Picker lists ────────────────────────────────────────────────────────────
   const pickerList = sortByTier(
@@ -1158,14 +1158,24 @@ export default function WorkoutDashboard() {
                   ))}
                 </div>
               )}
-              {scoreData.score > 0 && scoreSummary && (
+              {scoreData.score > 0 && scoreSummaryLines?.length > 0 && (
                 <div style={{ marginTop:8, display:"flex", flexDirection:"column", gap:3 }}>
-                  {scoreSummary.split("  ·  ").map((line, i) => (
-                    <div key={i} style={{ fontSize:"0.68rem", fontWeight:600,
-                      color: line.startsWith("✓") ? C.green : C.orange }}>
-                      {line}
-                    </div>
-                  ))}
+                  {scoreSummaryLines.map((line, i) => {
+                    const isGood = line.startsWith("✓");
+                    const color = isGood ? C.green : C.orange;
+                    const icon = line.slice(0, 1);
+                    const rest = line.slice(2);
+                    const colonIdx = rest.indexOf(" : ");
+                    const label = colonIdx >= 0 ? rest.slice(0, colonIdx) : rest;
+                    const value = colonIdx >= 0 ? rest.slice(colonIdx + 3) : null;
+                    return (
+                      <div key={i} style={{ fontSize:"0.68rem", color, fontWeight:600, display:"flex", gap:4, flexWrap:"nowrap" }}>
+                        <span style={{ flexShrink:0 }}>{icon}</span>
+                        <span style={{ flexShrink:0 }}>{label}{value ? " :" : ""}</span>
+                        {value && <span style={{ fontWeight:500, flexShrink:1, minWidth:0 }}>{value}</span>}
+                      </div>
+                    );
+                  })}
                 </div>
               )}
             </div>
