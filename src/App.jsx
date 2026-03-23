@@ -618,7 +618,17 @@ export default function WorkoutDashboard() {
         setActiveProgramId(s.activeProgramId ?? migrated[0].id);
       }
     } catch (_) {}
-    try { const s = JSON.parse(localStorage.getItem("workout-db") || "null"); if (s) setDb(d => ({ ...EXERCISE_DB, ...s })); } catch (_) {}
+    try {
+      const s = JSON.parse(localStorage.getItem("workout-db") || "null");
+      if (s) setDb(() => {
+        // Per-exercise merge: localStorage custom fields override, but desc/tier from EXERCISE_DB fills in missing ones
+        const merged = { ...EXERCISE_DB };
+        Object.entries(s).forEach(([name, saved]) => {
+          merged[name] = { ...merged[name], ...saved, desc: saved.desc || merged[name]?.desc };
+        });
+        return merged;
+      });
+    } catch (_) {}
     try { const s = JSON.parse(localStorage.getItem("workout-priorities") || "null"); if (s) setPriorities(p => ({...p,...s})); } catch (_) {}
   }, []);
 
@@ -1288,9 +1298,9 @@ export default function WorkoutDashboard() {
                       const t = TIER[d.tier];
                       return (
                         <div style={{ display:"flex", alignItems:"center", gap:6, background:t.bg,
-                          border:`1px solid ${t.color}40`, borderRadius:7, padding:"5px 10px" }}>
+                          border:`1px solid ${t.color}40`, borderRadius:7, padding:"4px 10px" }}>
                           <span style={{ fontSize:"1rem", fontWeight:800, color:t.color }}>{d.tier}</span>
-                          <span style={{ fontSize:"0.65rem", color:t.color, fontWeight:600 }}>Nippard Tier</span>
+                          
                         </div>
                       );
                     })()}
@@ -1308,26 +1318,35 @@ export default function WorkoutDashboard() {
                     ))}
                   </div>
 
+                  {/* Movement badge */}
+                  {d?.movement && d.movement !== "neutral" && (
+                    <div style={{ display:"flex", gap:6 }}>
+                      <span style={{ fontSize:"0.72rem", fontWeight:700, padding:"3px 10px", borderRadius:20,
+                        background: d.movement==="push" ? "#FFEDD5" : "#DBEAFE",
+                        color: d.movement==="push" ? "#EA580C" : "#1D4ED8",
+                        border: `1.5px solid ${d.movement==="push" ? "#EA580C" : "#1D4ED8"}` }}>
+                        {d.movement === "push" ? "Push" : "Pull"}
+                      </span>
+                    </div>
+                  )}
+
                   {/* Description */}
                   {desc ? (
-                    <div style={{ fontSize:"0.82rem", color:C.textSub, lineHeight:1.75, whiteSpace:"pre-wrap" }}>
+                    <div style={{ fontSize:"0.84rem", color:C.textSub, lineHeight:1.8, whiteSpace:"pre-wrap" }}>
                       {desc}
                     </div>
                   ) : (
-                    <div>
+                    <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
                       {d?.tier && TIER[d.tier] && (
                         <div style={{ background:TIER[d.tier].bg, borderRadius:8, padding:"10px 12px",
-                          border:`1px solid ${TIER[d.tier].color}25`, marginBottom:10 }}>
-                          <div style={{ fontSize:"0.68rem", color:TIER[d.tier].color, fontWeight:700, marginBottom:3 }}>
-                            Pourquoi {d.tier} ?
-                          </div>
-                          <div style={{ fontSize:"0.78rem", color:C.textSub, lineHeight:1.6 }}>
+                          border:`1px solid ${TIER[d.tier].color}25` }}>
+                          <div style={{ fontSize:"0.75rem", color:TIER[d.tier].color, lineHeight:1.6 }}>
                             {TIER[d.tier].label}
                           </div>
                         </div>
                       )}
                       <button disabled={exDescLoading} onClick={() => generateExDesc(name)} style={{
-                        padding:"8px 16px", background: exDescLoading ? C.bg : C.accent,
+                        padding:"9px 16px", background: exDescLoading ? C.bg : C.accent,
                         color: exDescLoading ? C.textMuted : "#fff",
                         border:"none", borderRadius:8, cursor: exDescLoading ? "default" : "pointer",
                         fontFamily:"inherit", fontSize:"0.76rem", fontWeight:700,
@@ -1335,7 +1354,7 @@ export default function WorkoutDashboard() {
                       }}>
                         {exDescLoading
                           ? <><span className="spinner" /> Génération...</>
-                          : "✨ Description détaillée IA"
+                          : "✨ Générer la description"
                         }
                       </button>
                     </div>
