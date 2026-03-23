@@ -13,6 +13,7 @@
   },
   "devDependencies": {
     "@vitejs/plugin-react": "^4.2.1",
+    "playwright": "^1.58.2",
     "vite": "^5.1.0",
     "vite-plugin-pwa": "^0.19.2"
   }

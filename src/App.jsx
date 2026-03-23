@@ -803,7 +803,7 @@ Sois direct, comme un vrai coach. Pas de titres, juste des paragraphes. Maximum 
         .muscle-grid { display: flex; flex-wrap: wrap; gap: 8px; }
         .muscle-toggle { font-size: 0.75rem; font-weight: 500; padding: 8px 14px; border-radius: 20px; border: 1.5px solid #D1D1D6; background: #FFFFFF; color: #6B6B6B; cursor: pointer; font-family: inherit; transition: all 0.12s; min-height: 36px; }
         .muscle-toggle:hover { border-color: var(--mc, #E8500A); color: var(--mc, #E8500A); }
-        .muscle-toggle.active-primary { border-color: var(--mc); color: var(--mc); background: color-mix(in srgb, var(--mc) 12%, white); font-weight: 700; }
+        .muscle-toggle.active-primary { border-color: var(--mc); color: var(--mc); background: #F0F8FF; font-weight: 700; }
         .muscle-toggle.active-secondary { border-color: #AEAEB2; color: #3A3A3C; background: #F2F2F7; }
         .form-error { font-size: 0.78rem; font-weight: 600; color: #EF4444; }
         .form-footer { display: flex; justify-content: flex-end; gap: 10px; padding-top: 4px; }
