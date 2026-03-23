@@ -364,9 +364,48 @@ function computeProgramScore(weeklyVol, priorities, backToBack, days, db) {
   if (totalSets < 20) { score -= 10; issues.push({ icon:"📉", text:"Volume global faible", severity:"medium" }); }
 
   score = clamp(Math.round(score), 0, 100);
-  const grade = score >= 93 ? "A+" : score >= 85 ? "A" : score >= 77 ? "B+" : score >= 65 ? "B" : score >= 50 ? "C" : score >= 35 ? "D" : "F";
-  const color = score >= 77 ? C.green : score >= 50 ? C.orange : C.red;
+  const grade = score === 100 ? "S" : score >= 93 ? "A+" : score >= 85 ? "A" : score >= 77 ? "B+" : score >= 65 ? "B" : score >= 50 ? "C" : score >= 35 ? "D" : "F";
+  const color = score === 100 ? "#B8860B" : score >= 77 ? C.green : score >= 50 ? C.orange : C.red;
   return { score, grade, color, issues };
+}
+
+function buildScoreSummary(weeklyVol, priorities, sessions, db, backToBack) {
+  const totalSets = Object.values(weeklyVol).reduce((a,b) => a+b, 0);
+  if (!totalSets) return null;
+
+  const parts = [];
+
+  // What's good
+  const wellTrained = ALL_MUSCLES.filter(m => {
+    const s = classifyVolume(weeklyVol[m] ?? 0);
+    const p = priorities[m];
+    return (p === "priority" && s === "bon") || (p === "priority" && s === "prio") || (p !== "priority" && s === "bon");
+  });
+  const prioOk = ALL_MUSCLES.filter(m => priorities[m] === "priority" && classifyVolume(weeklyVol[m]??0) === "bon");
+  const covered = MAJOR_MUSCLES.filter(m => (weeklyVol[m]??0) > 0);
+
+  if (prioOk.length) parts.push(`✓ Priorités couvertes : ${prioOk.join(", ")}`);
+  else if (covered.length === MAJOR_MUSCLES.length) parts.push("✓ Tous les groupes majeurs travaillés");
+
+  // Push/pull
+  const { push: ps, pull: pl } = computePushPullSets(sessions, db);
+  if (ps + pl > 0) {
+    const ratio = pl / Math.max(ps, 1);
+    if (ratio >= 0.9 && ratio <= 1.3) parts.push("✓ Équilibre push/pull optimal");
+    else if (ratio >= 0.8) parts.push("✓ Bon équilibre push/pull");
+  }
+
+  // Back to back
+  if (backToBack.length === 0 && sessions.length > 2) parts.push("✓ Récupération musculaire bien planifiée");
+
+  // What's missing
+  const absent = MAJOR_MUSCLES.filter(m => !(weeklyVol[m]??0));
+  if (absent.length) parts.push(`⚠ Absent : ${absent.join(", ")}`);
+
+  const prioLow = ALL_MUSCLES.filter(m => priorities[m] === "priority" && (classifyVolume(weeklyVol[m]??0) === "neutral" || classifyVolume(weeklyVol[m]??0) === "maintain"));
+  if (prioLow.length) parts.push(`⚠ Volume insuffisant : ${prioLow.join(", ")}`);
+
+  return parts.slice(0, 3).join("  ·  ");
 }
 
 function detectSplit(sessions) {
@@ -564,6 +603,7 @@ export default function WorkoutDashboard() {
   const scoreData  = computeProgramScore(weeklyVol, priorities, backToBack, sessions, db);
   const summary    = buildNaturalSummary(week, weeklyVol, priorities, db);
   const suggestions = buildSuggestions(weeklyVol, priorities, sessions, db, backToBack);
+  const scoreSummary = buildScoreSummary(weeklyVol, priorities, sessions, db, backToBack);
 
   // ── Picker lists ────────────────────────────────────────────────────────────
   const pickerList = sortByTier(
@@ -1118,8 +1158,15 @@ export default function WorkoutDashboard() {
                   ))}
                 </div>
               )}
-              {scoreData.issues.length === 0 && scoreData.score > 0 && (
-                <div style={{ marginTop:6, fontSize:"0.7rem", color:C.green, fontWeight:600 }}>Programme équilibré ✓</div>
+              {scoreData.score > 0 && scoreSummary && (
+                <div style={{ marginTop:8, display:"flex", flexDirection:"column", gap:3 }}>
+                  {scoreSummary.split("  ·  ").map((line, i) => (
+                    <div key={i} style={{ fontSize:"0.68rem", fontWeight:600,
+                      color: line.startsWith("✓") ? C.green : C.orange }}>
+                      {line}
+                    </div>
+                  ))}
+                </div>
               )}
             </div>
 
