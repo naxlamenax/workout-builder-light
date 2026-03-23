@@ -609,7 +609,7 @@ export default function WorkoutDashboard() {
         setActiveProgramId(s.activeProgramId ?? migrated[0].id);
       }
     } catch (_) {}
-    try { const s = JSON.parse(localStorage.getItem("workout-db")         || "null"); if (s) setDb(s); }         catch (_) {}
+    try { const s = JSON.parse(localStorage.getItem("workout-db") || "null"); if (s) setDb(d => ({ ...EXERCISE_DB, ...s })); } catch (_) {}
     try { const s = JSON.parse(localStorage.getItem("workout-priorities") || "null"); if (s) setPriorities(p => ({...p,...s})); } catch (_) {}
   }, []);
 
@@ -995,7 +995,7 @@ export default function WorkoutDashboard() {
                           onDragOver={e => e.preventDefault()}
                           onDrop={e => { e.stopPropagation(); onDrop(session.id, idx2); }}>
 
-                          <span style={{ fontSize:"0.58rem", color:C.textGhost, width:12, flexShrink:0, textAlign:"center" }}>{idx2+1}</span>
+                          <span style={{ fontSize:"0.7rem", color:C.textGhost, width:16, flexShrink:0, textAlign:"center" }}>{idx2+1}</span>
 
                           <div style={{ flex:1, minWidth:0 }}>
                             <div style={{ display:"flex", alignItems:"center", gap:4 }}>
@@ -1007,8 +1007,8 @@ export default function WorkoutDashboard() {
                             {exData && (
                               <div style={{ display:"flex", gap:3, marginTop:2, flexWrap:"wrap" }}>
                                 {exData.primary.map(m => (
-                                  <span key={m} style={{ fontSize:"0.55rem", fontWeight:600, padding:"1px 4px",
-                                    borderRadius:3, background:MUSCLE_COLOR[m]+"18", color:MUSCLE_COLOR[m] }}>{m}</span>
+                                  <span key={m} style={{ fontSize:"0.68rem", fontWeight:600, padding:"2px 7px",
+                                    borderRadius:4, background:MUSCLE_COLOR[m]+"18", color:MUSCLE_COLOR[m] }}>{m}</span>
                                 ))}
                               </div>
                             )}
@@ -1587,10 +1587,10 @@ const CSS = `
   .rest-slot:hover .rest-text { color:#E8500A; }
 
   /* ── Session column ── */
-  .session-col { flex-shrink:0; width:320px; background:#FFFFFF; border-radius:10px; border:1.5px solid #D1D1D6; display:flex; flex-direction:column; box-shadow:0 1px 3px rgba(0,0,0,0.05); align-self:flex-start; }
+  .session-col { flex-shrink:0; width:380px; background:#FFFFFF; border-radius:10px; border:1.5px solid #D1D1D6; display:flex; flex-direction:column; box-shadow:0 1px 3px rgba(0,0,0,0.05); align-self:flex-start; }
   .session-col.btb-warning { border-color:#EA580C; }
-  .col-header { display:flex; align-items:center; gap:6px; padding:9px 10px 8px; border-bottom:1px solid #F2F2F7; flex-shrink:0; min-height:42px; }
-  .session-name { font-size:0.74rem; font-weight:700; color:#1C1C1E; flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; cursor:pointer; }
+  .col-header { display:flex; align-items:center; gap:6px; padding:12px 14px 10px; border-bottom:1px solid #F2F2F7; flex-shrink:0; min-height:50px; }
+  .session-name { font-size:0.85rem; font-weight:700; color:#1C1C1E; flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; cursor:pointer; }
   .session-name:hover { color:#E8500A; }
   .rename-input { flex:1; background:transparent; border:none; border-bottom:2px solid #E8500A; font-family:inherit; font-size:0.74rem; font-weight:700; color:#1C1C1E; outline:none; padding-bottom:1px; min-width:0; }
   .col-del-btn { background:none; border:none; color:#AEAEB2; font-size:0.7rem; cursor:pointer; padding:2px 4px; border-radius:4px; min-width:22px; min-height:22px; display:flex; align-items:center; justify-content:center; transition:all 0.1s; }
@@ -1598,16 +1598,16 @@ const CSS = `
 
   /* ── Exercise row ── */
   .ex-list { display:flex; flex-direction:column; }
-  .ex-row { display:flex; align-items:center; gap:5px; padding:7px 8px 7px 10px; border-bottom:1px solid #F7F7F7; cursor:grab; transition:background 0.1s; }
+  .ex-row { display:flex; align-items:center; gap:8px; padding:11px 10px 11px 14px; border-bottom:1px solid #F2F2F7; cursor:grab; transition:background 0.1s; }
   .ex-row:last-of-type { border-bottom:none; }
   .ex-row:hover { background:#FAFAFA; }
-  .ex-name { font-size:0.74rem; font-weight:500; color:#1C1C1E; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; flex:1; cursor:pointer; }
+  .ex-name { font-size:0.86rem; font-weight:600; color:#1C1C1E; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; flex:1; cursor:pointer; }
   .ex-name:hover { color:#E8500A; }
 
   /* Sets — inline input */
-  .sets-btn { width:20px; height:20px; background:#F2F2F7; border:1px solid #D1D1D6; border-radius:4px; cursor:pointer; font-size:0.8rem; display:flex; align-items:center; justify-content:center; color:#3A3A3C; flex-shrink:0; transition:all 0.1s; }
+  .sets-btn { width:26px; height:26px; background:#F2F2F7; border:1px solid #D1D1D6; border-radius:5px; cursor:pointer; font-size:0.9rem; display:flex; align-items:center; justify-content:center; color:#3A3A3C; flex-shrink:0; transition:all 0.1s; }
   .sets-btn:hover { background:#E8500A; border-color:#E8500A; color:#fff; }
-  .sets-input { width:26px; height:20px; text-align:center; border:1px solid #E5E5EA; border-radius:4px; font-family:inherit; font-size:0.78rem; font-weight:700; color:#1C1C1E; background:transparent; outline:none; padding:0; -moz-appearance:textfield; }
+  .sets-input { width:32px; height:26px; text-align:center; border:1px solid #E5E5EA; border-radius:4px; font-family:inherit; font-size:0.9rem; font-weight:700; color:#1C1C1E; background:transparent; outline:none; padding:0; -moz-appearance:textfield; }
   .sets-input:focus { border-color:#E8500A; background:#FFF3EE; }
   .sets-input::-webkit-inner-spin-button, .sets-input::-webkit-outer-spin-button { -webkit-appearance:none; }
 
@@ -1616,7 +1616,7 @@ const CSS = `
   .ex-btn:hover { background:#F2F2F7; color:#3A3A3C; }
   .ex-btn.del:hover { background:#FFF0F0; color:#EF4444; }
 
-  .add-ex-btn { display:flex; align-items:center; gap:5px; padding:8px 10px; font-family:inherit; font-size:0.7rem; font-weight:600; color:#E8500A; background:none; border:none; border-top:1px solid #F2F2F7; cursor:pointer; width:100%; min-height:34px; transition:background 0.1s; }
+  .add-ex-btn { display:flex; align-items:center; gap:6px; padding:11px 14px; font-family:inherit; font-size:0.82rem; font-weight:600; color:#E8500A; background:none; border:none; border-top:1px solid #F2F2F7; cursor:pointer; width:100%; min-height:40px; transition:background 0.1s; }
   .add-ex-btn:hover { background:#FFF3EE; }
 
   /* ── Analysis panel ── */
