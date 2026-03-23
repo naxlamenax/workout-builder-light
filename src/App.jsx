@@ -232,6 +232,25 @@ function getStatus(sets) {
 const EMPTY_EX_FORM = { name: "", tier: "A", primary: [], secondary: [] };
 const mkProgram = (name) => ({ id: uid(), name, days: [] });
 
+/* ─── HELPERS ─────────────────────────────────────────────────────────────── */
+let _id = 200;
+const uid = () => `e${_id++}`;
+const TIER_ORDER = ["S+", "S", "A+", "A", "B+", "B", "C", "D", "F", "F-"];
+
+function calcSets(program, db) {
+  const totals = {};
+  ALL_MUSCLES.forEach(m => (totals[m] = 0));
+  program.forEach(day =>
+    day.exercises.forEach(ex => {
+      const data = db[ex.name];
+      if (!data) return;
+      data.primary.forEach(m => { if (totals[m] !== undefined) totals[m] += ex.sets; });
+      data.secondary.forEach(m => { if (totals[m] !== undefined) totals[m] += ex.sets * 0.5; });
+    })
+  );
+  return totals;
+}
+
 /* ─── COMPONENT ─────────────────────────────────────────────────────────── */
 export default function WorkoutBuilder() {
   // ── Multi-program state ───────────────────────────────────────────────────
@@ -571,7 +590,7 @@ Sois direct, comme un vrai coach. Pas de titres, juste des paragraphes. Maximum 
           font-family: 'Inter', -apple-system, sans-serif;
           background: #F2F2F7; color: #1C1C1E;
           display: flex; flex-direction: column;
-          height: 100dvh;
+          height: 100vh; height: 100dvh;
           padding-top: env(safe-area-inset-top);
         }
 
@@ -754,7 +773,7 @@ Sois direct, comme un vrai coach. Pas de titres, juste des paragraphes. Maximum 
         /* ── MODAL ── */
         .overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 100; display: flex; align-items: flex-end; justify-content: center; }
         @media (min-width: 768px) { .overlay { align-items: center; padding: 20px; } }
-        .modal { background: #F2F2F7; border-radius: 16px 16px 0 0; width: 100%; max-height: 92dvh; display: flex; flex-direction: column; padding-bottom: env(safe-area-inset-bottom); }
+        .modal { background: #F2F2F7; border-radius: 16px 16px 0 0; width: 100%; max-height: 92vh; max-height: 92dvh; display: flex; flex-direction: column; padding-bottom: env(safe-area-inset-bottom); }
         @media (min-width: 768px) { .modal { border-radius: 12px; width: 520px; max-height: 86vh; padding-bottom: 0; } .modal-lg { width: 580px; } }
         .modal-handle { width: 40px; height: 4px; background: #AEAEB2; border-radius: 2px; margin: 12px auto 0; flex-shrink: 0; }
         @media (min-width: 768px) { .modal-handle { display: none; } }
