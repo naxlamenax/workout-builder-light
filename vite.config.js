@@ -12,8 +12,8 @@ export default defineConfig({
         name: 'Workout Builder',
         short_name: 'Workout',
         description: 'Construis et analyse tes programmes de musculation',
-        theme_color: '#0a0a0a',
-        background_color: '#0a0a0a',
+        theme_color: '#FFFFFF',
+        background_color: '#F2F2F7',
         display: 'standalone',
         orientation: 'portrait',
         start_url: '/',
@@ -24,7 +24,10 @@ export default defineConfig({
         ]
       },
       workbox: {
-        globPatterns: ['**/*.{js,css,html,png,svg}']
+        globPatterns: ['**/*.{js,css,html,png,svg}'],
+        skipWaiting: true,
+        clientsClaim: true,
+        cleanupOutdatedCaches: true,
       }
     })
   ]
