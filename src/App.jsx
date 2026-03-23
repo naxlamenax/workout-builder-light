@@ -1152,12 +1152,12 @@ Sois direct, comme un vrai coach. Pas de titres, juste des paragraphes. Maximum 
   function renderMuscleRows() {
     return ALL_MUSCLES.map(muscle => {
       const sets = muscleSets[muscle];
-      const { min, max } = RECOMMENDED_SETS[muscle];
+      const { optimal_max } = RECOMMENDED_SETS[muscle];
       const prio = musclePriorities[muscle];
       const status = getStatus(sets);
       const targetInfo = getTarget(muscle, prio);
       const color = MUSCLE_META[muscle].color;
-      const barMax = Math.max(max + 4, sets + 4, 1);
+      const barMax = Math.max(16, sets + 4, 1);
       const targetPct = targetInfo ? Math.min(100, (targetInfo.target / barMax) * 100) : null;
       const prioLabel = prio === "priority" ? "🎯" : prio === "maintain" ? "🔒" : null;
 
@@ -1171,13 +1171,15 @@ Sois direct, comme un vrai coach. Pas de titres, juste des paragraphes. Maximum 
             </div>
             <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
               {status !== "neutral" && <span className="status-badge" style={{ background: statusColor[status] + "20", color: statusColor[status] }}>{statusLabel[status]}</span>}
-              <span className="muscle-sets">{sets % 1 === 0 ? sets : sets.toFixed(1)}{targetInfo ? ` / ${targetInfo.target}` : ""}</span>
+              <span className="muscle-sets">{sets % 1 === 0 ? sets : sets.toFixed(1)}</span>
             </div>
           </div>
           <div className="bar-bg">
-            <div className="bar-fill" style={{ width: `${Math.min(100, (sets / barMax) * 100)}%`, background: color, opacity: status === "over" ? 0.5 : 1 }} />
-            {min > 0 && <div className="bar-marker" style={{ left: `${(min / barMax) * 100}%`, background: "#C7C7CC" }} />}
-            {max > 0 && <div className="bar-marker" style={{ left: `${(max / barMax) * 100}%`, background: "#E5E5EA" }} />}
+            <div className="bar-fill" style={{ width: `${Math.min(100, (sets / barMax) * 100)}%`, background: color, opacity: status === "over" ? 0.6 : 1 }} />
+            {/* zone markers: 3, 6, 12 */}
+            <div className="bar-marker" style={{ left: `${(3  / barMax) * 100}%`, background: "#D1D1D6" }} />
+            <div className="bar-marker" style={{ left: `${(6  / barMax) * 100}%`, background: "#22C55E" }} />
+            <div className="bar-marker" style={{ left: `${(12 / barMax) * 100}%`, background: "#EF4444" }} />
             {targetPct !== null && (
               <div style={{ position: "absolute", top: -4, left: `${targetPct}%`, width: 2, height: 14, background: targetInfo.color, borderRadius: 1, transform: "translateX(-50%)" }} />
             )}
