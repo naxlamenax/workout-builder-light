@@ -1472,7 +1472,7 @@ const CSS = `
   .rest-slot:hover .rest-text { color:#E8500A; }
 
   /* ── Session column ── */
-  .session-col { flex-shrink:0; width:212px; background:#FFFFFF; border-radius:10px; border:1.5px solid #D1D1D6; display:flex; flex-direction:column; box-shadow:0 1px 3px rgba(0,0,0,0.05); align-self:flex-start; }
+  .session-col { flex-shrink:0; width:260px; background:#FFFFFF; border-radius:10px; border:1.5px solid #D1D1D6; display:flex; flex-direction:column; box-shadow:0 1px 3px rgba(0,0,0,0.05); align-self:flex-start; }
   .session-col.btb-warning { border-color:#EA580C; }
   .col-header { display:flex; align-items:center; gap:6px; padding:9px 10px 8px; border-bottom:1px solid #F2F2F7; flex-shrink:0; min-height:42px; }
   .session-name { font-size:0.74rem; font-weight:700; color:#1C1C1E; flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; cursor:pointer; }
