@@ -427,8 +427,8 @@ function buildNaturalSummary(week, weeklyVol, priorities, db) {
 
   const split     = detectSplit(sessions);
   const totalSets = Object.values(weeklyVol).reduce((a,b) => a+b, 0);
+  const restDays  = week.filter(d => !d).length;
 
-  // Fréquence par muscle (nb de séances où il apparaît en primaire)
   const freq = Object.fromEntries(ALL_MUSCLES.map(m => [m, 0]));
   week.forEach(day => {
     if (!day) return;
@@ -439,19 +439,12 @@ function buildNaturalSummary(week, weeklyVol, priorities, db) {
     });
   });
 
-  const freq2 = ALL_MUSCLES.filter(m => freq[m] >= 2);
+  const freq2  = ALL_MUSCLES.filter(m => freq[m] >= 2);
   const absent = MAJOR_MUSCLES.filter(m => !weeklyVol[m] || weeklyVol[m] === 0);
   const prios  = ALL_MUSCLES.filter(m => priorities[m] === "priority");
-  const restDays = week.filter(d => !d).length;
+  const { push: pushSets, pull: pullSets } = computePushPullSets(sessions, db);
 
-  let parts = [];
-  parts.push(`${split} · ${sessions.length} séance${sessions.length > 1 ? "s" : ""} · ${restDays} jours de repos`);
-  if (totalSets > 0) parts.push(`${totalSets} séries/sem.`);
-  if (freq2.length) parts.push(`Fréquence 2x : ${freq2.join(", ")}`);
-  if (prios.length) parts.push(`Priorités : ${prios.join(", ")}`);
-  if (absent.length) parts.push(`Absent : ${absent.join(", ")}`);
-
-  return parts.join(" · ");
+  return { split, sessions: sessions.length, restDays, totalSets, freq2, absent, prios, pushSets, pullSets };
 }
 
 function bestExForMuscle(muscle, db, exclude = []) {
@@ -955,17 +948,63 @@ export default function WorkoutDashboard() {
             <div className={`save-dot ${saveStatus}`} />
           </div>
 
-          {/* Score — centre */}
+          {/* Score + résumé — centre */}
           {sessions.length > 0 && (
-            <div style={{ display:"flex", alignItems:"center", gap:10 }}>
-              <span style={{ fontSize:"1.6rem", fontWeight:800, color:scoreData.color, lineHeight:1, letterSpacing:"-1px" }}>
-                {scoreData.grade}
-              </span>
-              <span style={{ fontSize:"0.68rem", color:C.textFaint, fontWeight:600 }}>{scoreData.score}/100</span>
+            <div style={{ display:"flex", alignItems:"center", gap:12, flex:1, justifyContent:"center", minWidth:0 }}>
+
+              {/* Grade badge */}
+              <div style={{ display:"flex", alignItems:"baseline", gap:4, flexShrink:0 }}>
+                <span style={{ fontSize:"1.8rem", fontWeight:800, color:scoreData.color, lineHeight:1, letterSpacing:"-1px" }}>
+                  {scoreData.grade}
+                </span>
+                <span style={{ fontSize:"0.65rem", color:C.textFaint, fontWeight:600 }}>{scoreData.score}/100</span>
+              </div>
+
+              {/* Separator */}
+              <div style={{ width:1, height:28, background:C.border, flexShrink:0 }} />
+
+              {/* Summary chips */}
               {summary && (
-                <div style={{ fontSize:"0.68rem", color:C.textMuted, borderLeft:`1.5px solid ${C.border}`,
-                  paddingLeft:10, maxWidth:420, overflow:"hidden", whiteSpace:"nowrap", textOverflow:"ellipsis" }}>
-                  {summary}
+                <div style={{ display:"flex", alignItems:"center", gap:8, flexWrap:"wrap", minWidth:0 }}>
+                  {/* Split + sessions */}
+                  <div className="summary-chip summary-chip-main">
+                    <span className="summary-chip-label">{summary.split}</span>
+                    <span className="summary-chip-sep">·</span>
+                    <span>{summary.sessions} séance{summary.sessions > 1 ? "s" : ""}</span>
+                    <span className="summary-chip-sep">·</span>
+                    <span>{summary.restDays}j repos</span>
+                  </div>
+
+                  {/* Volume */}
+                  {summary.totalSets > 0 && (
+                    <div className="summary-chip">
+                      <span className="summary-chip-icon">📊</span>
+                      <span>{summary.totalSets} sér/sem</span>
+                    </div>
+                  )}
+
+                  {/* Push/pull ratio */}
+                  {summary.pushSets + summary.pullSets > 0 && (
+                    <div className="summary-chip">
+                      <span className="summary-chip-icon">⚖️</span>
+                      <span>{summary.pushSets}P / {summary.pullSets}T</span>
+                    </div>
+                  )}
+
+                  {/* Fréquence 2x */}
+                  {summary.freq2.length > 0 && (
+                    <div className="summary-chip">
+                      <span className="summary-chip-icon">🔁</span>
+                      <span>2x : {summary.freq2.slice(0,3).join(", ")}{summary.freq2.length > 3 ? "…" : ""}</span>
+                    </div>
+                  )}
+
+                  {/* Absent warning */}
+                  {summary.absent.length > 0 && (
+                    <div className="summary-chip summary-chip-warn">
+                      <span>⚠ {summary.absent.join(", ")}</span>
+                    </div>
+                  )}
                 </div>
               )}
             </div>
@@ -1690,7 +1729,7 @@ const CSS = `
   .app { display:flex; flex-direction:column; height:100dvh; }
 
   /* ── Topbar ── */
-  .topbar { flex-shrink:0; height:50px; display:flex; align-items:center; justify-content:space-between; padding:0 16px; gap:12px; background:#FFFFFF; border-bottom:1.5px solid #D1D1D6; }
+  .topbar { flex-shrink:0; height:58px; display:flex; align-items:center; justify-content:space-between; padding:0 16px; gap:12px; background:#FFFFFF; border-bottom:1.5px solid #D1D1D6; }
   .prog-btn { display:flex; align-items:center; padding:5px 11px; background:#F0F0F5; border:1.5px solid #AEAEB2; border-radius:7px; cursor:pointer; font-family:inherit; font-size:0.76rem; font-weight:600; color:#1C1C1E; max-width:160px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; transition:border-color 0.15s; }
   .prog-btn:hover { border-color:#E8500A; }
   .save-dot { width:7px; height:7px; border-radius:50%; background:#AEAEB2; flex-shrink:0; transition:background 0.3s; }
@@ -1782,6 +1821,14 @@ const CSS = `
   .form-input:focus { border-color:#E8500A; box-shadow:0 0 0 3px rgba(232,80,10,0.1); }
   .form-select { background:#FFFFFF; border:1.5px solid #AEAEB2; border-radius:9px; padding:10px 13px; color:#1C1C1E; font-family:inherit; font-size:0.9rem; outline:none; cursor:pointer; min-height:42px; }
   .form-select:focus { border-color:#E8500A; }
+
+  /* Summary chips */
+  .summary-chip { display:flex; align-items:center; gap:5px; padding:4px 10px; background:#F2F2F7; border-radius:20px; font-size:0.72rem; font-weight:500; color:#3A3A3C; white-space:nowrap; border:1px solid #E5E5EA; }
+  .summary-chip-main { background:#EEEEF3; font-weight:600; color:#1C1C1E; border-color:#D1D1D6; }
+  .summary-chip-warn { background:#FFF3EE; color:#EA580C; border-color:#FFDDD0; font-weight:600; }
+  .summary-chip-label { font-weight:700; color:#1C1C1E; }
+  .summary-chip-sep { color:#AEAEB2; font-weight:400; margin:0 1px; }
+  .summary-chip-icon { font-size:0.75rem; }
 
   .btn-cancel { background:#F2F2F7; border:1.5px solid #D1D1D6; color:#3A3A3C; font-family:inherit; font-size:0.78rem; font-weight:600; padding:9px 15px; border-radius:9px; cursor:pointer; min-height:38px; transition:background 0.1s; }
   .btn-cancel:hover { background:#E5E5EA; }
