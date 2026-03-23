@@ -200,19 +200,20 @@ const MUSCLE_META = {
 // Recommended weekly sets per muscle (Dr. Mike Israetel style)
 // min = MEV, max = MRV, target = mid-MAV (balanced default)
 // Nouvelle échelle universelle : 3-5 = MAINTIEN, 6-12 = OPTIMAL, 12+ = MAX
+// Échelle : 3-5 = MAINTIEN, 6-12 = OPTIMAL, 12+ = MAX
 const RECOMMENDED_SETS = {
-  "Pectoraux":        { maintain_min: 3, maintain_max: 5, optimal_min: 6, optimal_max: 12 },
-  "Dos":              { maintain_min: 3, maintain_max: 5, optimal_min: 6, optimal_max: 12 },
-  "Épaules":          { maintain_min: 3, maintain_max: 5, optimal_min: 6, optimal_max: 12 },
-  "Biceps":           { maintain_min: 3, maintain_max: 5, optimal_min: 6, optimal_max: 12 },
-  "Triceps":          { maintain_min: 3, maintain_max: 5, optimal_min: 6, optimal_max: 12 },
-  "Quadriceps":       { maintain_min: 3, maintain_max: 5, optimal_min: 6, optimal_max: 12 },
-  "Ischio-jambiers":  { maintain_min: 3, maintain_max: 5, optimal_min: 6, optimal_max: 12 },
-  "Fessiers":         { maintain_min: 3, maintain_max: 5, optimal_min: 6, optimal_max: 12 },
-  "Mollets":          { maintain_min: 3, maintain_max: 5, optimal_min: 6, optimal_max: 12 },
-  "Trapèzes":         { maintain_min: 3, maintain_max: 5, optimal_min: 6, optimal_max: 12 },
-  "Abdominaux":       { maintain_min: 3, maintain_max: 5, optimal_min: 6, optimal_max: 12 },
-  "Avant-bras":       { maintain_min: 3, maintain_max: 5, optimal_min: 6, optimal_max: 12 },
+  "Pectoraux":        { min: 3, max: 12 },
+  "Dos":              { min: 3, max: 12 },
+  "Épaules":          { min: 3, max: 12 },
+  "Biceps":           { min: 3, max: 12 },
+  "Triceps":          { min: 3, max: 12 },
+  "Quadriceps":       { min: 3, max: 12 },
+  "Ischio-jambiers":  { min: 3, max: 12 },
+  "Fessiers":         { min: 3, max: 12 },
+  "Mollets":          { min: 3, max: 12 },
+  "Trapèzes":         { min: 3, max: 12 },
+  "Abdominaux":       { min: 3, max: 12 },
+  "Avant-bras":       { min: 3, max: 12 },
 };
 
 function getTarget(muscle, priority) {
@@ -1152,7 +1153,7 @@ Sois direct, comme un vrai coach. Pas de titres, juste des paragraphes. Maximum 
   function renderMuscleRows() {
     return ALL_MUSCLES.map(muscle => {
       const sets = muscleSets[muscle];
-      const { optimal_max } = RECOMMENDED_SETS[muscle];
+      // min=3, max=12 for bar scaling
       const prio = musclePriorities[muscle];
       const status = getStatus(sets);
       const targetInfo = getTarget(muscle, prio);
