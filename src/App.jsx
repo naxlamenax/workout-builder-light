@@ -199,103 +199,33 @@ const MUSCLE_META = {
 
 // Recommended weekly sets per muscle (Dr. Mike Israetel style)
 // min = MEV, max = MRV, target = mid-MAV (balanced default)
+// Nouvelle échelle universelle : 3-5 = MAINTIEN, 6-12 = OPTIMAL, 12+ = MAX
 const RECOMMENDED_SETS = {
-  "Pectoraux":        { min: 10, max: 20, mev: 6,  mav: 15 },
-  "Dos":              { min: 10, max: 20, mev: 6,  mav: 15 },
-  "Épaules":          { min: 10, max: 20, mev: 6,  mav: 15 },
-  "Biceps":           { min: 6,  max: 16, mev: 4,  mav: 11 },
-  "Triceps":          { min: 6,  max: 16, mev: 4,  mav: 11 },
-  "Quadriceps":       { min: 8,  max: 16, mev: 6,  mav: 12 },
-  "Ischio-jambiers":  { min: 6,  max: 16, mev: 4,  mav: 11 },
-  "Fessiers":         { min: 6,  max: 16, mev: 4,  mav: 11 },
-  "Mollets":          { min: 8,  max: 16, mev: 6,  mav: 12 },
-  "Trapèzes":         { min: 0,  max: 20, mev: 0,  mav: 10 },
-  "Abdominaux":       { min: 0,  max: 20, mev: 0,  mav: 10 },
-  "Avant-bras":       { min: 0,  max: 20, mev: 0,  mav: 10 },
+  "Pectoraux":        { maintain_min: 3, maintain_max: 5, optimal_min: 6, optimal_max: 12 },
+  "Dos":              { maintain_min: 3, maintain_max: 5, optimal_min: 6, optimal_max: 12 },
+  "Épaules":          { maintain_min: 3, maintain_max: 5, optimal_min: 6, optimal_max: 12 },
+  "Biceps":           { maintain_min: 3, maintain_max: 5, optimal_min: 6, optimal_max: 12 },
+  "Triceps":          { maintain_min: 3, maintain_max: 5, optimal_min: 6, optimal_max: 12 },
+  "Quadriceps":       { maintain_min: 3, maintain_max: 5, optimal_min: 6, optimal_max: 12 },
+  "Ischio-jambiers":  { maintain_min: 3, maintain_max: 5, optimal_min: 6, optimal_max: 12 },
+  "Fessiers":         { maintain_min: 3, maintain_max: 5, optimal_min: 6, optimal_max: 12 },
+  "Mollets":          { maintain_min: 3, maintain_max: 5, optimal_min: 6, optimal_max: 12 },
+  "Trapèzes":         { maintain_min: 3, maintain_max: 5, optimal_min: 6, optimal_max: 12 },
+  "Abdominaux":       { maintain_min: 3, maintain_max: 5, optimal_min: 6, optimal_max: 12 },
+  "Avant-bras":       { maintain_min: 3, maintain_max: 5, optimal_min: 6, optimal_max: 12 },
 };
 
-// Derive adaptive targets based on priority setting
-// "priority" → push to MAV ceiling (mav + buffer)
-// "maintain" → target MEV
-// "balanced"  → target mid-MAV
 function getTarget(muscle, priority) {
-  const { min, max, mev, mav } = RECOMMENDED_SETS[muscle];
-  if (min === 0) return null; // accessory muscles: no strict target
-  if (priority === "priority") return { target: mav + 3, label: "Cible priorité", color: "#007AFF" };
-  if (priority === "maintain") return { target: mev, label: "Cible maintien", color: "#8E8E93" };
-  return { target: mav, label: "Cible équilibré", color: "#34C759" };
+  if (priority === "maintain") return { target: 4,  label: "Cible maintien",  color: "#8E8E93" };
+  if (priority === "priority") return { target: 12, label: "Cible priorité",   color: "#E8500A" };
+  return                              { target: 9,  label: "Cible équilibré",  color: "#22C55E" };
 }
 
-/* ─── INITIAL PROGRAM ───────────────────────────────────────────────────── */
-const INITIAL_PROGRAM = [
-  {
-    id: "d1", name: "Push — A",
-    exercises: [
-      { id: "e1", name: "Développé couché barre", sets: 4 },
-      { id: "e2", name: "Développé incliné haltères", sets: 3 },
-      { id: "e3", name: "Développé militaire barre", sets: 3 },
-      { id: "e4", name: "Élévations latérales câble", sets: 4 },
-      { id: "e5", name: "Extension triceps câble barre", sets: 3 },
-    ],
-  },
-  {
-    id: "d2", name: "Pull — B",
-    exercises: [
-      { id: "e6", name: "Tractions lestées", sets: 4 },
-      { id: "e7", name: "Rowing buste appuyé", sets: 4 },
-      { id: "e8", name: "Tirage vertical prise neutre", sets: 3 },
-      { id: "e9", name: "Curl barre EZ", sets: 3 },
-      { id: "e10", name: "Curl marteau", sets: 3 },
-    ],
-  },
-  {
-    id: "d3", name: "Legs — C",
-    exercises: [
-      { id: "e11", name: "Squat barre", sets: 4 },
-      { id: "e12", name: "Soulevé de terre Roumain", sets: 3 },
-      { id: "e13", name: "Leg extension", sets: 3 },
-      { id: "e14", name: "Leg curl assis", sets: 3 },
-      { id: "e15", name: "Mollets debout", sets: 4 },
-    ],
-  },
-];
-
-/* ─── HELPERS ───────────────────────────────────────────────────────────── */
-let _id = 200;
-const uid = () => `e${_id++}`;
-const TIER_ORDER = ["S+", "S", "A+", "A", "B+", "B", "C", "D", "F", "F-"];
-
-function calcSets(program, db) {
-  const totals = {};
-  ALL_MUSCLES.forEach(m => totals[m] = 0);
-  program.forEach(day =>
-    day.exercises.forEach(ex => {
-      const data = db[ex.name];
-      if (!data) return;
-      data.primary.forEach(m => { if (totals[m] !== undefined) totals[m] += ex.sets; });
-      data.secondary.forEach(m => { if (totals[m] !== undefined) totals[m] += ex.sets * 0.5; });
-    })
-  );
-  return totals;
-}
-
-function getStatus(sets, muscle, priority = "balanced") {
-  const { min, max, mev, mav } = RECOMMENDED_SETS[muscle];
-  if (min === 0 && sets === 0) return "neutral";
-  if (priority === "maintain") {
-    if (sets < mev) return "under";
-    if (sets > mev + 4) return "over";
-    return "ok";
-  }
-  if (priority === "priority") {
-    if (sets < mav) return "under";
-    if (sets > max) return "over";
-    return "ok";
-  }
-  // balanced
-  if (sets < min) return "under";
-  if (sets > max) return "over";
-  return "ok";
+function getStatus(sets) {
+  if (sets === 0)  return "neutral";
+  if (sets <= 5)   return "maintain";  // 3-5
+  if (sets <= 12)  return "ok";        // 6-12
+  return "over";                       // 12+
 }
 
 const EMPTY_EX_FORM = { name: "", tier: "A", primary: [], secondary: [] };
@@ -621,8 +551,8 @@ Sois direct, comme un vrai coach. Pas de titres, juste des paragraphes. Maximum 
 
   useEffect(() => { if (modal?.type === "replace" || modal?.type === "add") setTimeout(() => searchRef.current?.focus(), 50); }, [modal]);
 
-  const statusColor = { under: "#FF9500", ok: "#34C759", over: "#FF3B30", neutral: "#C7C7CC" };
-  const statusLabel = { under: "BON", ok: "OPTIMAL", over: "EXCESSIF", neutral: "—" };
+  const statusColor = { maintain: "#8E8E93", ok: "#22C55E", over: "#EF4444", neutral: "#C7C7CC" };
+  const statusLabel = { maintain: "MAINTIEN", ok: "OPTIMAL", over: "MAX", neutral: "—" };
   const activeProgName = programs.find(p => p.id === activeProgramId)?.name ?? "—";
 
   return (
@@ -1019,7 +949,7 @@ Sois direct, comme un vrai coach. Pas de titres, juste des paragraphes. Maximum 
               {renderMuscleRows()}
               <div className="divider" />
               <div style={{ display: "flex", flexDirection: "column", gap: 5 }}>
-                {[{ c: "#22c55e", l: "OPTIMAL" }, { c: "#f97316", l: "BON" }, { c: "#ef4444", l: "EXCESSIF" }].map(({ c, l }) => (
+                {[{ c: "#8E8E93", l: "MAINTIEN (3–5 séries)" }, { c: "#22C55E", l: "OPTIMAL (6–12 séries)" }, { c: "#EF4444", l: "MAX (12+ séries)" }].map(({ c, l }) => (
                   <div key={l} className="legend-row"><div className="legend-dot" style={{ background: c }} /><span>{l}</span></div>
                 ))}
               </div>
@@ -1224,7 +1154,7 @@ Sois direct, comme un vrai coach. Pas de titres, juste des paragraphes. Maximum 
       const sets = muscleSets[muscle];
       const { min, max } = RECOMMENDED_SETS[muscle];
       const prio = musclePriorities[muscle];
-      const status = getStatus(sets, muscle, prio);
+      const status = getStatus(sets);
       const targetInfo = getTarget(muscle, prio);
       const color = MUSCLE_META[muscle].color;
       const barMax = Math.max(max + 4, sets + 4, 1);
@@ -1240,7 +1170,7 @@ Sois direct, comme un vrai coach. Pas de titres, juste des paragraphes. Maximum 
               {prioLabel && <span style={{ fontSize: "0.75rem" }}>{prioLabel}</span>}
             </div>
             <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-              {min > 0 && <span className="status-badge" style={{ background: statusColor[status] + "20", color: statusColor[status] }}>{statusLabel[status]}</span>}
+              {status !== "neutral" && <span className="status-badge" style={{ background: statusColor[status] + "20", color: statusColor[status] }}>{statusLabel[status]}</span>}
               <span className="muscle-sets">{sets % 1 === 0 ? sets : sets.toFixed(1)}{targetInfo ? ` / ${targetInfo.target}` : ""}</span>
             </div>
           </div>
@@ -1347,7 +1277,7 @@ Sois direct, comme un vrai coach. Pas de titres, juste des paragraphes. Maximum 
           {renderMuscleRows()}
           <div className="divider" />
           <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-            {[{c: "#34C759", l: "OPTIMAL — dans la fourchette cible"}, {c: "#FF9500", l: "BON — en dessous de la cible"}, {c: "#FF3B30", l: "EXCESSIF — au-delà du volume max"}].map(({c, l}) => (
+            {[{c: "#8E8E93", l: "MAINTIEN — 3 à 5 séries"}, {c: "#22C55E", l: "OPTIMAL — 6 à 12 séries"}, {c: "#EF4444", l: "MAX — plus de 12 séries"}].map(({c, l}) => (
               <div key={l} className="legend-row"><div className="legend-dot" style={{ background: c }} /><span style={{ fontSize: "0.72rem", color: "#8E8E93" }}>{l}</span></div>
             ))}
             <div className="legend-row">
