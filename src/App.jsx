@@ -28,16 +28,16 @@ const DAY_LONG   = ["Lundi","Mardi","Mercredi","Jeudi","Vendredi","Samedi","Dima
 // ─── TIER DATA ────────────────────────────────────────────────────────────────
 
 const TIER = {
-  "S+":{ color:"#92400E", bg:"#FEF3C7", label:"Meilleur choix absolu. Tension maximale sur toute la plage de mouvement, ratio stimulus/fatigue exceptionnel." },
-  "S": { color:"#78350F", bg:"#FDE68A", label:"Excellent exercice. Très efficace pour l'hypertrophie, difficulté d'exécution raisonnable." },
-  "A+":{ color:"#166534", bg:"#DCFCE7", label:"Très bon choix. Légèrement en dessous du S sur un critère spécifique." },
-  "A": { color:"#15803D", bg:"#D1FAE5", label:"Bon exercice polyvalent et éprouvé. Solide dans n'importe quel programme." },
-  "B+":{ color:"#1E40AF", bg:"#DBEAFE", label:"Solide avec quelques limitations mécaniques mineures." },
-  "B": { color:"#1D4ED8", bg:"#EFF6FF", label:"Acceptable mais des alternatives plus efficaces existent." },
-  "C": { color:"#6B7280", bg:"#F3F4F6", label:"Moyen. À utiliser en complément seulement, pas comme mouvement principal." },
-  "D": { color:"#9CA3AF", bg:"#F9FAFB", label:"Peu efficace pour l'hypertrophie. Beaucoup mieux disponible." },
-  "F": { color:"#DC2626", bg:"#FEF2F2", label:"Déconseillé. Mauvais ratio stimulus/fatigue ou risque de blessure élevé." },
-  "F-":{ color:"#991B1B", bg:"#FEE2E2", label:"À éviter absolument." },
+  "S+": { color:"#92400E", bg:"#FEF3C7", label:"Meilleur choix absolu. Tension maximale sur toute la plage de mouvement, ratio stimulus/fatigue exceptionnel." , movement:"neutral" },
+  "S": { color:"#78350F", bg:"#FDE68A", label:"Excellent exercice. Très efficace pour l'hypertrophie, difficulté d'exécution raisonnable." , movement:"neutral" },
+  "A+": { color:"#166534", bg:"#DCFCE7", label:"Très bon choix. Légèrement en dessous du S sur un critère spécifique." , movement:"neutral" },
+  "A": { color:"#15803D", bg:"#D1FAE5", label:"Bon exercice polyvalent et éprouvé. Solide dans n'importe quel programme." , movement:"neutral" },
+  "B+": { color:"#1E40AF", bg:"#DBEAFE", label:"Solide avec quelques limitations mécaniques mineures." , movement:"neutral" },
+  "B": { color:"#1D4ED8", bg:"#EFF6FF", label:"Acceptable mais des alternatives plus efficaces existent." , movement:"neutral" },
+  "C": { color:"#6B7280", bg:"#F3F4F6", label:"Moyen. À utiliser en complément seulement, pas comme mouvement principal." , movement:"neutral" },
+  "D": { color:"#9CA3AF", bg:"#F9FAFB", label:"Peu efficace pour l'hypertrophie. Beaucoup mieux disponible." , movement:"neutral" },
+  "F": { color:"#DC2626", bg:"#FEF2F2", label:"Déconseillé. Mauvais ratio stimulus/fatigue ou risque de blessure élevé." , movement:"neutral" },
+  "F-": { color:"#991B1B", bg:"#FEE2E2", label:"À éviter absolument." , movement:"neutral" },
 };
 const TIER_ORDER = ["S+","S","A+","A","B+","B","C","D","F","F-"];
 
@@ -45,154 +45,154 @@ const TIER_ORDER = ["S+","S","A+","A","B+","B","C","D","F","F-"];
 
 const EXERCISE_DB = {
   // ── Pectoraux ──
-  "Presse pectoraux machine":         { tier:"S+", primary:["Pectoraux"], secondary:["Triceps"],           desc:"Isole parfaitement les pectoraux avec une tension constante sur toute la plage. La machine stabilise la trajectoire — idéal pour maximiser la contraction sans compenser. Note S+ car tension maximale en étirement et contraction." },
-  "Écarté câble assis":               { tier:"S",  primary:["Pectoraux"], secondary:[],                   desc:"Le câble maintient une tension constante contrairement aux haltères qui perdent en tension en haut. Excellent finisseur ou exercice d'isolation principal pour les pectoraux." },
-  "Développé couché barre":           { tier:"A",  primary:["Pectoraux"], secondary:["Épaules","Triceps"], desc:"Exercice de force fondamental. Moins efficace que la machine pour l'isolation pure car la stabilisation divise le stimulus, mais excellent pour développer la force brute et la masse globale." },
-  "Développé incliné barre":          { tier:"A",  primary:["Pectoraux"], secondary:["Épaules","Triceps"], desc:"L'inclinaison accentue le faisceau claviculaire. La barre permet plus de charge que les haltères. Bon exercice de masse pour le haut des pectoraux." },
-  "Développé couché haltères":        { tier:"A",  primary:["Pectoraux"], secondary:["Épaules","Triceps"], desc:"Plus grande plage de mouvement que la barre. Chaque bras travaille indépendamment ce qui révèle les déséquilibres. Excellent pour l'hypertrophie pectorale." },
-  "Développé incliné haltères":       { tier:"A",  primary:["Pectoraux"], secondary:["Épaules","Triceps"], desc:"L'inclinaison accentue le faisceau claviculaire. Les haltères permettent une plage de mouvement plus complète qu'une barre. Bon exercice multiarticulaire pour le haut des pectoraux." },
-  "Dips lestés":                      { tier:"A",  primary:["Pectoraux","Triceps"], secondary:["Épaules"], desc:"Exercice au poids du corps lestable. L'inclinaison du tronc vers l'avant accentue les pectoraux. Excellent rapport force/hypertrophie." },
-  "Pompes déficit":                   { tier:"A",  primary:["Pectoraux"], secondary:["Triceps","Épaules"], desc:"Le déficit augmente la plage de mouvement et l'étirement pectoral. Version plus efficace que la pompe classique pour l'hypertrophie." },
-  "Développé couché Smith":           { tier:"A",  primary:["Pectoraux"], secondary:["Épaules","Triceps"], desc:"La Smith machine guide la trajectoire et permet de pousser plus lourd en sécurité. Moins de travail stabilisateur mais stimulus pectoral similaire à la barre libre." },
-  "Développé incliné Smith":          { tier:"A",  primary:["Pectoraux"], secondary:["Épaules","Triceps"], desc:"Version inclinée sur Smith. Sécurisé, permet de progresser en charge. Bon pour le haut des pectoraux." },
-  "Croisé poulies":                   { tier:"A",  primary:["Pectoraux"], secondary:[],                   desc:"La hauteur du câble modifie l'angle de travail (bas = faisceau inférieur, haut = supérieur). Tension constante, grande plage. Très polyvalent." },
-  "Peck deck":                        { tier:"A",  primary:["Pectoraux"], secondary:[],                   desc:"Isolation complète des pectoraux avec tension constante en contraction. La machine guide le mouvement et sécurise les épaules. Excellent finisseur." },
-  "Écarté haltères":                  { tier:"A",  primary:["Pectoraux"], secondary:[],                   desc:"Grand classique d'isolation. Les haltères perdent en tension en haut du mouvement, mais l'étirement en bas est excellent." },
-  "Développé décliné barre":          { tier:"B",  primary:["Pectoraux"], secondary:["Triceps"],           desc:"Accentue le faisceau sternal inférieur. Moins polyvalent que le développé couché classique, rarement nécessaire." },
-  "Développé décliné haltères":       { tier:"B",  primary:["Pectoraux"], secondary:["Triceps"],           desc:"Version déclinée avec haltères. Plage de mouvement correcte mais intérêt limité par rapport aux autres angles." },
-  "Pompes élastiques":                { tier:"B",  primary:["Pectoraux"], secondary:["Triceps"],           desc:"L'élastique augmente la résistance en fin de mouvement. Bonne option sans matériel mais charge maximale limitée." },
-  "Pompes":                           { tier:"C",  primary:["Pectoraux"], secondary:["Triceps","Épaules"], desc:"Base mais vite limitant pour l'hypertrophie une fois qu'on peut faire plus de 20 répétitions. À charger ou remplacer." },
-  "Développé sol":                    { tier:"C",  primary:["Pectoraux"], secondary:["Triceps"],           desc:"La plage de mouvement est limitée par le sol. Acceptable en dépannage mais beaucoup mieux disponible." },
-  "Pull-over haltère":                { tier:"D",  primary:["Dos","Pectoraux"], secondary:[],              desc:"L'intérêt est discutable — ni vraiment dos, ni vraiment pec. La tension est faible sur toute la plage." },
+  "Presse pectoraux machine": { tier:"S+", primary:["Pectoraux"], secondary:["Triceps"],           desc:"Isole parfaitement les pectoraux avec une tension constante sur toute la plage. La machine stabilise la trajectoire — idéal pour maximiser la contraction sans compenser. Note S+ car tension maximale en étirement et contraction." , movement:"push" },
+  "Écarté câble assis": { tier:"S",  primary:["Pectoraux"], secondary:[],                   desc:"Le câble maintient une tension constante contrairement aux haltères qui perdent en tension en haut. Excellent finisseur ou exercice d'isolation principal pour les pectoraux." , movement:"push" },
+  "Développé couché barre": { tier:"A",  primary:["Pectoraux"], secondary:["Épaules","Triceps"], desc:"Exercice de force fondamental. Moins efficace que la machine pour l'isolation pure car la stabilisation divise le stimulus, mais excellent pour développer la force brute et la masse globale." , movement:"push" },
+  "Développé incliné barre": { tier:"A",  primary:["Pectoraux"], secondary:["Épaules","Triceps"], desc:"L'inclinaison accentue le faisceau claviculaire. La barre permet plus de charge que les haltères. Bon exercice de masse pour le haut des pectoraux." , movement:"push" },
+  "Développé couché haltères": { tier:"A",  primary:["Pectoraux"], secondary:["Épaules","Triceps"], desc:"Plus grande plage de mouvement que la barre. Chaque bras travaille indépendamment ce qui révèle les déséquilibres. Excellent pour l'hypertrophie pectorale." , movement:"push" },
+  "Développé incliné haltères": { tier:"A",  primary:["Pectoraux"], secondary:["Épaules","Triceps"], desc:"L'inclinaison accentue le faisceau claviculaire. Les haltères permettent une plage de mouvement plus complète qu'une barre. Bon exercice multiarticulaire pour le haut des pectoraux." , movement:"push" },
+  "Dips lestés": { tier:"A",  primary:["Pectoraux","Triceps"], secondary:["Épaules"], desc:"Exercice au poids du corps lestable. L'inclinaison du tronc vers l'avant accentue les pectoraux. Excellent rapport force/hypertrophie." , movement:"push" },
+  "Pompes déficit": { tier:"A",  primary:["Pectoraux"], secondary:["Triceps","Épaules"], desc:"Le déficit augmente la plage de mouvement et l'étirement pectoral. Version plus efficace que la pompe classique pour l'hypertrophie." , movement:"push" },
+  "Développé couché Smith": { tier:"A",  primary:["Pectoraux"], secondary:["Épaules","Triceps"], desc:"La Smith machine guide la trajectoire et permet de pousser plus lourd en sécurité. Moins de travail stabilisateur mais stimulus pectoral similaire à la barre libre." , movement:"push" },
+  "Développé incliné Smith": { tier:"A",  primary:["Pectoraux"], secondary:["Épaules","Triceps"], desc:"Version inclinée sur Smith. Sécurisé, permet de progresser en charge. Bon pour le haut des pectoraux." , movement:"push" },
+  "Croisé poulies": { tier:"A",  primary:["Pectoraux"], secondary:[],                   desc:"La hauteur du câble modifie l'angle de travail (bas = faisceau inférieur, haut = supérieur). Tension constante, grande plage. Très polyvalent." , movement:"push" },
+  "Peck deck": { tier:"A",  primary:["Pectoraux"], secondary:[],                   desc:"Isolation complète des pectoraux avec tension constante en contraction. La machine guide le mouvement et sécurise les épaules. Excellent finisseur." , movement:"push" },
+  "Écarté haltères": { tier:"A",  primary:["Pectoraux"], secondary:[],                   desc:"Grand classique d'isolation. Les haltères perdent en tension en haut du mouvement, mais l'étirement en bas est excellent." , movement:"push" },
+  "Développé décliné barre": { tier:"B",  primary:["Pectoraux"], secondary:["Triceps"],           desc:"Accentue le faisceau sternal inférieur. Moins polyvalent que le développé couché classique, rarement nécessaire." , movement:"push" },
+  "Développé décliné haltères": { tier:"B",  primary:["Pectoraux"], secondary:["Triceps"],           desc:"Version déclinée avec haltères. Plage de mouvement correcte mais intérêt limité par rapport aux autres angles." , movement:"push" },
+  "Pompes élastiques": { tier:"B",  primary:["Pectoraux"], secondary:["Triceps"],           desc:"L'élastique augmente la résistance en fin de mouvement. Bonne option sans matériel mais charge maximale limitée." , movement:"push" },
+  "Pompes": { tier:"C",  primary:["Pectoraux"], secondary:["Triceps","Épaules"], desc:"Base mais vite limitant pour l'hypertrophie une fois qu'on peut faire plus de 20 répétitions. À charger ou remplacer." , movement:"push" },
+  "Développé sol": { tier:"C",  primary:["Pectoraux"], secondary:["Triceps"],           desc:"La plage de mouvement est limitée par le sol. Acceptable en dépannage mais beaucoup mieux disponible." , movement:"push" },
+  "Pull-over haltère": { tier:"D",  primary:["Dos","Pectoraux"], secondary:[],              desc:"L'intérêt est discutable — ni vraiment dos, ni vraiment pec. La tension est faible sur toute la plage." , movement:"neutral" },
   // ── Dos ──
-  "Tirage vertical prise large":      { tier:"S",  primary:["Dos"], secondary:["Biceps"],                  desc:"Le tirage vertical simule le mouvement de traction avec une charge modulable. La prise large accentue le grand dorsal." },
-  "Tirage vertical prise neutre":     { tier:"S",  primary:["Dos"], secondary:["Biceps"],                  desc:"La prise neutre est la position la plus forte et naturelle pour le coude. Moins de stress articulaire qu'en pronation." },
-  "Tirage vertical 1 bras":           { tier:"S",  primary:["Dos"], secondary:["Biceps"],                  desc:"Unilatéral permet un étirement supérieur et corrige les déséquilibres. Excellent pour la largeur du dos." },
-  "Meadows row":                      { tier:"S",  primary:["Dos"], secondary:["Biceps"],                  desc:"Position unilatérale à la barre T. Plage complète et étirement exceptionnel du grand dorsal. Très efficace pour l'épaisseur et la largeur." },
-  "Rowing buste appuyé":              { tier:"S",  primary:["Dos"], secondary:["Biceps","Trapèzes"],        desc:"La poitrine appuyée élimine l'élan et force le dos à travailler isolément. Excellent pour les rhomboïdes et le milieu du dos." },
-  "Rowing câble":                     { tier:"S",  primary:["Dos"], secondary:["Biceps"],                  desc:"Tension constante sur toute la plage grâce au câble. Excellent exercice bilatéral pour l'épaisseur du dos." },
-  "Rowing câble prise large":         { tier:"S",  primary:["Dos"], secondary:["Biceps","Trapèzes"],        desc:"La prise large accentue les rhomboïdes et le milieu du dos. Bonne alternative pour varier les angles." },
-  "Tractions prise large":            { tier:"A",  primary:["Dos"], secondary:["Biceps","Trapèzes"],        desc:"Le mouvement de traction est fondamental. Prise large = accent sur le grand dorsal pour la largeur." },
-  "Tractions prise neutre":           { tier:"A",  primary:["Dos"], secondary:["Biceps","Trapèzes"],        desc:"Position la plus forte mécaniquement. Excellent compromis entre dos et biceps." },
-  "Tirage vertical croisé 1 bras":    { tier:"A",  primary:["Dos"], secondary:["Biceps"],                  desc:"Le câble croisé permet un angle et un étirement différent du tirage vertical classique." },
-  "Pendlay row déficit":              { tier:"A",  primary:["Dos"], secondary:["Biceps","Trapèzes"],        desc:"Le déficit augmente la plage de mouvement. Mouvement explosif qui développe la puissance du dos." },
-  "Rowing haltère 1 bras":            { tier:"A",  primary:["Dos"], secondary:["Biceps"],                  desc:"Classique unilatéral. Bonne plage de mouvement, permet beaucoup de charge." },
-  "Kroc row":                         { tier:"A",  primary:["Dos"], secondary:["Biceps","Avant-bras"],      desc:"Version lourde et partielle du rowing haltère. Développe la force de préhension et l'épaisseur du dos." },
-  "Tractions lestées":                { tier:"A",  primary:["Dos"], secondary:["Biceps","Trapèzes"],        desc:"Le mouvement de traction est un des plus efficaces pour le dos. Les lester dès qu'on dépasse 10-12 répétitions." },
-  "Tractions prise supination":       { tier:"B",  primary:["Dos","Biceps"], secondary:["Trapèzes"],        desc:"La supination implique plus les biceps. Bon exercice mais le dos est moins isolé qu'en pronation." },
-  "Rowing barre":                     { tier:"B",  primary:["Dos"], secondary:["Biceps","Trapèzes"],        desc:"Efficace mais la triche avec le bas du dos est commune. Exécution stricte requise." },
-  "Pendlay row":                      { tier:"B",  primary:["Dos"], secondary:["Biceps","Trapèzes"],        desc:"Mouvement depuis le sol, bonne exécution. Moins de plage que le Pendlay en déficit." },
-  "Face pull corde":                  { tier:"B",  primary:["Épaules","Trapèzes"], secondary:[],            desc:"Excellent pour la santé des épaules et le travail des rotateurs externes. Sous-utilisé dans la plupart des programmes." },
-  "Soulevé de terre":                 { tier:"C",  primary:["Dos","Ischio-jambiers","Fessiers"], secondary:["Trapèzes"], desc:"Excellent pour la force mais sous-optimal pour l'hypertrophie isolée du dos. La fatigue systémique élevée réduit la fréquence possible." },
-  "Yates row":                        { tier:"C",  primary:["Dos"], secondary:["Biceps"],                  desc:"Version semi-inclinée. La position debout permet de la triche facilement." },
-  "Rowing inversé":                   { tier:"C",  primary:["Dos"], secondary:["Biceps","Trapèzes"],        desc:"Au poids du corps, bien pour les débutants. Vite trop facile." },
-  "T-bar row":                        { tier:"C",  primary:["Dos"], secondary:["Biceps"],                  desc:"Efficace mais la position peut stresser les lombaires si exécution imparfaite." },
-  "Rack pull":                        { tier:"D",  primary:["Dos"], secondary:["Trapèzes"],                 desc:"Plage partielle du soulevé de terre. Peu de stimulus d'hypertrophie, surtout un exercice de force partielle." },
-  "Renegade row":                     { tier:"F",  primary:["Dos"], secondary:[],                          desc:"La stabilisation en planche limite la charge possible. Mauvais ratio stimulus/fatigue pour le dos." },
+  "Tirage vertical prise large": { tier:"S",  primary:["Dos"], secondary:["Biceps"],                  desc:"Le tirage vertical simule le mouvement de traction avec une charge modulable. La prise large accentue le grand dorsal." , movement:"pull" },
+  "Tirage vertical prise neutre": { tier:"S",  primary:["Dos"], secondary:["Biceps"],                  desc:"La prise neutre est la position la plus forte et naturelle pour le coude. Moins de stress articulaire qu'en pronation." , movement:"pull" },
+  "Tirage vertical 1 bras": { tier:"S",  primary:["Dos"], secondary:["Biceps"],                  desc:"Unilatéral permet un étirement supérieur et corrige les déséquilibres. Excellent pour la largeur du dos." , movement:"pull" },
+  "Meadows row": { tier:"S",  primary:["Dos"], secondary:["Biceps"],                  desc:"Position unilatérale à la barre T. Plage complète et étirement exceptionnel du grand dorsal. Très efficace pour l'épaisseur et la largeur." , movement:"pull" },
+  "Rowing buste appuyé": { tier:"S",  primary:["Dos"], secondary:["Biceps","Trapèzes"],        desc:"La poitrine appuyée élimine l'élan et force le dos à travailler isolément. Excellent pour les rhomboïdes et le milieu du dos." , movement:"pull" },
+  "Rowing câble": { tier:"S",  primary:["Dos"], secondary:["Biceps"],                  desc:"Tension constante sur toute la plage grâce au câble. Excellent exercice bilatéral pour l'épaisseur du dos." , movement:"pull" },
+  "Rowing câble prise large": { tier:"S",  primary:["Dos"], secondary:["Biceps","Trapèzes"],        desc:"La prise large accentue les rhomboïdes et le milieu du dos. Bonne alternative pour varier les angles." , movement:"pull" },
+  "Tractions prise large": { tier:"A",  primary:["Dos"], secondary:["Biceps","Trapèzes"],        desc:"Le mouvement de traction est fondamental. Prise large = accent sur le grand dorsal pour la largeur." , movement:"pull" },
+  "Tractions prise neutre": { tier:"A",  primary:["Dos"], secondary:["Biceps","Trapèzes"],        desc:"Position la plus forte mécaniquement. Excellent compromis entre dos et biceps." , movement:"pull" },
+  "Tirage vertical croisé 1 bras": { tier:"A",  primary:["Dos"], secondary:["Biceps"],                  desc:"Le câble croisé permet un angle et un étirement différent du tirage vertical classique." , movement:"pull" },
+  "Pendlay row déficit": { tier:"A",  primary:["Dos"], secondary:["Biceps","Trapèzes"],        desc:"Le déficit augmente la plage de mouvement. Mouvement explosif qui développe la puissance du dos." , movement:"pull" },
+  "Rowing haltère 1 bras": { tier:"A",  primary:["Dos"], secondary:["Biceps"],                  desc:"Classique unilatéral. Bonne plage de mouvement, permet beaucoup de charge." , movement:"pull" },
+  "Kroc row": { tier:"A",  primary:["Dos"], secondary:["Biceps","Avant-bras"],      desc:"Version lourde et partielle du rowing haltère. Développe la force de préhension et l'épaisseur du dos." , movement:"pull" },
+  "Tractions lestées": { tier:"A",  primary:["Dos"], secondary:["Biceps","Trapèzes"],        desc:"Le mouvement de traction est un des plus efficaces pour le dos. Les lester dès qu'on dépasse 10-12 répétitions." , movement:"pull" },
+  "Tractions prise supination": { tier:"B",  primary:["Dos","Biceps"], secondary:["Trapèzes"],        desc:"La supination implique plus les biceps. Bon exercice mais le dos est moins isolé qu'en pronation." , movement:"pull" },
+  "Rowing barre": { tier:"B",  primary:["Dos"], secondary:["Biceps","Trapèzes"],        desc:"Efficace mais la triche avec le bas du dos est commune. Exécution stricte requise." , movement:"pull" },
+  "Pendlay row": { tier:"B",  primary:["Dos"], secondary:["Biceps","Trapèzes"],        desc:"Mouvement depuis le sol, bonne exécution. Moins de plage que le Pendlay en déficit." , movement:"pull" },
+  "Face pull corde": { tier:"B",  primary:["Épaules","Trapèzes"], secondary:[],            desc:"Excellent pour la santé des épaules et le travail des rotateurs externes. Sous-utilisé dans la plupart des programmes." , movement:"pull" },
+  "Soulevé de terre": { tier:"C",  primary:["Dos","Ischio-jambiers","Fessiers"], secondary:["Trapèzes"], desc:"Excellent pour la force mais sous-optimal pour l'hypertrophie isolée du dos. La fatigue systémique élevée réduit la fréquence possible." , movement:"neutral" },
+  "Yates row": { tier:"C",  primary:["Dos"], secondary:["Biceps"],                  desc:"Version semi-inclinée. La position debout permet de la triche facilement." , movement:"pull" },
+  "Rowing inversé": { tier:"C",  primary:["Dos"], secondary:["Biceps","Trapèzes"],        desc:"Au poids du corps, bien pour les débutants. Vite trop facile." , movement:"pull" },
+  "T-bar row": { tier:"C",  primary:["Dos"], secondary:["Biceps"],                  desc:"Efficace mais la position peut stresser les lombaires si exécution imparfaite." , movement:"pull" },
+  "Rack pull": { tier:"D",  primary:["Dos"], secondary:["Trapèzes"],                 desc:"Plage partielle du soulevé de terre. Peu de stimulus d'hypertrophie, surtout un exercice de force partielle." , movement:"neutral" },
+  "Renegade row": { tier:"F",  primary:["Dos"], secondary:[],                          desc:"La stabilisation en planche limite la charge possible. Mauvais ratio stimulus/fatigue pour le dos." , movement:"pull" },
   // ── Épaules ──
-  "Élévations latérales câble":       { tier:"S",  primary:["Épaules"], secondary:[],                      desc:"Le câble maintient la tension en bas du mouvement là où les haltères n'en ont aucune. Meilleur choix pour le deltoïde latéral." },
-  "Cable Y raise":                    { tier:"S",  primary:["Épaules"], secondary:["Trapèzes"],             desc:"Cible le deltoïde postérieur et les trapèzes moyens. Excellent pour l'équilibre et la santé de l'épaule." },
-  "Élévations latérales câble dos":   { tier:"S",  primary:["Épaules"], secondary:[],                      desc:"Angle différent qui cible mieux le deltoïde latéral en position d'étirement." },
-  "Oiseau machine":                   { tier:"S",  primary:["Épaules"], secondary:["Trapèzes"],             desc:"Isole le deltoïde postérieur avec tension constante. Indispensable pour les épaules arrière." },
-  "Croisé poulies inverse":           { tier:"S",  primary:["Épaules"], secondary:["Trapèzes"],             desc:"Version câble de l'oiseau. Tension constante, excellent pour le deltoïde postérieur." },
-  "Développé épaules machine":        { tier:"A+", primary:["Épaules"], secondary:["Triceps"],              desc:"La machine guide la trajectoire. Permet de se concentrer sur le deltoïde antérieur sans stabilisation. Souvent mieux toléré que la barre." },
-  "Élévations latérales inclinées":   { tier:"A",  primary:["Épaules"], secondary:[],                      desc:"L'inclinaison met le deltoïde en position d'étirement au départ. Excellent pour maximiser la plage de mouvement." },
-  "Développé militaire haltères":     { tier:"A",  primary:["Épaules"], secondary:["Triceps"],              desc:"Les haltères permettent plus de liberté de mouvement que la barre. Bon exercice de masse pour les épaules." },
-  "Élévations latérales allongé":     { tier:"A",  primary:["Épaules"], secondary:[],                      desc:"Position allongée = étirement maximal du deltoïde latéral. Charge légère mais stimulus élevé." },
-  "Arnold press":                     { tier:"A",  primary:["Épaules"], secondary:["Triceps"],              desc:"La rotation implique les 3 faisceaux du deltoïde. Plus complet qu'un développé classique mais plus complexe techniquement." },
-  "Développé militaire barre":        { tier:"B+", primary:["Épaules"], secondary:["Triceps"],              desc:"Force debout fondamentale. Bon pour la force générale mais la barre limite la plage et les stabilisateurs divisent l'effort." },
-  "Élévations latérales haltères":    { tier:"B",  primary:["Épaules"], secondary:[],                      desc:"Grand classique mais la tension est quasi nulle en bas du mouvement. Le câble est supérieur pour l'isolation." },
-  "Oiseau haltères":                  { tier:"B",  primary:["Épaules"], secondary:[],                      desc:"Même remarque que les élévations — la tension est faible en bas. La machine ou le câble sont préférables." },
-  "Élévations latérales machine":     { tier:"B",  primary:["Épaules"], secondary:[],                      desc:"Tension constante selon la machine. Moins polyvalent que le câble mais acceptable." },
-  "Tirage menton":                    { tier:"B",  primary:["Épaules","Trapèzes"], secondary:["Biceps"],    desc:"Ciblage du deltoïde latéral et des trapèzes. L'élévation au-dessus de l'épaule peut stresser l'articulation acromio-claviculaire." },
-  "Élévations latérales élastique":   { tier:"C",  primary:["Épaules"], secondary:[],                      desc:"Charge très limitée. Utile en réchauffement ou sans matériel mais pas idéal pour l'hypertrophie." },
-  "Élévations frontales":             { tier:"D",  primary:["Épaules"], secondary:[],                      desc:"Le deltoïde antérieur est déjà très sollicité dans tous les mouvements de poussée. Cet exercice est rarement nécessaire." },
+  "Élévations latérales câble": { tier:"S",  primary:["Épaules"], secondary:[],                      desc:"Le câble maintient la tension en bas du mouvement là où les haltères n'en ont aucune. Meilleur choix pour le deltoïde latéral." , movement:"neutral" },
+  "Cable Y raise": { tier:"S",  primary:["Épaules"], secondary:["Trapèzes"],             desc:"Cible le deltoïde postérieur et les trapèzes moyens. Excellent pour l'équilibre et la santé de l'épaule." , movement:"pull" },
+  "Élévations latérales câble dos": { tier:"S",  primary:["Épaules"], secondary:[],                      desc:"Angle différent qui cible mieux le deltoïde latéral en position d'étirement." , movement:"pull" },
+  "Oiseau machine": { tier:"S",  primary:["Épaules"], secondary:["Trapèzes"],             desc:"Isole le deltoïde postérieur avec tension constante. Indispensable pour les épaules arrière." , movement:"pull" },
+  "Croisé poulies inverse": { tier:"S",  primary:["Épaules"], secondary:["Trapèzes"],             desc:"Version câble de l'oiseau. Tension constante, excellent pour le deltoïde postérieur." , movement:"pull" },
+  "Développé épaules machine": { tier:"A+", primary:["Épaules"], secondary:["Triceps"],              desc:"La machine guide la trajectoire. Permet de se concentrer sur le deltoïde antérieur sans stabilisation. Souvent mieux toléré que la barre." , movement:"push" },
+  "Élévations latérales inclinées": { tier:"A",  primary:["Épaules"], secondary:[],                      desc:"L'inclinaison met le deltoïde en position d'étirement au départ. Excellent pour maximiser la plage de mouvement." , movement:"neutral" },
+  "Développé militaire haltères": { tier:"A",  primary:["Épaules"], secondary:["Triceps"],              desc:"Les haltères permettent plus de liberté de mouvement que la barre. Bon exercice de masse pour les épaules." , movement:"push" },
+  "Élévations latérales allongé": { tier:"A",  primary:["Épaules"], secondary:[],                      desc:"Position allongée = étirement maximal du deltoïde latéral. Charge légère mais stimulus élevé." , movement:"neutral" },
+  "Arnold press": { tier:"A",  primary:["Épaules"], secondary:["Triceps"],              desc:"La rotation implique les 3 faisceaux du deltoïde. Plus complet qu'un développé classique mais plus complexe techniquement." , movement:"push" },
+  "Développé militaire barre": { tier:"B+", primary:["Épaules"], secondary:["Triceps"],              desc:"Force debout fondamentale. Bon pour la force générale mais la barre limite la plage et les stabilisateurs divisent l'effort." , movement:"push" },
+  "Élévations latérales haltères": { tier:"B",  primary:["Épaules"], secondary:[],                      desc:"Grand classique mais la tension est quasi nulle en bas du mouvement. Le câble est supérieur pour l'isolation." , movement:"neutral" },
+  "Oiseau haltères": { tier:"B",  primary:["Épaules"], secondary:[],                      desc:"Même remarque que les élévations — la tension est faible en bas. La machine ou le câble sont préférables." , movement:"pull" },
+  "Élévations latérales machine": { tier:"B",  primary:["Épaules"], secondary:[],                      desc:"Tension constante selon la machine. Moins polyvalent que le câble mais acceptable." , movement:"neutral" },
+  "Tirage menton": { tier:"B",  primary:["Épaules","Trapèzes"], secondary:["Biceps"],    desc:"Ciblage du deltoïde latéral et des trapèzes. L'élévation au-dessus de l'épaule peut stresser l'articulation acromio-claviculaire." , movement:"pull" },
+  "Élévations latérales élastique": { tier:"C",  primary:["Épaules"], secondary:[],                      desc:"Charge très limitée. Utile en réchauffement ou sans matériel mais pas idéal pour l'hypertrophie." , movement:"neutral" },
+  "Élévations frontales": { tier:"D",  primary:["Épaules"], secondary:[],                      desc:"Le deltoïde antérieur est déjà très sollicité dans tous les mouvements de poussée. Cet exercice est rarement nécessaire." , movement:"push" },
   // ── Biceps ──
-  "Bayesian curl face away":          { tier:"S+", primary:["Biceps"], secondary:[],                       desc:"Face au câble = biceps en étirement maximal (épaule en extension). Maximise le stimulus d'hypertrophie. Un des rares exercices qui coche toutes les cases." },
-  "Curl pupitre haltère":             { tier:"S",  primary:["Biceps"], secondary:[],                       desc:"Le pupitre élimine la triche et force le biceps à travailler sur toute la plage. L'haltère permet une supination complète au sommet." },
-  "Curl pupitre machine":             { tier:"S",  primary:["Biceps"], secondary:[],                       desc:"Version machine du curl pupitre. Tension constante, idéal pour l'isolation." },
-  "Curl marteau pupitre":             { tier:"S",  primary:["Biceps"], secondary:["Avant-bras"],            desc:"Cible le brachial et le brachioradial en plus du biceps. Excellent pour l'épaisseur du bras." },
-  "Curl barre EZ":                    { tier:"A",  primary:["Biceps"], secondary:[],                       desc:"La forme EZ réduit le stress sur les poignets et les coudes. Permet plus de charge que les haltères pour beaucoup de pratiquants." },
-  "Curl haltères debout":             { tier:"A",  primary:["Biceps"], secondary:[],                       desc:"Grand classique. La supination en haut maximise la contraction du biceps. Charge bilatérale modifiable." },
-  "Curl incliné":                     { tier:"A",  primary:["Biceps"], secondary:[],                       desc:"Position inclinée = épaule en extension = étirement maximal du biceps. Excellent pour le chef long." },
-  "Curl haltères allongé":            { tier:"A",  primary:["Biceps"], secondary:[],                       desc:"Position allongée crée un étirement similaire au curl incliné. Tension maximale en position d'étirement." },
-  "Curl câble debout":                { tier:"A",  primary:["Biceps"], secondary:[],                       desc:"Le câble maintient une tension constante contrairement aux haltères. Excellente option d'isolation." },
-  "Curl marteau":                     { tier:"A",  primary:["Biceps"], secondary:["Avant-bras"],            desc:"Prise neutre cible le brachial. Complément utile au curl classique pour un développement complet du bras." },
-  "Curl barre":                       { tier:"B",  primary:["Biceps"], secondary:[],                       desc:"Efficace mais la barre droite peut stresser les poignets. La barre EZ est généralement préférable." },
-  "Curl Scott":                       { tier:"C",  primary:["Biceps"], secondary:[],                       desc:"Le pupitre Scott limite la plage en haut du mouvement. Le curl pupitre classique est supérieur." },
-  "Drag curl":                        { tier:"C",  primary:["Biceps"], secondary:[],                       desc:"Le mouvement vers l'arrière accentue le chef court. Intéressant mais peu praticable avec charge élevée." },
-  "Spider curl":                      { tier:"C",  primary:["Biceps"], secondary:[],                       desc:"Bonne isolation mais la position est inconfortable et limite la charge." },
+  "Bayesian curl face away": { tier:"S+", primary:["Biceps"], secondary:[],                       desc:"Face au câble = biceps en étirement maximal (épaule en extension). Maximise le stimulus d'hypertrophie. Un des rares exercices qui coche toutes les cases." , movement:"pull" },
+  "Curl pupitre haltère": { tier:"S",  primary:["Biceps"], secondary:[],                       desc:"Le pupitre élimine la triche et force le biceps à travailler sur toute la plage. L'haltère permet une supination complète au sommet." , movement:"pull" },
+  "Curl pupitre machine": { tier:"S",  primary:["Biceps"], secondary:[],                       desc:"Version machine du curl pupitre. Tension constante, idéal pour l'isolation." , movement:"pull" },
+  "Curl marteau pupitre": { tier:"S",  primary:["Biceps"], secondary:["Avant-bras"],            desc:"Cible le brachial et le brachioradial en plus du biceps. Excellent pour l'épaisseur du bras." , movement:"pull" },
+  "Curl barre EZ": { tier:"A",  primary:["Biceps"], secondary:[],                       desc:"La forme EZ réduit le stress sur les poignets et les coudes. Permet plus de charge que les haltères pour beaucoup de pratiquants." , movement:"pull" },
+  "Curl haltères debout": { tier:"A",  primary:["Biceps"], secondary:[],                       desc:"Grand classique. La supination en haut maximise la contraction du biceps. Charge bilatérale modifiable." , movement:"pull" },
+  "Curl incliné": { tier:"A",  primary:["Biceps"], secondary:[],                       desc:"Position inclinée = épaule en extension = étirement maximal du biceps. Excellent pour le chef long." , movement:"pull" },
+  "Curl haltères allongé": { tier:"A",  primary:["Biceps"], secondary:[],                       desc:"Position allongée crée un étirement similaire au curl incliné. Tension maximale en position d'étirement." , movement:"pull" },
+  "Curl câble debout": { tier:"A",  primary:["Biceps"], secondary:[],                       desc:"Le câble maintient une tension constante contrairement aux haltères. Excellente option d'isolation." , movement:"pull" },
+  "Curl marteau": { tier:"A",  primary:["Biceps"], secondary:["Avant-bras"],            desc:"Prise neutre cible le brachial. Complément utile au curl classique pour un développement complet du bras." , movement:"pull" },
+  "Curl barre": { tier:"B",  primary:["Biceps"], secondary:[],                       desc:"Efficace mais la barre droite peut stresser les poignets. La barre EZ est généralement préférable." , movement:"pull" },
+  "Curl Scott": { tier:"C",  primary:["Biceps"], secondary:[],                       desc:"Le pupitre Scott limite la plage en haut du mouvement. Le curl pupitre classique est supérieur." , movement:"pull" },
+  "Drag curl": { tier:"C",  primary:["Biceps"], secondary:[],                       desc:"Le mouvement vers l'arrière accentue le chef court. Intéressant mais peu praticable avec charge élevée." , movement:"pull" },
+  "Spider curl": { tier:"C",  primary:["Biceps"], secondary:[],                       desc:"Bonne isolation mais la position est inconfortable et limite la charge." , movement:"pull" },
   // ── Triceps ──
-  "Extension triceps câble barre":    { tier:"S+", primary:["Triceps"], secondary:[],                      desc:"Coude fléchi par-dessus la tête = chef long du triceps en étirement maximal. La barre donne une prise stable. Meilleur exercice d'isolation pour le triceps." },
-  "Barre front (Skullcrusher)":       { tier:"S",  primary:["Triceps"], secondary:[],                      desc:"Étirement maximal du triceps en position allongée. La barre EZ réduit le stress sur les poignets. Un des meilleurs pour le chef long." },
-  "Pushdown barre":                   { tier:"A",  primary:["Triceps"], secondary:[],                      desc:"Bon exercice d'isolation. La barre permet une prise stable et une charge élevée." },
-  "Extension triceps câble corde":    { tier:"A",  primary:["Triceps"], secondary:[],                      desc:"La corde permet une supination en fin de mouvement pour une contraction maximale. Version plus intense que la barre." },
-  "Extension triceps haltère 1 bras": { tier:"A",  primary:["Triceps"], secondary:[],                      desc:"Unilatéral au-dessus de la tête = chef long en étirement. Correction des déséquilibres possible." },
-  "Skullcrusher haltères":            { tier:"A",  primary:["Triceps"], secondary:[],                      desc:"Version haltères du skullcrusher. Plus de liberté de mouvement, bon pour l'hypertrophie." },
-  "JM press Smith":                   { tier:"A",  primary:["Triceps"], secondary:[],                      desc:"Hybride entre développé et extension. La Smith sécurise la trajectoire. Excellent pour la masse." },
-  "Kickback câble":                   { tier:"A",  primary:["Triceps"], secondary:[],                      desc:"Le câble maintient la tension tout au long du mouvement. Supérieur au kickback haltère pour l'isolation." },
-  "Développé couché prise serrée":    { tier:"A",  primary:["Triceps"], secondary:["Pectoraux","Épaules"],  desc:"Exercice composé qui permet beaucoup de charge sur les triceps. La prise serrée accentue le travail des triceps." },
-  "Pushdown corde":                   { tier:"B",  primary:["Triceps"], secondary:[],                      desc:"Populaire mais la rotation en fin de mouvement réduit la tension. La barre est généralement supérieure." },
-  "Extension nuque haltère":          { tier:"B",  primary:["Triceps"], secondary:[],                      desc:"Au-dessus de la tête = chef long en étirement. Version bilatérale pratique mais moins précise qu'un bras." },
-  "JM press":                         { tier:"B",  primary:["Triceps"], secondary:[],                      desc:"Version à la barre libre du JM press. Bonne surcharge mais technique difficile à maîtriser." },
-  "Dips prise serrée":                { tier:"B",  primary:["Triceps"], secondary:["Pectoraux"],            desc:"Poids du corps, lestable. Moins spécifique au triceps que les extensions mais bonne surcharge." },
-  "Dips machine":                     { tier:"B",  primary:["Triceps"], secondary:[],                      desc:"Version assistée/lestée. Bonne option pour progresser ou varier." },
-  "Pompes diamant":                   { tier:"B",  primary:["Triceps"], secondary:["Pectoraux"],            desc:"Poids du corps. Vite limité en charge, à lester ou remplacer pour progresser." },
-  "Dips banc":                        { tier:"C",  primary:["Triceps"], secondary:[],                      desc:"Charge très limitée et stress potentiel sur les épaules. Peu efficace pour l'hypertrophie." },
-  "Kickback haltère":                 { tier:"C",  primary:["Triceps"], secondary:[],                      desc:"Tension minimale sur la majeure partie du mouvement. Le câble est bien supérieur." },
+  "Extension triceps câble barre": { tier:"S+", primary:["Triceps"], secondary:[],                      desc:"Coude fléchi par-dessus la tête = chef long du triceps en étirement maximal. La barre donne une prise stable. Meilleur exercice d'isolation pour le triceps." , movement:"push" },
+  "Barre front (Skullcrusher)": { tier:"S",  primary:["Triceps"], secondary:[],                      desc:"Étirement maximal du triceps en position allongée. La barre EZ réduit le stress sur les poignets. Un des meilleurs pour le chef long." , movement:"push" },
+  "Pushdown barre": { tier:"A",  primary:["Triceps"], secondary:[],                      desc:"Bon exercice d'isolation. La barre permet une prise stable et une charge élevée." , movement:"push" },
+  "Extension triceps câble corde": { tier:"A",  primary:["Triceps"], secondary:[],                      desc:"La corde permet une supination en fin de mouvement pour une contraction maximale. Version plus intense que la barre." , movement:"push" },
+  "Extension triceps haltère 1 bras": { tier:"A",  primary:["Triceps"], secondary:[],                      desc:"Unilatéral au-dessus de la tête = chef long en étirement. Correction des déséquilibres possible." , movement:"push" },
+  "Skullcrusher haltères": { tier:"A",  primary:["Triceps"], secondary:[],                      desc:"Version haltères du skullcrusher. Plus de liberté de mouvement, bon pour l'hypertrophie." , movement:"push" },
+  "JM press Smith": { tier:"A",  primary:["Triceps"], secondary:[],                      desc:"Hybride entre développé et extension. La Smith sécurise la trajectoire. Excellent pour la masse." , movement:"push" },
+  "Kickback câble": { tier:"A",  primary:["Triceps"], secondary:[],                      desc:"Le câble maintient la tension tout au long du mouvement. Supérieur au kickback haltère pour l'isolation." , movement:"push" },
+  "Développé couché prise serrée": { tier:"A",  primary:["Triceps"], secondary:["Pectoraux","Épaules"],  desc:"Exercice composé qui permet beaucoup de charge sur les triceps. La prise serrée accentue le travail des triceps." , movement:"push" },
+  "Pushdown corde": { tier:"B",  primary:["Triceps"], secondary:[],                      desc:"Populaire mais la rotation en fin de mouvement réduit la tension. La barre est généralement supérieure." , movement:"push" },
+  "Extension nuque haltère": { tier:"B",  primary:["Triceps"], secondary:[],                      desc:"Au-dessus de la tête = chef long en étirement. Version bilatérale pratique mais moins précise qu'un bras." , movement:"push" },
+  "JM press": { tier:"B",  primary:["Triceps"], secondary:[],                      desc:"Version à la barre libre du JM press. Bonne surcharge mais technique difficile à maîtriser." , movement:"push" },
+  "Dips prise serrée": { tier:"B",  primary:["Triceps"], secondary:["Pectoraux"],            desc:"Poids du corps, lestable. Moins spécifique au triceps que les extensions mais bonne surcharge." , movement:"push" },
+  "Dips machine": { tier:"B",  primary:["Triceps"], secondary:[],                      desc:"Version assistée/lestée. Bonne option pour progresser ou varier." , movement:"push" },
+  "Pompes diamant": { tier:"B",  primary:["Triceps"], secondary:["Pectoraux"],            desc:"Poids du corps. Vite limité en charge, à lester ou remplacer pour progresser." , movement:"push" },
+  "Dips banc": { tier:"C",  primary:["Triceps"], secondary:[],                      desc:"Charge très limitée et stress potentiel sur les épaules. Peu efficace pour l'hypertrophie." , movement:"push" },
+  "Kickback haltère": { tier:"C",  primary:["Triceps"], secondary:[],                      desc:"Tension minimale sur la majeure partie du mouvement. Le câble est bien supérieur." , movement:"push" },
   // ── Quadriceps ──
-  "Hack squat":                       { tier:"S+", primary:["Quadriceps"], secondary:["Fessiers"],          desc:"Charge le quadriceps sans contrainte lombaire excessive. Le dossier incliné permet une profondeur optimale. Souvent supérieur au squat barre pour l'hypertrophie pure du quad." },
-  "Squat barre":                      { tier:"S",  primary:["Quadriceps","Fessiers"], secondary:["Ischio-jambiers"], desc:"Roi des exercices de jambes pour la force. Pour l'hypertrophie pure du quad, le hack squat ou la presse sont souvent supérieurs, mais reste excellent pour le développement global." },
-  "Pendulum squat":                   { tier:"S",  primary:["Quadriceps"], secondary:["Fessiers"],          desc:"Trajectoire guidée en arc qui permet une profondeur maximale sans contrainte lombaire. Un des meilleurs exercices machine pour le quad." },
-  "Squat Smith":                      { tier:"S",  primary:["Quadriceps","Fessiers"], secondary:[],         desc:"La Smith machine guide la trajectoire. Permet de pousser plus lourd en sécurité, bon pour l'hypertrophie." },
-  "Fentes bulgares":                  { tier:"S",  primary:["Quadriceps","Fessiers"], secondary:["Ischio-jambiers"], desc:"Unilatéral qui révèle et corrige les déséquilibres. Étirement profond du fléchisseur de hanche. Difficile mais excellent." },
-  "Squat avant":                      { tier:"A",  primary:["Quadriceps"], secondary:["Fessiers"],          desc:"Posture plus verticale que le squat arrière = plus de quad, moins de dos. Excellent pour l'hypertrophie du quad." },
-  "Squat barre basse":                { tier:"A",  primary:["Quadriceps","Fessiers"], secondary:[],         desc:"Permet plus de charge mais le tronc est plus incliné, ce qui engage plus les fessiers et ischios." },
-  "Presse 45°":                       { tier:"A",  primary:["Quadriceps","Fessiers"], secondary:[],         desc:"Permet une charge très élevée avec peu de risque. L'écartement des pieds modifie le muscle ciblé." },
-  "Leg extension":                    { tier:"A",  primary:["Quadriceps"], secondary:[],                    desc:"Seul exercice d'isolation pure du quadriceps. Tension maximale en contraction. Indispensable pour finir les quads." },
-  "Nordic inverse":                   { tier:"A",  primary:["Quadriceps"], secondary:[],                    desc:"Excentrique pour le quad. Difficile mais excellent pour l'hypertrophie et la prévention des blessures." },
-  "Fentes":                           { tier:"B",  primary:["Quadriceps","Fessiers"], secondary:["Ischio-jambiers"], desc:"Exercice fonctionnel unilatéral. Moins de charge que le squat mais bon développement global." },
-  "Goblet squat":                     { tier:"B",  primary:["Quadriceps","Fessiers"], secondary:[],         desc:"Excellent pour apprendre le squat. Charge limitée à long terme mais bonne option avec haltère." },
-  "Sissy squat":                      { tier:"B",  primary:["Quadriceps"], secondary:[],                    desc:"Étirement extrême du quad. Stress élevé sur les genoux — à utiliser prudemment." },
-  "Presse horizontale":               { tier:"C",  primary:["Quadriceps"], secondary:["Fessiers"],          desc:"Moins efficace que la presse 45° en raison de la position couchée qui modifie la mécanique." },
-  "Step-ups":                         { tier:"C",  primary:["Quadriceps","Fessiers"], secondary:[],         desc:"Fonctionnel mais charge maximale limitée et exécution variable. Peu optimal pour l'hypertrophie pure." },
-  "Pistol squat":                     { tier:"C",  primary:["Quadriceps","Fessiers"], secondary:[],         desc:"Très technique. La difficulté d'équilibre limite la progression en hypertrophie." },
-  "Squat sauté":                      { tier:"F",  primary:["Quadriceps"], secondary:[],                    desc:"Exercice pliométrique — bon pour la puissance mais inutile voire contre-productif pour l'hypertrophie." },
-  "Squat Bosu":                       { tier:"F-", primary:["Quadriceps"], secondary:[],                    desc:"L'instabilité réduit la charge et ne correspond à aucun stimulus utile pour l'hypertrophie. À éviter." },
+  "Hack squat": { tier:"S+", primary:["Quadriceps"], secondary:["Fessiers"],          desc:"Charge le quadriceps sans contrainte lombaire excessive. Le dossier incliné permet une profondeur optimale. Souvent supérieur au squat barre pour l'hypertrophie pure du quad." , movement:"neutral" },
+  "Squat barre": { tier:"S",  primary:["Quadriceps","Fessiers"], secondary:["Ischio-jambiers"], desc:"Roi des exercices de jambes pour la force. Pour l'hypertrophie pure du quad, le hack squat ou la presse sont souvent supérieurs, mais reste excellent pour le développement global." , movement:"neutral" },
+  "Pendulum squat": { tier:"S",  primary:["Quadriceps"], secondary:["Fessiers"],          desc:"Trajectoire guidée en arc qui permet une profondeur maximale sans contrainte lombaire. Un des meilleurs exercices machine pour le quad." , movement:"neutral" },
+  "Squat Smith": { tier:"S",  primary:["Quadriceps","Fessiers"], secondary:[],         desc:"La Smith machine guide la trajectoire. Permet de pousser plus lourd en sécurité, bon pour l'hypertrophie." , movement:"neutral" },
+  "Fentes bulgares": { tier:"S",  primary:["Quadriceps","Fessiers"], secondary:["Ischio-jambiers"], desc:"Unilatéral qui révèle et corrige les déséquilibres. Étirement profond du fléchisseur de hanche. Difficile mais excellent." , movement:"neutral" },
+  "Squat avant": { tier:"A",  primary:["Quadriceps"], secondary:["Fessiers"],          desc:"Posture plus verticale que le squat arrière = plus de quad, moins de dos. Excellent pour l'hypertrophie du quad." , movement:"neutral" },
+  "Squat barre basse": { tier:"A",  primary:["Quadriceps","Fessiers"], secondary:[],         desc:"Permet plus de charge mais le tronc est plus incliné, ce qui engage plus les fessiers et ischios." , movement:"neutral" },
+  "Presse 45°": { tier:"A",  primary:["Quadriceps","Fessiers"], secondary:[],         desc:"Permet une charge très élevée avec peu de risque. L'écartement des pieds modifie le muscle ciblé." , movement:"neutral" },
+  "Leg extension": { tier:"A",  primary:["Quadriceps"], secondary:[],                    desc:"Seul exercice d'isolation pure du quadriceps. Tension maximale en contraction. Indispensable pour finir les quads." , movement:"neutral" },
+  "Nordic inverse": { tier:"A",  primary:["Quadriceps"], secondary:[],                    desc:"Excentrique pour le quad. Difficile mais excellent pour l'hypertrophie et la prévention des blessures." , movement:"neutral" },
+  "Fentes": { tier:"B",  primary:["Quadriceps","Fessiers"], secondary:["Ischio-jambiers"], desc:"Exercice fonctionnel unilatéral. Moins de charge que le squat mais bon développement global." , movement:"neutral" },
+  "Goblet squat": { tier:"B",  primary:["Quadriceps","Fessiers"], secondary:[],         desc:"Excellent pour apprendre le squat. Charge limitée à long terme mais bonne option avec haltère." , movement:"neutral" },
+  "Sissy squat": { tier:"B",  primary:["Quadriceps"], secondary:[],                    desc:"Étirement extrême du quad. Stress élevé sur les genoux — à utiliser prudemment." , movement:"neutral" },
+  "Presse horizontale": { tier:"C",  primary:["Quadriceps"], secondary:["Fessiers"],          desc:"Moins efficace que la presse 45° en raison de la position couchée qui modifie la mécanique." , movement:"neutral" },
+  "Step-ups": { tier:"C",  primary:["Quadriceps","Fessiers"], secondary:[],         desc:"Fonctionnel mais charge maximale limitée et exécution variable. Peu optimal pour l'hypertrophie pure." , movement:"neutral" },
+  "Pistol squat": { tier:"C",  primary:["Quadriceps","Fessiers"], secondary:[],         desc:"Très technique. La difficulté d'équilibre limite la progression en hypertrophie." , movement:"neutral" },
+  "Squat sauté": { tier:"F",  primary:["Quadriceps"], secondary:[],                    desc:"Exercice pliométrique — bon pour la puissance mais inutile voire contre-productif pour l'hypertrophie." , movement:"neutral" },
+  "Squat Bosu": { tier:"F-", primary:["Quadriceps"], secondary:[],                    desc:"L'instabilité réduit la charge et ne correspond à aucun stimulus utile pour l'hypertrophie. À éviter." , movement:"neutral" },
   // ── Fessiers ──
-  "Fentes marchées":                  { tier:"S",  primary:["Fessiers","Quadriceps"], secondary:["Ischio-jambiers"], desc:"Dynamique et fonctionnel. L'allongement de la foulée accentue les fessiers, la réduction accentue les quads." },
-  "Abduction machine":                { tier:"S",  primary:["Fessiers"], secondary:[],                      desc:"Isole le moyen fessier souvent négligé par les composés. Tension constante. Indispensable pour un développement complet." },
-  "Extension dos 45°":                { tier:"S",  primary:["Fessiers","Ischio-jambiers"], secondary:["Dos"], desc:"Un des rares exercices qui travaille les fessiers et ischios en étirement simultané. L'angle 45° est optimal." },
-  "Fentes Smith pied surélevé":       { tier:"S",  primary:["Fessiers","Quadriceps"], secondary:[],         desc:"Le pied surélevé augmente la plage et l'étirement des fessiers. Excellent pour les fessiers en particulier." },
-  "Hip thrust machine":               { tier:"A",  primary:["Fessiers"], secondary:["Ischio-jambiers"],     desc:"Extension de hanche avec charge externe — stimulus direct sur le grand fessier. La machine sécurise la charge." },
-  "Hip thrust 1 jambe haltère":       { tier:"A",  primary:["Fessiers"], secondary:["Ischio-jambiers"],     desc:"Version unilatérale qui corrige les déséquilibres et augmente l'activation par côté." },
-  "Kickbacks fessiers":               { tier:"A",  primary:["Fessiers"], secondary:[],                      desc:"Isolation des fessiers en extension de hanche. Bon exercice si résistance suffisante (câble ou machine)." },
-  "Soulevé de terre Roumain":         { tier:"A",  primary:["Ischio-jambiers","Fessiers"], secondary:["Dos"], desc:"Excellent exercice d'étirement pour les ischios et les fessiers. Focus maximal sur la chaîne postérieure." },
-  "Hip thrust barre":                 { tier:"B",  primary:["Fessiers"], secondary:["Ischio-jambiers"],     desc:"Version classique au poids de corps ou avec barre. Efficace mais la mise en place est contraignante." },
-  "Glute bridge":                     { tier:"B",  primary:["Fessiers"], secondary:["Ischio-jambiers"],     desc:"Version au sol du hip thrust. Plage de mouvement plus limitée mais accessible sans banc." },
-  "Abduction câble":                  { tier:"B",  primary:["Fessiers"], secondary:[],                      desc:"Tension constante du câble. Bonne option si la machine d'abduction n'est pas disponible." },
-  "Fentes curtsy":                    { tier:"B",  primary:["Fessiers","Quadriceps"], secondary:[],         desc:"Cible le moyen fessier et l'abducteur. Complémentaire aux fentes classiques." },
-  "Soulevé de terre sumo":            { tier:"B",  primary:["Fessiers","Ischio-jambiers"], secondary:["Dos"], desc:"L'écartement large accentue les adducteurs et les fessiers. Bon pour varier la chaîne postérieure." },
-  "Frog pumps":                       { tier:"C",  primary:["Fessiers"], secondary:[],                      desc:"Activation légère des fessiers. Utile en réchauffement mais peu de surcharge possible." },
-  "Donkey kicks":                     { tier:"D",  primary:["Fessiers"], secondary:[],                      desc:"Très peu de charge possible, activation limitée. Remplacer par du câble ou une machine." },
-  "Kettlebell swing":                 { tier:"D",  primary:["Fessiers","Ischio-jambiers"], secondary:[],    desc:"Plus un exercice de puissance que d'hypertrophie. Le stimulus est faible pour développer la masse." },
+  "Fentes marchées": { tier:"S",  primary:["Fessiers","Quadriceps"], secondary:["Ischio-jambiers"], desc:"Dynamique et fonctionnel. L'allongement de la foulée accentue les fessiers, la réduction accentue les quads." , movement:"neutral" },
+  "Abduction machine": { tier:"S",  primary:["Fessiers"], secondary:[],                      desc:"Isole le moyen fessier souvent négligé par les composés. Tension constante. Indispensable pour un développement complet." , movement:"neutral" },
+  "Extension dos 45°": { tier:"S",  primary:["Fessiers","Ischio-jambiers"], secondary:["Dos"], desc:"Un des rares exercices qui travaille les fessiers et ischios en étirement simultané. L'angle 45° est optimal." , movement:"neutral" },
+  "Fentes Smith pied surélevé": { tier:"S",  primary:["Fessiers","Quadriceps"], secondary:[],         desc:"Le pied surélevé augmente la plage et l'étirement des fessiers. Excellent pour les fessiers en particulier." , movement:"neutral" },
+  "Hip thrust machine": { tier:"A",  primary:["Fessiers"], secondary:["Ischio-jambiers"],     desc:"Extension de hanche avec charge externe — stimulus direct sur le grand fessier. La machine sécurise la charge." , movement:"neutral" },
+  "Hip thrust 1 jambe haltère": { tier:"A",  primary:["Fessiers"], secondary:["Ischio-jambiers"],     desc:"Version unilatérale qui corrige les déséquilibres et augmente l'activation par côté." , movement:"neutral" },
+  "Kickbacks fessiers": { tier:"A",  primary:["Fessiers"], secondary:[],                      desc:"Isolation des fessiers en extension de hanche. Bon exercice si résistance suffisante (câble ou machine)." , movement:"neutral" },
+  "Soulevé de terre Roumain": { tier:"A",  primary:["Ischio-jambiers","Fessiers"], secondary:["Dos"], desc:"Excellent exercice d'étirement pour les ischios et les fessiers. Focus maximal sur la chaîne postérieure." , movement:"neutral" },
+  "Hip thrust barre": { tier:"B",  primary:["Fessiers"], secondary:["Ischio-jambiers"],     desc:"Version classique au poids de corps ou avec barre. Efficace mais la mise en place est contraignante." , movement:"neutral" },
+  "Glute bridge": { tier:"B",  primary:["Fessiers"], secondary:["Ischio-jambiers"],     desc:"Version au sol du hip thrust. Plage de mouvement plus limitée mais accessible sans banc." , movement:"neutral" },
+  "Abduction câble": { tier:"B",  primary:["Fessiers"], secondary:[],                      desc:"Tension constante du câble. Bonne option si la machine d'abduction n'est pas disponible." , movement:"neutral" },
+  "Fentes curtsy": { tier:"B",  primary:["Fessiers","Quadriceps"], secondary:[],         desc:"Cible le moyen fessier et l'abducteur. Complémentaire aux fentes classiques." , movement:"neutral" },
+  "Soulevé de terre sumo": { tier:"B",  primary:["Fessiers","Ischio-jambiers"], secondary:["Dos"], desc:"L'écartement large accentue les adducteurs et les fessiers. Bon pour varier la chaîne postérieure." , movement:"neutral" },
+  "Frog pumps": { tier:"C",  primary:["Fessiers"], secondary:[],                      desc:"Activation légère des fessiers. Utile en réchauffement mais peu de surcharge possible." , movement:"neutral" },
+  "Donkey kicks": { tier:"D",  primary:["Fessiers"], secondary:[],                      desc:"Très peu de charge possible, activation limitée. Remplacer par du câble ou une machine." , movement:"neutral" },
+  "Kettlebell swing": { tier:"D",  primary:["Fessiers","Ischio-jambiers"], secondary:[],    desc:"Plus un exercice de puissance que d'hypertrophie. Le stimulus est faible pour développer la masse." , movement:"neutral" },
   // ── Ischio-jambiers ──
-  "Nordic curl":                      { tier:"S+", primary:["Ischio-jambiers"], secondary:[],               desc:"Étirement excentrique sous charge maximale — le stimulus le plus efficace pour l'hypertrophie des ischios. Très difficile mais irremplaçable." },
-  "Leg curl assis":                   { tier:"S",  primary:["Ischio-jambiers"], secondary:[],               desc:"Position assise = hanche fléchie = ischios en étirement au niveau de l'origine. Supérieur au leg curl couché pour l'hypertrophie." },
-  "Leg curl couché":                  { tier:"A",  primary:["Ischio-jambiers"], secondary:[],               desc:"Version classique. Moins d'étirement que le leg curl assis mais reste un bon exercice d'isolation." },
-  "Soulevé de terre jambes tendues":  { tier:"B",  primary:["Ischio-jambiers","Fessiers"], secondary:["Dos"], desc:"Étirement important des ischios. Attention au dos si la technique n'est pas maîtrisée." },
-  "Good morning":                     { tier:"B",  primary:["Ischio-jambiers","Dos"], secondary:["Fessiers"], desc:"Exercice technique avec barre sur la nuque. Bon étirement des ischios mais technique exigeante." },
+  "Nordic curl": { tier:"S+", primary:["Ischio-jambiers"], secondary:[],               desc:"Étirement excentrique sous charge maximale — le stimulus le plus efficace pour l'hypertrophie des ischios. Très difficile mais irremplaçable." , movement:"neutral" },
+  "Leg curl assis": { tier:"S",  primary:["Ischio-jambiers"], secondary:[],               desc:"Position assise = hanche fléchie = ischios en étirement au niveau de l'origine. Supérieur au leg curl couché pour l'hypertrophie." , movement:"neutral" },
+  "Leg curl couché": { tier:"A",  primary:["Ischio-jambiers"], secondary:[],               desc:"Version classique. Moins d'étirement que le leg curl assis mais reste un bon exercice d'isolation." , movement:"neutral" },
+  "Soulevé de terre jambes tendues": { tier:"B",  primary:["Ischio-jambiers","Fessiers"], secondary:["Dos"], desc:"Étirement important des ischios. Attention au dos si la technique n'est pas maîtrisée." , movement:"neutral" },
+  "Good morning": { tier:"B",  primary:["Ischio-jambiers","Dos"], secondary:["Fessiers"], desc:"Exercice technique avec barre sur la nuque. Bon étirement des ischios mais technique exigeante." , movement:"neutral" },
   // ── Mollets ──
-  "Mollets assis":                    { tier:"S",  primary:["Mollets"], secondary:[],                       desc:"Cible le soléaire (muscle profond) qui est actif quand le genou est fléchi. Indispensable en complément des mollets debout." },
-  "Mollets debout":                   { tier:"A",  primary:["Mollets"], secondary:[],                       desc:"Cible le gastrocnémien. Jambe tendue = chef externe du gastro en position d'étirement." },
-  "Mollets presse":                   { tier:"A",  primary:["Mollets"], secondary:[],                       desc:"Permet une charge très élevée et une plage de mouvement complète. Bonne option sur la presse à jambes." },
+  "Mollets assis": { tier:"S",  primary:["Mollets"], secondary:[],                       desc:"Cible le soléaire (muscle profond) qui est actif quand le genou est fléchi. Indispensable en complément des mollets debout." , movement:"neutral" },
+  "Mollets debout": { tier:"A",  primary:["Mollets"], secondary:[],                       desc:"Cible le gastrocnémien. Jambe tendue = chef externe du gastro en position d'étirement." , movement:"neutral" },
+  "Mollets presse": { tier:"A",  primary:["Mollets"], secondary:[],                       desc:"Permet une charge très élevée et une plage de mouvement complète. Bonne option sur la presse à jambes." , movement:"neutral" },
   // ── Abdominaux ──
-  "Cable crunch":                     { tier:"S",  primary:["Abdominaux"], secondary:[],                    desc:"Le câble maintient une résistance constante sur toute la plage. Charge progressive possible. Meilleur exercice d'isolation pour les abdominaux." },
-  "Ab wheel":                         { tier:"A",  primary:["Abdominaux"], secondary:[],                    desc:"Excellent exercice de gainage dynamique. La roue engage les abdominaux sur toute leur longueur." },
-  "Relevé de jambes suspendu":        { tier:"A",  primary:["Abdominaux"], secondary:[],                    desc:"Très efficace pour le bas des abdominaux. Difficile mais excellent une fois maîtrisé." },
-  "Crunch":                           { tier:"C",  primary:["Abdominaux"], secondary:[],                    desc:"Base mais plage de mouvement limitée. Le cable crunch offre beaucoup plus de surcharge possible." },
-  "Planche":                          { tier:"C",  primary:["Abdominaux"], secondary:[],                    desc:"Bon gainage statique mais peu de stimulus d'hypertrophie. Le dynamic crunch est supérieur." },
-  "Russian twist":                    { tier:"C",  primary:["Abdominaux"], secondary:[],                    desc:"Cible les obliques mais avec peu de charge possible. Intérêt limité pour l'hypertrophie." },
+  "Cable crunch": { tier:"S",  primary:["Abdominaux"], secondary:[],                    desc:"Le câble maintient une résistance constante sur toute la plage. Charge progressive possible. Meilleur exercice d'isolation pour les abdominaux." , movement:"neutral" },
+  "Ab wheel": { tier:"A",  primary:["Abdominaux"], secondary:[],                    desc:"Excellent exercice de gainage dynamique. La roue engage les abdominaux sur toute leur longueur." , movement:"neutral" },
+  "Relevé de jambes suspendu": { tier:"A",  primary:["Abdominaux"], secondary:[],                    desc:"Très efficace pour le bas des abdominaux. Difficile mais excellent une fois maîtrisé." , movement:"neutral" },
+  "Crunch": { tier:"C",  primary:["Abdominaux"], secondary:[],                    desc:"Base mais plage de mouvement limitée. Le cable crunch offre beaucoup plus de surcharge possible." , movement:"neutral" },
+  "Planche": { tier:"C",  primary:["Abdominaux"], secondary:[],                    desc:"Bon gainage statique mais peu de stimulus d'hypertrophie. Le dynamic crunch est supérieur." , movement:"neutral" },
+  "Russian twist": { tier:"C",  primary:["Abdominaux"], secondary:[],                    desc:"Cible les obliques mais avec peu de charge possible. Intérêt limité pour l'hypertrophie." , movement:"neutral" },
 };
 
 const ALL_MUSCLES = [
@@ -281,10 +281,21 @@ function classifyVolume(sets) {
 
 // ─── ANALYSIS ALGORITHMS ─────────────────────────────────────────────────────
 
-const PUSH_MUSCLES  = ["Pectoraux","Épaules","Triceps"];
-const PULL_MUSCLES  = ["Dos","Biceps","Trapèzes"];
+// Push/pull ratio is calculated per exercise (movement tag), not per muscle group
+// This handles edge cases like rear delt (pull) vs shoulder press (push)
 const LEGS_MUSCLES  = ["Quadriceps","Ischio-jambiers","Fessiers"];
 const MAJOR_MUSCLES = ["Pectoraux","Dos","Épaules","Quadriceps","Ischio-jambiers"];
+
+function computePushPullSets(days, db) {
+  let push = 0, pull = 0;
+  days.forEach(day => day.exercises.forEach(ex => {
+    const d = db[ex.name];
+    const mv = d?.movement ?? "neutral";
+    if (mv === "push") push += ex.sets;
+    if (mv === "pull") pull += ex.sets;
+  }));
+  return { push, pull };
+}
 
 // Returns { muscle, dayA, dayB, dayALabel, dayBLabel } for each back-to-back conflict
 function detectBackToBack(week, db) {
@@ -307,7 +318,7 @@ function detectBackToBack(week, db) {
   return conflicts;
 }
 
-function computeProgramScore(weeklyVol, priorities, backToBack) {
+function computeProgramScore(weeklyVol, priorities, backToBack, days, db) {
   const totalSets = Object.values(weeklyVol).reduce((a,b) => a+b, 0);
   if (totalSets === 0) return { score: 0, grade:"—", color: C.textGhost, issues:[] };
 
@@ -334,8 +345,7 @@ function computeProgramScore(weeklyVol, priorities, backToBack) {
     }
   });
 
-  const pushSets = PUSH_MUSCLES.reduce((s,m) => s + (weeklyVol[m]??0), 0);
-  const pullSets = PULL_MUSCLES.reduce((s,m) => s + (weeklyVol[m]??0), 0);
+  const { push: pushSets, pull: pullSets } = computePushPullSets(days, db);
   if (pushSets + pullSets > 0) {
     const ratio = pullSets / Math.max(pushSets, 1);
     if (ratio < 0.6)      { score -= 15; issues.push({ icon:"⚖️", text:`Push/pull déséquilibré — ${pushSets} push vs ${pullSets} pull`, severity:"high" }); }
@@ -440,8 +450,7 @@ function buildSuggestions(weeklyVol, priorities, sessions, db, backToBack) {
     });
   });
 
-  const pushSets = PUSH_MUSCLES.reduce((s,m) => s + (weeklyVol[m]??0), 0);
-  const pullSets = PULL_MUSCLES.reduce((s,m) => s + (weeklyVol[m]??0), 0);
+  const { push: pushSets, pull: pullSets } = computePushPullSets(sessions, db);
   if (pushSets > 0 && pullSets / pushSets < 0.7) {
     const best = bestExForMuscle("Dos", db, inProgram);
     const day  = sessions.find(d => d.exercises.some(e => db[e.name]?.primary.includes("Dos"))) ?? sessions[0];
@@ -479,7 +488,7 @@ const PRIO_OPTS = [
   { value:"maintain", label:"🔒 Maintien",  aBg:C.blueBg,   aCl:C.blue,       aBd:"#60A5FA" },
 ];
 
-const emptyExForm = () => ({ name:"", tier:"A", primary:[], secondary:[] });
+const emptyExForm = () => ({ name:"", tier:"A", primary:[], secondary:[], movement:"neutral" });
 const makeProgram = name => ({ id:uid(), name, week: Array(7).fill(null) });
 
 // ─── MIGRATION: old days[] format → new week[] format ────────────────────────
@@ -552,7 +561,7 @@ export default function WorkoutDashboard() {
   // ── Derived analysis (real-time) ────────────────────────────────────────────
   const weeklyVol  = computeWeeklyVolume(sessions, db);
   const backToBack = detectBackToBack(week, db);
-  const scoreData  = computeProgramScore(weeklyVol, priorities, backToBack);
+  const scoreData  = computeProgramScore(weeklyVol, priorities, backToBack, sessions, db);
   const summary    = buildNaturalSummary(week, weeklyVol, priorities, db);
   const suggestions = buildSuggestions(weeklyVol, priorities, sessions, db, backToBack);
 
@@ -774,7 +783,7 @@ export default function WorkoutDashboard() {
 
   // ── Library mutations ────────────────────────────────────────────────────────
   function openAddExToLib()   { setExForm(emptyExForm()); setEditingExName(null); setExFormError(""); setModal({ type:"editExInLib" }); }
-  function openEditExInLib(n) { setExForm({ name:n, ...db[n] }); setEditingExName(n); setExFormError(""); setModal({ type:"editExInLib" }); }
+  function openEditExInLib(n) { setExForm({ name:n, movement:"neutral", ...db[n] }); setEditingExName(n); setExFormError(""); setModal({ type:"editExInLib" }); }
   function deleteExFromLib(n) {
     if (!window.confirm(`Supprimer « ${n} » de la bibliothèque ?`)) return;
     setDb(d => { const u = {...d}; delete u[n]; return u; });
@@ -787,7 +796,7 @@ export default function WorkoutDashboard() {
     setDb(d => {
       const u = {...d};
       if (editingExName && editingExName !== name) delete u[editingExName];
-      u[name] = { tier:exForm.tier, primary:exForm.primary, secondary:exForm.secondary };
+      u[name] = { tier:exForm.tier, primary:exForm.primary, secondary:exForm.secondary, movement:exForm.movement ?? "neutral" };
       return u;
     });
     closeModal();
@@ -1007,6 +1016,14 @@ export default function WorkoutDashboard() {
                                 {ex.name}
                               </span>
                               <TierBadge tier={exData?.tier} />
+                              {exData?.movement && exData.movement !== "neutral" && (
+                                <span style={{ fontSize:"0.55rem", fontWeight:700, padding:"1px 5px", borderRadius:3,
+                                  background: exData.movement==="push"?"#FFEDD5":"#DBEAFE",
+                                  color: exData.movement==="push"?"#EA580C":"#1D4ED8",
+                                  flexShrink:0 }}>
+                                  {exData.movement === "push" ? "PSH" : "PLL"}
+                                </span>
+                              )}
                             </div>
 
                             {/* Line 2 — muscles + sets + actions */}
@@ -1487,6 +1504,28 @@ export default function WorkoutDashboard() {
                     {TIER_ORDER.map(t => <option key={t} value={t}>{t} — {TIER[t]?.label.substring(0,50)}…</option>)}
                     <option value="">— Non noté</option>
                   </select>
+                </div>
+
+                <div>
+                  <label className="form-label">Type de mouvement</label>
+                  <div style={{ display:"flex", gap:8 }}>
+                    {[
+                      { value:"push",    label:"Push",  bg:"#FFEDD5", c:"#EA580C" },
+                      { value:"pull",    label:"Pull",  bg:"#DBEAFE", c:"#1D4ED8" },
+                      { value:"neutral", label:"Neutre",bg:"#F3F4F6", c:"#6B7280" },
+                    ].map(opt => {
+                      const active = (exForm.movement ?? "neutral") === opt.value;
+                      return (
+                        <button key={opt.value} onClick={() => setExForm(f => ({...f, movement:opt.value}))} style={{
+                          padding:"7px 16px", borderRadius:20, cursor:"pointer", fontFamily:"inherit",
+                          fontSize:"0.78rem", fontWeight:active?700:500,
+                          background:active?opt.bg:"#F2F2F7",
+                          color:active?opt.c:C.textFaint,
+                          border:`1.5px solid ${active?opt.c:C.borderLight}`,
+                        }}>{opt.label}</button>
+                      );
+                    })}
+                  </div>
                 </div>
                 <div>
                   <label className="form-label">Muscles principaux</label>
