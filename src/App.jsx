@@ -579,6 +579,7 @@ export default function WorkoutDashboard() {
   const [importError,    setImportError]    = useState("");
   const [saveStatus,     setSaveStatus]     = useState("idle");
   const [darkMode,       setDarkMode]       = useState(() => localStorage.getItem("workout-dark") === "1");
+  const [zoom,           setZoom]           = useState(() => parseFloat(localStorage.getItem("workout-zoom") || "1"));
   const [dragSrc,        setDragSrc]        = useState(null); // {dayId, exIdx}
   const [dragOver,       setDragOver]       = useState(null); // {dayId, insertIdx}
   const [colorPickerId,  setColorPickerId]  = useState(null); // dayId
@@ -703,6 +704,15 @@ export default function WorkoutDashboard() {
   useEffect(() => {
     localStorage.setItem("workout-dark", darkMode ? "1" : "0");
   }, [darkMode]);
+
+  useEffect(() => {
+    localStorage.setItem("workout-zoom", zoom.toString());
+  }, [zoom]);
+
+  const ZOOM_STEPS = [0.6, 0.7, 0.8, 0.9, 1, 1.1, 1.2];
+  const zoomIn  = () => setZoom(z => { const i = ZOOM_STEPS.indexOf(z); return ZOOM_STEPS[Math.min(i+1, ZOOM_STEPS.length-1)]; });
+  const zoomOut = () => setZoom(z => { const i = ZOOM_STEPS.indexOf(z); return ZOOM_STEPS[Math.max(i-1, 0)]; });
+  const zoomReset = () => setZoom(1);
 
   useEffect(() => {
     clearTimeout(prioTimer.current);
@@ -1066,6 +1076,16 @@ export default function WorkoutDashboard() {
             <button className="hdr-ghost" onClick={() => setModal({ type:"library" })}>Bibliothèque</button>
             <button className="hdr-ghost" onClick={() => fileInputRef.current?.click()}>↑ Importer</button>
             <button className="hdr-solid" onClick={exportBackup}>↓ Exporter</button>
+            {/* Zoom controls */}
+            <div style={{ display:"flex", alignItems:"center", gap:1, background:"var(--sets-bg)",
+              border:"1px solid var(--border)", borderRadius:8, padding:"2px", flexShrink:0 }}>
+              <button className="zoom-btn" onClick={zoomOut} disabled={zoom <= ZOOM_STEPS[0]} title="Dézoomer">−</button>
+              <button className="zoom-reset" onClick={zoomReset} title="Zoom 100%">
+                {Math.round(zoom * 100)}%
+              </button>
+              <button className="zoom-btn" onClick={zoomIn} disabled={zoom >= ZOOM_STEPS[ZOOM_STEPS.length-1]} title="Zoomer">+</button>
+            </div>
+
             <button className="theme-toggle" onClick={() => setDarkMode(d => !d)} title={darkMode ? "Mode clair" : "Mode sombre"}>
               {darkMode ? "☀️" : "🌙"}
             </button>
@@ -1077,7 +1097,16 @@ export default function WorkoutDashboard() {
         <div className="main" onClick={() => setColorPickerId(null)}>
 
           {/* ── WEEK BOARD ──────────────────────────────────────────── */}
-          <div className="week-board">
+          <div className="week-board" style={{ overflow:"auto" }}>
+            <div style={{
+              display:"flex", alignItems:"flex-start", gap:10,
+              transform:`scale(${zoom})`,
+              transformOrigin:"top left",
+              width: zoom < 1 ? `${100/zoom}%` : "max-content",
+              minHeight: zoom < 1 ? `${100/zoom}%` : undefined,
+              padding: zoom !== 1 ? `${16/zoom}px` : 16,
+              transition:"transform 0.15s ease",
+            }}>
             {DAY_KEYS.map((key, idx) => {
               const session = week[idx];
               const isRest  = !session;
@@ -1292,6 +1321,7 @@ export default function WorkoutDashboard() {
                 </div>
               );
             })}
+            </div>
           </div>
 
           {/* ── ANALYSIS PANEL ──────────────────────────────────────── */}
@@ -2111,13 +2141,10 @@ const CSS = `
   ───────────────────────────────────────────── */
 
   .week-board {
-    display:flex;
-    align-items:flex-start;
-    gap:10px;
-    padding:16px;
-    overflow-x:auto;
-    overflow-y:auto;
+    overflow:auto;
     background:var(--bg);
+    flex:1;
+    min-height:0;
   }
 
   /* ─────────────────────────────────────────────
@@ -2274,11 +2301,13 @@ const CSS = `
     align-items:flex-start;
     gap:8px;
     padding:11px 14px 11px 10px;
-    border-bottom:2px solid var(--border);
+    border-bottom:1px solid #D1D1D6;
     transition:background 0.12s;
     position:relative;
   }
+  .dark .ex-row { border-bottom-color:#333338; }
   .ex-row:last-of-type { border-bottom:none; }
+  .dark .ex-row:last-of-type { border-bottom:none; }
   .ex-row:nth-child(even) { background:var(--row-alt, rgba(0,0,0,0.015)); }
   .ex-row:hover { background:var(--row-hover) !important; }
 
@@ -2741,6 +2770,42 @@ const CSS = `
   /* ─────────────────────────────────────────────
      MISC
   ───────────────────────────────────────────── */
+
+  /* Zoom controls */
+  .zoom-btn {
+    background:none;
+    border:none;
+    cursor:pointer;
+    width:26px;
+    height:26px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:1rem;
+    font-weight:600;
+    color:var(--text-muted);
+    border-radius:6px;
+    transition:all 0.12s;
+    font-family:inherit;
+  }
+  .zoom-btn:hover:not(:disabled) { background:var(--surface); color:var(--text); }
+  .zoom-btn:disabled { opacity:0.3; cursor:default; }
+  .zoom-reset {
+    background:none;
+    border:none;
+    cursor:pointer;
+    padding:0 6px;
+    height:26px;
+    font-family:inherit;
+    font-size:0.7rem;
+    font-weight:700;
+    color:var(--text-sub);
+    min-width:36px;
+    text-align:center;
+    border-radius:4px;
+    transition:all 0.12s;
+  }
+  .zoom-reset:hover { background:var(--surface); color:var(--accent); }
 
   /* Theme toggle */
   .theme-toggle {
