@@ -922,8 +922,8 @@ export default function WorkoutDashboard() {
     if (!tier || !TIER[tier]) return null;
     const { color, bg } = TIER[tier];
     return (
-      <span style={{ fontSize:"0.55rem", fontWeight:700, padding:"1px 6px", borderRadius:20,
-        border:`1px solid ${color}30`, background:bg, color, flexShrink:0, letterSpacing:"0.2px" }}>
+      <span style={{ fontSize:"0.6rem", fontWeight:800, padding:"2px 7px", borderRadius:20,
+        border:`1px solid ${color}40`, background:bg, color, flexShrink:0, letterSpacing:"0.3px" }}>
         {tier}
       </span>
     );
@@ -1213,9 +1213,10 @@ export default function WorkoutDashboard() {
                               </span>
                               <TierBadge tier={exData?.tier} />
                               {exData?.movement && exData.movement !== "neutral" && (
-                                <span style={{ fontSize:"0.52rem", fontWeight:700, padding:"1px 5px", borderRadius:20,
+                                <span style={{ fontSize:"0.56rem", fontWeight:800, padding:"2px 6px", borderRadius:20,
                                   background: exData.movement==="push"?"#FFF3EE":"#EFF6FF",
-                                  color: exData.movement==="push"?"#E8500A":"#1D4ED8",
+                                  color: exData.movement==="push"?"#C94209":"#1D4ED8",
+                                  border: exData.movement==="push"?"1px solid #FDDDD0":"1px solid #BFDBFE",
                                   flexShrink:0 }}>
                                   {exData.movement === "push" ? "PSH" : "PLL"}
                                 </span>
@@ -1250,14 +1251,14 @@ export default function WorkoutDashboard() {
                               {/* Muscle pills */}
                               <div style={{ display:"flex", gap:3, flex:1, minWidth:0, flexWrap:"wrap" }}>
                                 {exData?.primary.map(m => (
-                                  <span key={m} style={{ fontSize:"0.65rem", fontWeight:600, padding:"1px 7px",
-                                    borderRadius:20, background:MUSCLE_COLOR[m]+"15", color:MUSCLE_COLOR[m],
-                                    whiteSpace:"nowrap" }}>{m}</span>
+                                  <span key={m} style={{ fontSize:"0.68rem", fontWeight:700, padding:"2px 8px",
+                                    borderRadius:20, background:MUSCLE_COLOR[m]+"18", color:MUSCLE_COLOR[m],
+                                    whiteSpace:"nowrap", border:`1px solid ${MUSCLE_COLOR[m]}25` }}>{m}</span>
                                 ))}
                                 {exData?.secondary.map(m => (
-                                  <span key={m} style={{ fontSize:"0.6rem", fontWeight:500, padding:"1px 6px",
-                                    borderRadius:20, background:"rgba(0,0,0,0.04)", color:"#666",
-                                    whiteSpace:"nowrap" }}>{m} ½</span>
+                                  <span key={m} style={{ fontSize:"0.62rem", fontWeight:500, padding:"2px 7px",
+                                    borderRadius:20, background:"transparent", color:"var(--text-muted)",
+                                    whiteSpace:"nowrap", border:"1px dashed var(--border)" }}>{m} ½</span>
                                 ))}
                               </div>
 
@@ -1975,11 +1976,12 @@ const CSS = `
     --panel-bg: #FAFAFA;
     --row-hover: #FAFAFA;
     --sets-bg: #F4F4F5;
-    --sets-border: #E8E8EA;
+    --sets-border: #D0D0D3;
     --input-bg: #F7F7F8;
     --input-border: #EBEBED;
     --shadow-sm: 0 1px 4px rgba(0,0,0,0.05), 0 4px 16px rgba(0,0,0,0.03);
     --shadow-md: 0 2px 8px rgba(0,0,0,0.08), 0 8px 24px rgba(0,0,0,0.04);
+    --row-alt: rgba(0,0,0,0.016);
   }
 
   .dark {
@@ -2004,6 +2006,7 @@ const CSS = `
     --input-border: rgba(255,255,255,0.12);
     --shadow-sm: 0 1px 4px rgba(0,0,0,0.4), 0 4px 16px rgba(0,0,0,0.25);
     --shadow-md: 0 2px 8px rgba(0,0,0,0.5), 0 8px 24px rgba(0,0,0,0.35);
+    --row-alt: rgba(255,255,255,0.025);
   }
 
   html, body {
@@ -2276,12 +2279,13 @@ const CSS = `
     align-items:flex-start;
     gap:8px;
     padding:11px 14px 11px 10px;
-    border-bottom:1px solid var(--border-light);
+    border-bottom:1px solid var(--border);
     transition:background 0.12s;
     position:relative;
   }
   .ex-row:last-of-type { border-bottom:none; }
-  .ex-row:hover { background:var(--row-hover); }
+  .ex-row:nth-child(even) { background:var(--row-alt, rgba(0,0,0,0.015)); }
+  .ex-row:hover { background:var(--row-hover) !important; }
 
   .drag-handle {
     font-size:0.85rem;
@@ -2301,25 +2305,30 @@ const CSS = `
 
   .ex-idx {
     font-size:0.68rem;
-    font-weight:500;
+    font-weight:700;
     color:var(--text-muted);
-    width:14px;
-    text-align:center;
+    width:18px;
+    height:18px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
     flex-shrink:0;
-    padding-top:3px;
+    margin-top:2px;
     font-variant-numeric:tabular-nums;
+    background:var(--sets-bg);
+    border-radius:5px;
   }
 
   .ex-name {
     font-size:0.86rem;
     font-weight:600;
     color:var(--text);
-    white-space:nowrap;
-    overflow:hidden;
-    text-overflow:ellipsis;
+    white-space:normal;
+    word-break:break-word;
     flex:1;
     cursor:pointer;
     letter-spacing:-0.2px;
+    line-height:1.3;
     transition:color 0.1s;
   }
   .ex-name:hover { color:var(--accent); }
@@ -2327,11 +2336,11 @@ const CSS = `
   /* Sets badge (compact mode) */
   .sets-badge {
     font-family:inherit;
-    font-size:0.8rem;
+    font-size:0.82rem;
     font-weight:700;
-    padding:3px 9px;
+    padding:4px 10px;
     background:var(--sets-bg, #F4F4F5);
-    border:1px solid var(--sets-border, #E8E8EA);
+    border:1.5px solid var(--sets-border, #D8D8DA);
     border-radius:20px;
     cursor:pointer;
     color:var(--text, #111);
