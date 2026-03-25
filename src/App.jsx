@@ -578,12 +578,13 @@ export default function WorkoutDashboard() {
   const [importText,     setImportText]     = useState("");
   const [importError,    setImportError]    = useState("");
   const [saveStatus,     setSaveStatus]     = useState("idle");
+  const [darkMode,       setDarkMode]       = useState(() => localStorage.getItem("workout-dark") === "1");
   const [dragSrc,        setDragSrc]        = useState(null); // {dayId, exIdx}
   const [dragOver,       setDragOver]       = useState(null); // {dayId, insertIdx}
   const [colorPickerId,  setColorPickerId]  = useState(null); // dayId
   const [renamingDay,    setRenamingDay]    = useState(null); // dayId
   const [renamingName,   setRenamingName]   = useState("");
-  const [focusedSets,    setFocusedSets]    = useState(null); // {dayId, exId}
+  const [editingSets,    setEditingSets]    = useState(null); // {dayId, exId} — null = compact badge
 
   const [progFormName,   setProgFormName]   = useState("");
   const [progFormError,  setProgFormError]  = useState("");
@@ -697,6 +698,10 @@ export default function WorkoutDashboard() {
     dbTimer.current = setTimeout(() => { try { localStorage.setItem("workout-db", JSON.stringify(db)); } catch(_) {} }, 800);
     return () => clearTimeout(dbTimer.current);
   }, [db]);
+
+  useEffect(() => {
+    localStorage.setItem("workout-dark", darkMode ? "1" : "0");
+  }, [darkMode]);
 
   useEffect(() => {
     clearTimeout(prioTimer.current);
@@ -979,7 +984,7 @@ export default function WorkoutDashboard() {
   return (
     <>
       <style>{CSS}</style>
-      <div className="app">
+      <div className={`app${darkMode ? " dark" : ""}`}>
 
         {/* ── TOPBAR ─────────────────────────────────────────────────── */}
         <header className="topbar">
@@ -1060,6 +1065,9 @@ export default function WorkoutDashboard() {
             <button className="hdr-ghost" onClick={() => setModal({ type:"library" })}>Bibliothèque</button>
             <button className="hdr-ghost" onClick={() => fileInputRef.current?.click()}>↑ Importer</button>
             <button className="hdr-solid" onClick={exportBackup}>↓ Exporter</button>
+            <button className="theme-toggle" onClick={() => setDarkMode(d => !d)} title={darkMode ? "Mode clair" : "Mode sombre"}>
+              {darkMode ? "☀️" : "🌙"}
+            </button>
             <input ref={fileInputRef} type="file" accept=".json" style={{ display:"none" }} onChange={onFileSelected} />
           </div>
         </header>
@@ -1171,8 +1179,6 @@ export default function WorkoutDashboard() {
                   <div className="ex-list">
                     {session.exercises.map((ex, idx2) => {
                       const exData = db[ex.name];
-                      const isFocused = focusedSets?.dayId === session.id && focusedSets?.exId === ex.id;
-
                       const isDropTarget = dragOver?.dayId === session.id && dragOver?.exIdx === idx2;
                       return (
                         <div key={ex.id} style={{ position:"relative" }}>
@@ -1196,11 +1202,11 @@ export default function WorkoutDashboard() {
                           {/* Index */}
                           <span className="ex-idx">{idx2+1}</span>
 
-                          {/* Two-line content */}
-                          <div style={{ flex:1, minWidth:0, display:"flex", flexDirection:"column", gap:6 }}>
+                          {/* Content */}
+                          <div style={{ flex:1, minWidth:0, display:"flex", flexDirection:"column", gap:5 }}>
 
-                            {/* Line 1 — name + tier */}
-                            <div style={{ display:"flex", alignItems:"center", gap:6 }}>
+                            {/* Line 1 — name + badges + sets badge */}
+                            <div style={{ display:"flex", alignItems:"center", gap:5, minWidth:0 }}>
                               <span className="ex-name" onClick={() => setModal({ type:"exDetail", name:ex.name })}>
                                 {ex.name}
                               </span>
@@ -1213,39 +1219,47 @@ export default function WorkoutDashboard() {
                                   {exData.movement === "push" ? "PSH" : "PLL"}
                                 </span>
                               )}
+                              <div style={{ marginLeft:"auto", flexShrink:0 }}>
+                                {/* Sets control — compact badge or editing mode */}
+                                {editingSets?.dayId === session.id && editingSets?.exId === ex.id ? (
+                                  <div style={{ display:"flex", alignItems:"center", gap:3 }}>
+                                    <button className="sets-btn" onClick={() => setSets(session.id, ex.id, ex.sets-1)}>−</button>
+                                    <input
+                                      className="sets-input"
+                                      type="number" min={MIN_SETS} max={MAX_SETS}
+                                      value={ex.sets}
+                                      autoFocus
+                                      onChange={e => setSets(session.id, ex.id, e.target.value)}
+                                      onWheel={e => { e.preventDefault(); setSets(session.id, ex.id, ex.sets + (e.deltaY < 0 ? 1 : -1)); }}
+                                      onBlur={() => setEditingSets(null)}
+                                      onKeyDown={e => { if (e.key === "Enter" || e.key === "Escape") setEditingSets(null); }}
+                                    />
+                                    <button className="sets-btn" onClick={() => setSets(session.id, ex.id, ex.sets+1)}>+</button>
+                                  </div>
+                                ) : (
+                                  <button className="sets-badge" onClick={() => setEditingSets({ dayId:session.id, exId:ex.id })}>
+                                    {ex.sets}<span style={{ fontWeight:400, opacity:0.55, fontSize:"0.7em", marginLeft:"1px" }}>sér</span>
+                                  </button>
+                                )}
+                              </div>
                             </div>
 
-                            {/* Line 2 — muscles + sets + actions */}
+                            {/* Line 2 — muscles + actions */}
                             <div style={{ display:"flex", alignItems:"center", gap:6, flexWrap:"nowrap" }}>
                               {/* Muscle pills */}
-                              <div style={{ display:"flex", gap:4, flex:1, minWidth:0, flexWrap:"wrap" }}>
+                              <div style={{ display:"flex", gap:3, flex:1, minWidth:0, flexWrap:"wrap" }}>
                                 {exData?.primary.map(m => (
-                                  <span key={m} style={{ fontSize:"0.68rem", fontWeight:600, padding:"2px 7px",
+                                  <span key={m} style={{ fontSize:"0.65rem", fontWeight:600, padding:"1px 7px",
                                     borderRadius:20, background:MUSCLE_COLOR[m]+"15", color:MUSCLE_COLOR[m],
                                     whiteSpace:"nowrap" }}>{m}</span>
                                 ))}
                                 {exData?.secondary.map(m => (
-                                  <span key={m} style={{ fontSize:"0.63rem", fontWeight:500, padding:"2px 6px",
+                                  <span key={m} style={{ fontSize:"0.6rem", fontWeight:500, padding:"1px 6px",
                                     borderRadius:20, background:"rgba(0,0,0,0.04)", color:"#999",
                                     whiteSpace:"nowrap" }}>{m} ½</span>
                                 ))}
                               </div>
 
-                              {/* Sets control */}
-                              <div style={{ display:"flex", alignItems:"center", gap:3, flexShrink:0 }}>
-                                <button className="sets-btn" onClick={() => setSets(session.id, ex.id, ex.sets-1)}>−</button>
-                                <input
-                                  className="sets-input"
-                                  type="number" min={MIN_SETS} max={MAX_SETS}
-                                  value={ex.sets}
-                                  onChange={e => setSets(session.id, ex.id, e.target.value)}
-                                  onWheel={e => { e.preventDefault(); setSets(session.id, ex.id, ex.sets + (e.deltaY < 0 ? 1 : -1)); }}
-                                  onFocus={() => setFocusedSets({ dayId:session.id, exId:ex.id })}
-                                  onBlur={() => setFocusedSets(null)}
-                                />
-                                <button className="sets-btn" onClick={() => setSets(session.id, ex.id, ex.sets+1)}>+</button>
-                                <span style={{ fontSize:"0.62rem", color:"#BBBBBB", marginLeft:1, fontWeight:500 }}>sér.</span>
-                              </div>
 
                               {/* Actions */}
                               <div style={{ display:"flex", gap:2, flexShrink:0 }}>
@@ -1881,13 +1895,62 @@ const CSS = `
 
   *, *::before, *::after { box-sizing:border-box; margin:0; padding:0; -webkit-tap-highlight-color:transparent; }
 
+  :root {
+    --bg: #F1F1F4;
+    --surface: #FFFFFF;
+    --surface2: #FAFAFA;
+    --border: rgba(0,0,0,0.08);
+    --border-light: rgba(0,0,0,0.05);
+    --text: #111111;
+    --text-sub: #333333;
+    --text-muted: #777777;
+    --text-faint: #999999;
+    --text-ghost: #BBBBBB;
+    --accent: #E8500A;
+    --accent-bg: #FFF3EE;
+    --accent-dark: #C94209;
+    --panel-bg: #FAFAFA;
+    --row-hover: #FAFAFA;
+    --sets-bg: #F4F4F5;
+    --sets-border: #E8E8EA;
+    --input-bg: #F7F7F8;
+    --input-border: #EBEBED;
+    --shadow-sm: 0 1px 4px rgba(0,0,0,0.05), 0 4px 16px rgba(0,0,0,0.03);
+    --shadow-md: 0 2px 8px rgba(0,0,0,0.08), 0 8px 24px rgba(0,0,0,0.04);
+  }
+
+  .dark {
+    --bg: #0F0F11;
+    --surface: #1C1C1F;
+    --surface2: #161618;
+    --border: rgba(255,255,255,0.08);
+    --border-light: rgba(255,255,255,0.04);
+    --text: #F2F2F5;
+    --text-sub: #C8C8CC;
+    --text-muted: #888890;
+    --text-faint: #666670;
+    --text-ghost: #444450;
+    --accent: #FF6B2B;
+    --accent-bg: rgba(255,107,43,0.12);
+    --accent-dark: #E8500A;
+    --panel-bg: #161618;
+    --row-hover: rgba(255,255,255,0.03);
+    --sets-bg: rgba(255,255,255,0.07);
+    --sets-border: rgba(255,255,255,0.1);
+    --input-bg: rgba(255,255,255,0.05);
+    --input-border: rgba(255,255,255,0.1);
+    --shadow-sm: 0 1px 4px rgba(0,0,0,0.3), 0 4px 16px rgba(0,0,0,0.2);
+    --shadow-md: 0 2px 8px rgba(0,0,0,0.4), 0 8px 24px rgba(0,0,0,0.3);
+  }
+
   html, body {
     height:100%;
-    background:#F1F1F4;
+    background:var(--bg);
     font-family:'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-    color:#111;
+    color:var(--text);
     -webkit-font-smoothing:antialiased;
     -moz-osx-font-smoothing:grayscale;
+    transition:background 0.25s, color 0.25s;
   }
 
   ::-webkit-scrollbar { width:5px; height:5px; }
@@ -1909,10 +1972,10 @@ const CSS = `
     justify-content:space-between;
     padding:0 20px;
     gap:12px;
-    background:rgba(255,255,255,0.92);
+    background:var(--surface);
     backdrop-filter:blur(12px);
     -webkit-backdrop-filter:blur(12px);
-    border-bottom:1px solid rgba(0,0,0,0.07);
+    border-bottom:1px solid var(--border);
     position:relative;
     z-index:10;
   }
@@ -1923,13 +1986,13 @@ const CSS = `
     gap:4px;
     padding:5px 10px;
     background:transparent;
-    border:1px solid #E0E0E4;
+    border:1px solid var(--border);
     border-radius:8px;
     cursor:pointer;
     font-family:inherit;
     font-size:0.78rem;
     font-weight:600;
-    color:#111;
+    color:var(--text);
     max-width:180px;
     white-space:nowrap;
     overflow:hidden;
@@ -1949,7 +2012,7 @@ const CSS = `
     font-weight:500;
     padding:5px 12px;
     background:transparent;
-    border:1px solid #E0E0E4;
+    border:1px solid var(--border);
     border-radius:8px;
     color:#555;
     cursor:pointer;
@@ -1957,7 +2020,7 @@ const CSS = `
     white-space:nowrap;
     letter-spacing:-0.1px;
   }
-  .hdr-ghost:hover { border-color:#111; color:#111; background:#F7F7F8; }
+  .hdr-ghost:hover { border-color:var(--text); color:var(--text); background:var(--row-hover); }
 
   .hdr-solid {
     font-family:inherit;
@@ -1993,7 +2056,7 @@ const CSS = `
     padding:16px;
     overflow-x:auto;
     overflow-y:auto;
-    background:#F1F1F4;
+    background:var(--bg);
   }
 
   /* ─────────────────────────────────────────────
@@ -2004,8 +2067,9 @@ const CSS = `
     flex-shrink:0;
     width:64px;
     min-height:120px;
-    background:rgba(255,255,255,0.5);
-    border:1.5px dashed #D1D1D6;
+    background:var(--surface);
+    opacity:0.7;
+    border:1.5px dashed var(--border);
     border-radius:12px;
     display:flex;
     flex-direction:column;
@@ -2017,8 +2081,9 @@ const CSS = `
     align-self:stretch;
   }
   .rest-slot:hover {
-    border-color:#E8500A;
-    background:rgba(255,243,238,0.8);
+    border-color:var(--accent);
+    background:var(--accent-bg);
+    opacity:1;
     transform:scale(1.01);
   }
   .rest-slot-drag-over {
@@ -2030,9 +2095,9 @@ const CSS = `
   .rest-label { font-size:0.6rem; font-weight:700; color:#AEAEB2; letter-spacing:0.8px; text-transform:uppercase; }
   .rest-icon  { font-size:1.1rem; color:#D1D1D6; line-height:1; transition:color 0.2s; }
   .rest-text  { font-size:0.58rem; color:#C7C7CC; }
-  .rest-slot:hover .rest-icon { color:#E8500A; }
-  .rest-slot:hover .rest-text { color:#E8500A88; }
-  .rest-slot:hover .rest-label { color:#E8500A88; }
+  .rest-slot:hover .rest-icon { color:var(--accent); }
+  .rest-slot:hover .rest-text { color:var(--accent); }
+  .rest-slot:hover .rest-label { color:var(--accent); }
 
   /* ─────────────────────────────────────────────
      SESSION COLUMN
@@ -2041,18 +2106,18 @@ const CSS = `
   .session-col {
     flex-shrink:0;
     width:340px;
-    background:#FFFFFF;
+    background:var(--surface);
     border-radius:14px;
-    border:1px solid rgba(0,0,0,0.07);
+    border:1px solid var(--border);
     display:flex;
     flex-direction:column;
-    box-shadow:0 1px 4px rgba(0,0,0,0.05), 0 4px 16px rgba(0,0,0,0.03);
+    box-shadow:var(--shadow-sm);
     align-self:flex-start;
     transition:box-shadow 0.2s, border-color 0.2s;
     overflow:hidden;
   }
   .session-col:hover {
-    box-shadow:0 2px 8px rgba(0,0,0,0.08), 0 8px 24px rgba(0,0,0,0.04);
+    box-shadow:var(--shadow-md);
   }
   .session-col.drag-target {
     border-color:#E8500A;
@@ -2065,7 +2130,7 @@ const CSS = `
     align-items:center;
     gap:6px;
     padding:12px 14px 11px;
-    border-bottom:1px solid #F4F4F5;
+    border-bottom:1px solid var(--border-light);
     flex-shrink:0;
     min-height:50px;
   }
@@ -2073,7 +2138,7 @@ const CSS = `
   .session-name {
     font-size:0.88rem;
     font-weight:700;
-    color:#111;
+    color:var(--text);
     flex:1;
     min-width:0;
     overflow:hidden;
@@ -2089,11 +2154,11 @@ const CSS = `
     flex:1;
     background:transparent;
     border:none;
-    border-bottom:2px solid #E8500A;
+    border-bottom:2px solid var(--accent);
     font-family:inherit;
     font-size:0.88rem;
     font-weight:700;
-    color:#111;
+    color:var(--text);
     outline:none;
     padding-bottom:1px;
     min-width:0;
@@ -2116,7 +2181,7 @@ const CSS = `
     font-size:0.8rem;
   }
   .col-header:hover .col-icon-btn { opacity:0.5; }
-  .col-icon-btn:hover { opacity:1 !important; background:#F4F4F5; }
+  .col-icon-btn:hover { opacity:1 !important; background:var(--sets-bg); }
 
   .col-del-btn {
     background:none;
@@ -2148,12 +2213,12 @@ const CSS = `
     align-items:flex-start;
     gap:8px;
     padding:11px 14px 11px 10px;
-    border-bottom:1px solid #F7F7F8;
+    border-bottom:1px solid var(--border-light);
     transition:background 0.12s;
     position:relative;
   }
   .ex-row:last-of-type { border-bottom:none; }
-  .ex-row:hover { background:#FAFAFA; }
+  .ex-row:hover { background:var(--row-hover); }
 
   .drag-handle {
     font-size:0.85rem;
@@ -2174,7 +2239,7 @@ const CSS = `
   .ex-idx {
     font-size:0.68rem;
     font-weight:500;
-    color:#C7C7CC;
+    color:var(--text-ghost);
     width:14px;
     text-align:center;
     flex-shrink:0;
@@ -2185,7 +2250,7 @@ const CSS = `
   .ex-name {
     font-size:0.86rem;
     font-weight:600;
-    color:#111;
+    color:var(--text);
     white-space:nowrap;
     overflow:hidden;
     text-overflow:ellipsis;
@@ -2194,13 +2259,35 @@ const CSS = `
     letter-spacing:-0.2px;
     transition:color 0.1s;
   }
-  .ex-name:hover { color:#E8500A; }
+  .ex-name:hover { color:var(--accent); }
+
+  /* Sets badge (compact mode) */
+  .sets-badge {
+    font-family:inherit;
+    font-size:0.8rem;
+    font-weight:700;
+    padding:3px 9px;
+    background:var(--sets-bg, #F4F4F5);
+    border:1px solid var(--sets-border, #E8E8EA);
+    border-radius:20px;
+    cursor:pointer;
+    color:var(--text, #111);
+    transition:all 0.12s;
+    white-space:nowrap;
+    flex-shrink:0;
+    letter-spacing:-0.2px;
+  }
+  .sets-badge:hover {
+    background:var(--accent-bg, #FFF3EE);
+    border-color:var(--accent, #E8500A);
+    color:var(--accent, #E8500A);
+  }
 
   /* Sets controls */
   .sets-btn {
     width:24px;
     height:24px;
-    background:#F4F4F5;
+    background:var(--sets-bg);
     border:none;
     border-radius:6px;
     cursor:pointer;
@@ -2208,33 +2295,33 @@ const CSS = `
     display:flex;
     align-items:center;
     justify-content:center;
-    color:#555;
+    color:var(--text-muted);
     flex-shrink:0;
     transition:all 0.12s;
     font-weight:500;
   }
-  .sets-btn:hover { background:#E8500A; color:#fff; }
+  .sets-btn:hover { background:var(--accent); color:#fff; }
   .sets-btn:active { transform:scale(0.92); }
 
   .sets-input {
     width:30px;
     height:24px;
     text-align:center;
-    border:1px solid #EBEBED;
+    border:1px solid var(--input-border);
     border-radius:6px;
     font-family:inherit;
     font-size:0.86rem;
     font-weight:700;
-    color:#111;
-    background:#FAFAFA;
+    color:var(--text);
+    background:var(--input-bg);
     outline:none;
     padding:0;
     -moz-appearance:textfield;
     transition:all 0.12s;
     font-variant-numeric:tabular-nums;
   }
-  .sets-input:hover { border-color:#D1D1D6; background:#F4F4F5; }
-  .sets-input:focus { border-color:#E8500A; background:#FFF3EE; box-shadow:0 0 0 2px rgba(232,80,10,0.1); }
+  .sets-input:hover { border-color:var(--text-ghost); background:var(--sets-bg); }
+  .sets-input:focus { border-color:var(--accent); background:var(--accent-bg); box-shadow:0 0 0 2px rgba(232,80,10,0.15); }
   .sets-input::-webkit-inner-spin-button, .sets-input::-webkit-outer-spin-button { -webkit-appearance:none; }
 
   .ex-btn {
@@ -2265,25 +2352,25 @@ const CSS = `
     font-family:inherit;
     font-size:0.78rem;
     font-weight:600;
-    color:#AEAEB2;
+    color:var(--text-ghost);
     background:none;
     border:none;
-    border-top:1px solid #F4F4F5;
+    border-top:1px solid var(--border-light);
     cursor:pointer;
     width:100%;
     min-height:38px;
     transition:all 0.12s;
     letter-spacing:-0.1px;
   }
-  .add-ex-btn:hover { color:#E8500A; background:#FFF9F7; }
+  .add-ex-btn:hover { color:var(--accent); background:var(--accent-bg); }
 
   /* ─────────────────────────────────────────────
      ANALYSIS PANEL
   ───────────────────────────────────────────── */
 
   .analysis-panel {
-    border-left:1px solid rgba(0,0,0,0.07);
-    background:#FAFAFA;
+    border-left:1px solid var(--border);
+    background:var(--panel-bg);
     overflow-y:auto;
     display:flex;
     flex-direction:column;
@@ -2291,7 +2378,7 @@ const CSS = `
 
   .panel-block {
     padding:14px 15px;
-    border-bottom:1px solid #F0F0F0;
+    border-bottom:1px solid var(--border-light);
   }
   .panel-block:last-child { border-bottom:none; }
 
@@ -2300,7 +2387,7 @@ const CSS = `
     font-weight:700;
     text-transform:uppercase;
     letter-spacing:1.2px;
-    color:#AEAEB2;
+    color:var(--text-ghost);
   }
 
   /* ─────────────────────────────────────────────
@@ -2358,7 +2445,7 @@ const CSS = `
   @keyframes slideUp { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } }
 
   .modal {
-    background:#FFFFFF;
+    background:var(--surface);
     border-radius:16px;
     width:480px;
     max-height:88vh;
@@ -2366,7 +2453,7 @@ const CSS = `
     flex-direction:column;
     box-shadow:0 8px 32px rgba(0,0,0,0.12), 0 2px 8px rgba(0,0,0,0.08);
     animation:slideUp 0.18s ease;
-    border:1px solid rgba(0,0,0,0.06);
+    border:1px solid var(--border);
   }
 
   .modal-handle {
@@ -2380,7 +2467,7 @@ const CSS = `
 
   .modal-header {
     padding:14px 16px 12px;
-    border-bottom:1px solid #F4F4F5;
+    border-bottom:1px solid var(--border-light);
     display:flex;
     justify-content:space-between;
     align-items:center;
@@ -2390,14 +2477,14 @@ const CSS = `
   .modal-title {
     font-size:0.95rem;
     font-weight:700;
-    color:#111;
+    color:var(--text);
     letter-spacing:-0.3px;
   }
 
   .modal-close {
-    background:#F4F4F5;
+    background:var(--sets-bg);
     border:none;
-    color:#555;
+    color:var(--text-muted);
     font-size:0.65rem;
     font-weight:700;
     cursor:pointer;
@@ -2410,15 +2497,15 @@ const CSS = `
     transition:all 0.12s;
     flex-shrink:0;
   }
-  .modal-close:hover { background:#E0E0E4; color:#111; }
+  .modal-close:hover { background:var(--input-border); color:var(--text); }
 
   .picker-search {
     width:100%;
-    background:#F7F7F8;
-    border:1px solid #EBEBED;
+    background:var(--input-bg);
+    border:1px solid var(--input-border);
     border-radius:10px;
     padding:9px 13px;
-    color:#111;
+    color:var(--text);
     font-family:inherit;
     font-size:0.86rem;
     outline:none;
@@ -2426,8 +2513,8 @@ const CSS = `
   }
   .picker-search::placeholder { color:#AEAEB2; }
   .picker-search:focus {
-    background:#FFFFFF;
-    border-color:#E8500A;
+    background:var(--surface);
+    border-color:var(--accent);
     box-shadow:0 0 0 3px rgba(232,80,10,0.1);
   }
 
@@ -2436,24 +2523,24 @@ const CSS = `
     align-items:center;
     gap:10px;
     padding:10px 14px;
-    border-bottom:1px solid #F7F7F8;
+    border-bottom:1px solid var(--border-light);
     cursor:pointer;
     min-height:50px;
     transition:background 0.1s;
   }
   .picker-row:last-child { border-bottom:none; }
-  .picker-row:hover { background:#FFF9F7; }
+  .picker-row:hover { background:var(--accent-bg); }
 
   .lib-row {
     display:flex;
     align-items:center;
     gap:10px;
     padding:10px 14px;
-    border-bottom:1px solid #F7F7F8;
+    border-bottom:1px solid var(--border-light);
     cursor:pointer;
     transition:background 0.1s;
   }
-  .lib-row:hover { background:#FFF9F7; }
+  .lib-row:hover { background:var(--accent-bg); }
 
   .modal-form {
     padding:16px;
@@ -2475,31 +2562,31 @@ const CSS = `
 
   .form-input {
     width:100%;
-    background:#F7F7F8;
-    border:1px solid #EBEBED;
+    background:var(--input-bg);
+    border:1px solid var(--input-border);
     border-radius:10px;
     padding:10px 13px;
-    color:#111;
+    color:var(--text);
     font-family:inherit;
     font-size:0.9rem;
     outline:none;
     min-height:42px;
     transition:all 0.15s;
   }
-  .form-input::placeholder { color:#AEAEB2; }
+  .form-input::placeholder { color:var(--text-ghost); }
   .form-input:focus {
-    background:#FFFFFF;
-    border-color:#E8500A;
+    background:var(--surface);
+    border-color:var(--accent);
     box-shadow:0 0 0 3px rgba(232,80,10,0.1);
   }
 
   .form-select {
     width:100%;
-    background:#F7F7F8;
-    border:1px solid #EBEBED;
+    background:var(--input-bg);
+    border:1px solid var(--input-border);
     border-radius:10px;
     padding:10px 13px;
-    color:#111;
+    color:var(--text);
     font-family:inherit;
     font-size:0.9rem;
     outline:none;
@@ -2507,16 +2594,16 @@ const CSS = `
     min-height:42px;
     transition:all 0.15s;
   }
-  .form-select:focus { border-color:#E8500A; box-shadow:0 0 0 3px rgba(232,80,10,0.1); }
+  .form-select:focus { border-color:var(--accent); box-shadow:0 0 0 3px rgba(232,80,10,0.1); }
 
   /* ─────────────────────────────────────────────
      BUTTONS
   ───────────────────────────────────────────── */
 
   .btn-cancel {
-    background:#F4F4F5;
+    background:var(--sets-bg);
     border:none;
-    color:#555;
+    color:var(--text-muted);
     font-family:inherit;
     font-size:0.8rem;
     font-weight:600;
@@ -2527,7 +2614,7 @@ const CSS = `
     transition:all 0.12s;
     letter-spacing:-0.1px;
   }
-  .btn-cancel:hover { background:#E8E8EA; color:#111; }
+  .btn-cancel:hover { background:var(--input-border); color:var(--text); }
 
   .btn-save {
     background:#E8500A;
@@ -2585,6 +2672,23 @@ const CSS = `
   /* ─────────────────────────────────────────────
      MISC
   ───────────────────────────────────────────── */
+
+  /* Theme toggle */
+  .theme-toggle {
+    background:none;
+    border:1px solid var(--border, rgba(0,0,0,0.08));
+    border-radius:8px;
+    cursor:pointer;
+    width:32px;
+    height:32px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:0.9rem;
+    transition:all 0.15s;
+    flex-shrink:0;
+  }
+  .theme-toggle:hover { background:var(--bg, #F1F1F4); }
 
   .spinner {
     width:13px; height:13px;
