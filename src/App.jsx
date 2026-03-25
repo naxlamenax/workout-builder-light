@@ -521,9 +521,9 @@ function buildSuggestions(weeklyVol, priorities, sessions, db, backToBack) {
 
 // ─── DISPLAY CONSTANTS ────────────────────────────────────────────────────────
 
-const VOL_COLOR = { neutral:C.textGhost, maintain:C.textGhost, bon:C.green, prio:C.red };
+const VOL_COLOR = { neutral:C.textMuted, maintain:C.textMuted, bon:C.green, prio:C.red };
 const VOL_LABEL = { neutral:"—", maintain:"MAINTIEN", bon:"BON", prio:"PRIO" };
-const VOL_BG    = { neutral:"transparent", maintain:`${C.textGhost}20`, bon:`${C.green}20`, prio:`${C.red}20` };
+const VOL_BG    = { neutral:"transparent", maintain:`${C.textMuted}25`, bon:`${C.green}20`, prio:`${C.red}20` };
 
 const PRIO_OPTS = [
   { value:"priority", label:"🎯 Priorité",  aBg:C.accentBg, aCl:C.accentDark, aBd:C.accent },
@@ -585,6 +585,7 @@ export default function WorkoutDashboard() {
   const [renamingDay,    setRenamingDay]    = useState(null); // dayId
   const [renamingName,   setRenamingName]   = useState("");
   const [editingSets,    setEditingSets]    = useState(null); // {dayId, exId} — null = compact badge
+  const [priosExpanded,  setPriosExpanded]  = useState(false);
 
   const [progFormName,   setProgFormName]   = useState("");
   const [progFormError,  setProgFormError]  = useState("");
@@ -1008,7 +1009,7 @@ export default function WorkoutDashboard() {
                 <span style={{ fontSize:"1.7rem", fontWeight:800, color:scoreData.color, lineHeight:1, letterSpacing:"-1.5px" }}>
                   {scoreData.grade}
                 </span>
-                <span style={{ fontSize:"0.65rem", color:C.textFaint, fontWeight:600 }}>{scoreData.score}/100</span>
+                <span style={{ fontSize:"0.65rem", color:"var(--text-muted)", fontWeight:600 }}>{scoreData.score}/100</span>
               </div>
 
               {/* Separator */}
@@ -1238,7 +1239,7 @@ export default function WorkoutDashboard() {
                                   </div>
                                 ) : (
                                   <button className="sets-badge" onClick={() => setEditingSets({ dayId:session.id, exId:ex.id })}>
-                                    {ex.sets}<span style={{ fontWeight:400, opacity:0.55, fontSize:"0.7em", marginLeft:"1px" }}>sér</span>
+                                    {ex.sets}<span style={{ fontWeight:500, opacity:0.65, fontSize:"0.7em", marginLeft:"1px", color:"var(--text-muted)" }}>sér</span>
                                   </button>
                                 )}
                               </div>
@@ -1255,7 +1256,7 @@ export default function WorkoutDashboard() {
                                 ))}
                                 {exData?.secondary.map(m => (
                                   <span key={m} style={{ fontSize:"0.6rem", fontWeight:500, padding:"1px 6px",
-                                    borderRadius:20, background:"rgba(0,0,0,0.04)", color:"#999",
+                                    borderRadius:20, background:"rgba(0,0,0,0.04)", color:"#666",
                                     whiteSpace:"nowrap" }}>{m} ½</span>
                                 ))}
                               </div>
@@ -1308,12 +1309,12 @@ export default function WorkoutDashboard() {
                   {scoreData.grade}
                 </span>
                 <span style={{ fontSize:"0.88rem", fontWeight:700, color:scoreData.color }}>{scoreData.score}</span>
-                <span style={{ fontSize:"0.68rem", color:"#BBBBBB" }}>/100</span>
+                <span style={{ fontSize:"0.68rem", color:"var(--text-muted)" }}>/100</span>
               </div>
               {scoreData.issues.length > 0 && (
                 <div style={{ marginTop:8, display:"flex", flexDirection:"column", gap:3 }}>
                   {scoreData.issues.map((issue, i) => (
-                    <div key={i} style={{ fontSize:"0.68rem", color:issue.severity==="high"?"#DC2626":"#EA580C",
+                    <div key={i} style={{ fontSize:"0.68rem", color:issue.severity==="high"?"#B91C1C":"#C2410C",
                       display:"flex", gap:4, alignItems:"flex-start" }}>
                       <span style={{ flexShrink:0 }}>{issue.icon}</span>
                       <span>{issue.text}</span>
@@ -1379,7 +1380,7 @@ export default function WorkoutDashboard() {
               <div style={{ display:"flex", flexDirection:"column", gap:3, marginTop:8,
                 paddingTop:8, borderTop:`1px solid ${C.borderLight}` }}>
                 {[
-                  { c:"#BBBBBB", l:"MAINTIEN — 1–5 séries" },
+                  { c:C.textMuted, l:"MAINTIEN — 1–5 séries" },
                   { c:C.green, l:"BON — 6–12 séries" },
                   { c:C.red, l:"PRIO — 13+ séries" },
                 ].map(({ c, l }) => (
@@ -1397,39 +1398,101 @@ export default function WorkoutDashboard() {
 
             {/* Priorities */}
             <div className="panel-block">
-              <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between" }}>
+              <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:6 }}>
                 <div className="panel-label">PRIORITÉS</div>
-                {hasCustomPrios && (
-                  <button onClick={resetPrios} style={{ background:"none", border:"none", fontSize:"0.6rem",
-                    color:C.textFaint, cursor:"pointer", fontFamily:"inherit" }}>Reset</button>
-                )}
+                <div style={{ display:"flex", gap:6, alignItems:"center" }}>
+                  {hasCustomPrios && !priosExpanded && (
+                    <button onClick={resetPrios} style={{ background:"none", border:"none", fontSize:"0.62rem",
+                      color:"var(--text-muted)", cursor:"pointer", fontFamily:"inherit", padding:0 }}>Reset</button>
+                  )}
+                  <button onClick={() => setPriosExpanded(e => !e)} style={{
+                    background:"none", border:"none", fontSize:"0.62rem", fontWeight:600,
+                    color:"var(--accent)", cursor:"pointer", fontFamily:"inherit", padding:0 }}>
+                    {priosExpanded ? "Fermer" : "Modifier"}
+                  </button>
+                </div>
               </div>
-              <div style={{ marginTop:6, display:"flex", flexDirection:"column", gap:5 }}>
-                {ALL_MUSCLES.map(m => {
-                  const cur = priorities[m];
-                  return (
-                    <div key={m} style={{ display:"flex", alignItems:"center", gap:5 }}>
-                      <span style={{ fontSize:"0.78rem", width:18, flexShrink:0 }}>{MUSCLE_EMOJI[m]}</span>
-                      <span style={{ fontSize:"0.68rem", fontWeight:500, color:C.textSub, flex:1, minWidth:0 }}>{m}</span>
-                      <div style={{ display:"flex", gap:2, flexShrink:0 }}>
-                        {PRIO_OPTS.map(opt => {
-                          const active = cur === opt.value;
-                          return (
-                            <button key={opt.value} onClick={() => setMusclePrio(m, opt.value)} style={{
-                              background: active ? opt.aBg : C.bg,
-                              color:      active ? opt.aCl : C.textFaint,
-                              border:     `1px solid ${active ? opt.aBd : C.borderLight}`,
-                              borderRadius:5, padding:"2px 6px",
-                              fontSize:"0.6rem", fontWeight: active ? 700 : 500,
-                              cursor:"pointer", fontFamily:"inherit", transition:"all 0.1s", whiteSpace:"nowrap",
-                            }}>{opt.label}</button>
-                          );
-                        })}
+
+              {/* Collapsed view — show only active priorities */}
+              {!priosExpanded && (
+                <div style={{ display:"flex", flexDirection:"column", gap:5 }}>
+                  {(() => {
+                    const prios    = ALL_MUSCLES.filter(m => priorities[m] === "priority");
+                    const maintains = ALL_MUSCLES.filter(m => priorities[m] === "maintain");
+                    if (!prios.length && !maintains.length) {
+                      return (
+                        <div style={{ fontSize:"0.72rem", color:"var(--text-muted)", fontStyle:"italic" }}>
+                          Aucune priorité définie — tout en équilibré
+                        </div>
+                      );
+                    }
+                    return (<>
+                      {prios.length > 0 && (
+                        <div style={{ display:"flex", alignItems:"flex-start", gap:7 }}>
+                          <span style={{ fontSize:"0.72rem", flexShrink:0, marginTop:1 }}>🎯</span>
+                          <div style={{ minWidth:0 }}>
+                            <span style={{ fontSize:"0.62rem", fontWeight:700, color:"var(--accent)",
+                              textTransform:"uppercase", letterSpacing:"0.5px" }}>Priorité</span>
+                            <div style={{ fontSize:"0.74rem", fontWeight:600, color:"var(--text)", lineHeight:1.4, marginTop:2 }}>
+                              {prios.map(m => `${MUSCLE_EMOJI[m]} ${m}`).join("  ·  ")}
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                      {maintains.length > 0 && (
+                        <div style={{ display:"flex", alignItems:"flex-start", gap:7 }}>
+                          <span style={{ fontSize:"0.72rem", flexShrink:0, marginTop:1 }}>🔒</span>
+                          <div style={{ minWidth:0 }}>
+                            <span style={{ fontSize:"0.62rem", fontWeight:700, color:"#1D4ED8",
+                              textTransform:"uppercase", letterSpacing:"0.5px" }}>Maintien</span>
+                            <div style={{ fontSize:"0.74rem", fontWeight:600, color:"var(--text)", lineHeight:1.4, marginTop:2 }}>
+                              {maintains.map(m => `${MUSCLE_EMOJI[m]} ${m}`).join("  ·  ")}
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                    </>);
+                  })()}
+                </div>
+              )}
+
+              {/* Expanded view — full editor */}
+              {priosExpanded && (
+                <div style={{ display:"flex", flexDirection:"column", gap:4 }}>
+                  {hasCustomPrios && (
+                    <button onClick={resetPrios} style={{
+                      alignSelf:"flex-end", background:"none", border:"1px solid var(--border)",
+                      borderRadius:6, fontSize:"0.62rem", color:"var(--text-muted)", cursor:"pointer",
+                      fontFamily:"inherit", padding:"2px 8px", marginBottom:2 }}>
+                      Tout réinitialiser
+                    </button>
+                  )}
+                  {ALL_MUSCLES.map(m => {
+                    const cur = priorities[m];
+                    return (
+                      <div key={m} style={{ display:"flex", alignItems:"center", gap:5 }}>
+                        <span style={{ fontSize:"0.8rem", width:18, flexShrink:0 }}>{MUSCLE_EMOJI[m]}</span>
+                        <span style={{ fontSize:"0.72rem", fontWeight:500, color:"var(--text-sub)", flex:1, minWidth:0 }}>{m}</span>
+                        <div style={{ display:"flex", gap:2, flexShrink:0 }}>
+                          {PRIO_OPTS.map(opt => {
+                            const active = cur === opt.value;
+                            return (
+                              <button key={opt.value} onClick={() => setMusclePrio(m, opt.value)} style={{
+                                background: active ? opt.aBg : "transparent",
+                                color:      active ? opt.aCl : "var(--text-faint)",
+                                border:     `1px solid ${active ? opt.aBd : "var(--border)"}`,
+                                borderRadius:6, padding:"2px 7px",
+                                fontSize:"0.62rem", fontWeight: active ? 700 : 500,
+                                cursor:"pointer", fontFamily:"inherit", transition:"all 0.1s", whiteSpace:"nowrap",
+                              }}>{opt.label}</button>
+                            );
+                          })}
+                        </div>
                       </div>
-                    </div>
-                  );
-                })}
-              </div>
+                    );
+                  })}
+                </div>
+              )}
             </div>
 
           </aside>
@@ -1921,26 +1984,26 @@ const CSS = `
 
   .dark {
     --bg: #0F0F11;
-    --surface: #1C1C1F;
-    --surface2: #161618;
-    --border: rgba(255,255,255,0.08);
-    --border-light: rgba(255,255,255,0.04);
-    --text: #F2F2F5;
-    --text-sub: #C8C8CC;
-    --text-muted: #888890;
-    --text-faint: #666670;
-    --text-ghost: #444450;
+    --surface: #1A1A1D;
+    --surface2: #131315;
+    --border: rgba(255,255,255,0.10);
+    --border-light: rgba(255,255,255,0.06);
+    --text: #F0F0F3;
+    --text-sub: #C0C0C8;
+    --text-muted: #909098;
+    --text-faint: #707078;
+    --text-ghost: #55555F;
     --accent: #FF6B2B;
-    --accent-bg: rgba(255,107,43,0.12);
+    --accent-bg: rgba(255,107,43,0.15);
     --accent-dark: #E8500A;
-    --panel-bg: #161618;
-    --row-hover: rgba(255,255,255,0.03);
-    --sets-bg: rgba(255,255,255,0.07);
-    --sets-border: rgba(255,255,255,0.1);
-    --input-bg: rgba(255,255,255,0.05);
-    --input-border: rgba(255,255,255,0.1);
-    --shadow-sm: 0 1px 4px rgba(0,0,0,0.3), 0 4px 16px rgba(0,0,0,0.2);
-    --shadow-md: 0 2px 8px rgba(0,0,0,0.4), 0 8px 24px rgba(0,0,0,0.3);
+    --panel-bg: #131315;
+    --row-hover: rgba(255,255,255,0.04);
+    --sets-bg: rgba(255,255,255,0.08);
+    --sets-border: rgba(255,255,255,0.12);
+    --input-bg: rgba(255,255,255,0.06);
+    --input-border: rgba(255,255,255,0.12);
+    --shadow-sm: 0 1px 4px rgba(0,0,0,0.4), 0 4px 16px rgba(0,0,0,0.25);
+    --shadow-md: 0 2px 8px rgba(0,0,0,0.5), 0 8px 24px rgba(0,0,0,0.35);
   }
 
   html, body {
@@ -2092,9 +2155,9 @@ const CSS = `
     transform:scale(1.02) !important;
     box-shadow:0 0 0 3px rgba(232,80,10,0.12) !important;
   }
-  .rest-label { font-size:0.6rem; font-weight:700; color:#AEAEB2; letter-spacing:0.8px; text-transform:uppercase; }
-  .rest-icon  { font-size:1.1rem; color:#D1D1D6; line-height:1; transition:color 0.2s; }
-  .rest-text  { font-size:0.58rem; color:#C7C7CC; }
+  .rest-label { font-size:0.6rem; font-weight:700; color:var(--text-muted); letter-spacing:0.8px; text-transform:uppercase; }
+  .rest-icon  { font-size:1.1rem; color:var(--text-faint); line-height:1; transition:color 0.2s; }
+  .rest-text  { font-size:0.58rem; color:var(--text-faint); }
   .rest-slot:hover .rest-icon { color:var(--accent); }
   .rest-slot:hover .rest-text { color:var(--accent); }
   .rest-slot:hover .rest-label { color:var(--accent); }
@@ -2186,7 +2249,7 @@ const CSS = `
   .col-del-btn {
     background:none;
     border:none;
-    color:#C7C7CC;
+    color:var(--text-faint);
     font-size:0.65rem;
     cursor:pointer;
     padding:3px 4px;
@@ -2222,7 +2285,7 @@ const CSS = `
 
   .drag-handle {
     font-size:0.85rem;
-    color:#D1D1D6;
+    color:var(--text-faint);
     cursor:grab;
     user-select:none;
     flex-shrink:0;
@@ -2233,13 +2296,13 @@ const CSS = `
     margin-top:2px;
   }
   .ex-row:hover .drag-handle { opacity:1; }
-  .drag-handle:hover { color:#AEAEB2; }
+  .drag-handle:hover { color:var(--text-muted); }
   .drag-handle:active { cursor:grabbing; }
 
   .ex-idx {
     font-size:0.68rem;
     font-weight:500;
-    color:var(--text-ghost);
+    color:var(--text-muted);
     width:14px;
     text-align:center;
     flex-shrink:0;
@@ -2341,6 +2404,7 @@ const CSS = `
     opacity:0;
   }
   .ex-row:hover .ex-btn { opacity:1; }
+  .ex-btn:focus { opacity:1; }
   .ex-btn:hover { background:#F4F4F5; color:#333; opacity:1; }
   .ex-btn.del:hover { background:#FEF2F2; color:#EF4444; }
 
@@ -2352,7 +2416,7 @@ const CSS = `
     font-family:inherit;
     font-size:0.78rem;
     font-weight:600;
-    color:var(--text-ghost);
+    color:var(--text-muted);
     background:none;
     border:none;
     border-top:1px solid var(--border-light);
@@ -2387,7 +2451,7 @@ const CSS = `
     font-weight:700;
     text-transform:uppercase;
     letter-spacing:1.2px;
-    color:var(--text-ghost);
+    color:var(--text-muted);
   }
 
   /* ─────────────────────────────────────────────
@@ -2403,7 +2467,7 @@ const CSS = `
     border-radius:20px;
     font-size:0.71rem;
     font-weight:500;
-    color:#555;
+    color:var(--text-sub);
     white-space:nowrap;
     border:1px solid rgba(0,0,0,0.06);
     transition:all 0.1s;
