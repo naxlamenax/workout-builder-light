@@ -1134,13 +1134,13 @@ export default function WorkoutDashboard() {
                       ))}
                       {/* Color picker button */}
                       <button className="col-icon-btn" title="Couleur"
-                        onClick={e => { e.stopPropagation(); setColorPickerDay(colorPickerDay === session.id ? null : session.id); }}
+                        onClick={e => { e.stopPropagation(); setColorPickerId(colorPickerId === session.id ? null : session.id); }}
                         style={{ fontSize:"0.75rem", opacity: session.color ? 1 : 0.4 }}>🎨</button>
                       <button className="col-del-btn" onClick={() => removeSessionFromDay(session.id)} title="Supprimer">✕</button>
                     </div>
 
                     {/* Color picker popover */}
-                    {colorPickerDay === session.id && (
+                    {colorPickerId === session.id && (
                       <div style={{ position:"absolute", top:"100%", right:0, zIndex:50,
                         background:C.surface, border:`1.5px solid ${C.border}`, borderRadius:10,
                         padding:8, display:"flex", gap:5, flexWrap:"wrap", width:160,
