@@ -1211,7 +1211,7 @@ export default function WorkoutDashboard() {
                       const exData = db[ex.name];
                       const isDropTarget = dragOver?.dayId === session.id && dragOver?.exIdx === idx2;
                       return (
-                        <div key={ex.id} style={{ position:"relative" }}>
+                        <div key={ex.id} className="ex-wrapper">
                           {/* Drop indicator line */}
                           {isDropTarget && (
                             <div style={{ position:"absolute", top:0, left:8, right:8, height:2,
@@ -2295,19 +2295,18 @@ const CSS = `
   ───────────────────────────────────────────── */
 
   .ex-list { display:flex; flex-direction:column; }
+  .ex-wrapper { border-bottom:1px solid #C8C8CC; }
+  .ex-wrapper:last-child { border-bottom:none; }
+  .dark .ex-wrapper { border-bottom-color:#2C2C30; }
 
   .ex-row {
     display:flex;
     align-items:flex-start;
     gap:8px;
     padding:11px 14px 11px 10px;
-    border-bottom:1px solid #D1D1D6;
     transition:background 0.12s;
     position:relative;
   }
-  .dark .ex-row { border-bottom-color:#333338; }
-  .ex-row:last-of-type { border-bottom:none; }
-  .dark .ex-row:last-of-type { border-bottom:none; }
   .ex-row:nth-child(even) { background:var(--row-alt, rgba(0,0,0,0.015)); }
   .ex-row:hover { background:var(--row-hover) !important; }
 
