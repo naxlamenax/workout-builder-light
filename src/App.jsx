@@ -4,14 +4,14 @@ import { useState, useRef, useEffect, useCallback } from "react";
 
 const C = {
   accent:     "#E8500A", accentDark: "#C94209", accentBg: "#FFF3EE",
-  bg:         "#EEEEF3", surface:    "#FFFFFF",
-  border:     "#D1D1D6", borderLight:"#E5E5EA",
-  text:       "#1C1C1E", textSub:    "#3A3A3C", textMuted: "#6B6B6B",
-  textFaint:  "#8E8E93", textGhost:  "#AEAEB2",
-  green:      "#16A34A", greenBg:    "#DCFCE7",
-  orange:     "#EA580C", orangeBg:   "#FFEDD5",
-  red:        "#DC2626", redBg:      "#FEE2E2",
-  blue:       "#1D4ED8", blueBg:     "#DBEAFE",
+  bg:         "#F1F1F4", surface:    "#FFFFFF",
+  border:     "rgba(0,0,0,0.08)", borderLight:"rgba(0,0,0,0.05)",
+  text:       "#111111", textSub:    "#333333", textMuted: "#777777",
+  textFaint:  "#999999", textGhost:  "#BBBBBB",
+  green:      "#16A34A", greenBg:    "#F0FDF4",
+  orange:     "#EA580C", orangeBg:   "#FFF7ED",
+  red:        "#DC2626", redBg:      "#FEF2F2",
+  blue:       "#1D4ED8", blueBg:     "#EFF6FF",
 };
 
 const VOLUME   = { maintain: 5, bon: 12 }; // 1-5 MAINTIEN · 6-12 BON · 13+ PRIO
@@ -40,6 +40,17 @@ const TIER = {
   "F-": { color:"#991B1B", bg:"#FEE2E2", label:"À éviter absolument." , movement:"neutral" },
 };
 const TIER_ORDER = ["S+","S","A+","A","B+","B","C","D","F","F-"];
+
+const SESSION_COLORS = [
+  { id:"red",    bg:"#FECACA", border:"#EF4444", label:"Rouge"  },
+  { id:"orange", bg:"#FED7AA", border:"#F97316", label:"Orange" },
+  { id:"yellow", bg:"#FEF08A", border:"#EAB308", label:"Jaune"  },
+  { id:"green",  bg:"#BBF7D0", border:"#22C55E", label:"Vert"   },
+  { id:"blue",   bg:"#BFDBFE", border:"#3B82F6", label:"Bleu"   },
+  { id:"purple", bg:"#E9D5FF", border:"#A855F7", label:"Violet" },
+  { id:"pink",   bg:"#FBCFE8", border:"#EC4899", label:"Rose"   },
+  { id:"gray",   bg:"#E5E7EB", border:"#6B7280", label:"Gris"   },
+];
 
 // ─── EXERCISE DATABASE ────────────────────────────────────────────────────────
 
@@ -568,6 +579,8 @@ export default function WorkoutDashboard() {
   const [importError,    setImportError]    = useState("");
   const [saveStatus,     setSaveStatus]     = useState("idle");
   const [dragSrc,        setDragSrc]        = useState(null); // {dayId, exIdx}
+  const [dragOver,       setDragOver]       = useState(null); // {dayId, insertIdx}
+  const [colorPickerId,  setColorPickerId]  = useState(null); // dayId
   const [renamingDay,    setRenamingDay]    = useState(null); // dayId
   const [renamingName,   setRenamingName]   = useState("");
   const [focusedSets,    setFocusedSets]    = useState(null); // {dayId, exId}
@@ -778,9 +791,9 @@ export default function WorkoutDashboard() {
   }
 
   // ── Exercise mutations ───────────────────────────────────────────────────────
-  function addEx(dayId, exName) {
+  function addEx(dayId, exName, keepOpen = false) {
     updateDayExercises(dayId, exs => [...exs, { id:uid(), name:exName, sets:3 }]);
-    setPickerSearch(""); closeModal();
+    if (!keepOpen) { setPickerSearch(""); closeModal(); }
   }
 
   function replaceEx(dayId, exId, newName) {
@@ -808,6 +821,8 @@ export default function WorkoutDashboard() {
   function onDrop(targetDayId, targetIdx) {
     if (!dragSrc) return;
     const { dayId:srcId, exIdx:srcIdx } = dragSrc;
+    setDragSrc(null);
+    setDragOver(null);
     updateWeek(w => {
       let moved = null;
       const step = w.map(slot => {
@@ -821,7 +836,32 @@ export default function WorkoutDashboard() {
         return {...slot, exercises: exs};
       });
     });
+  }
+
+  function onDropRestSlot(dayIndex) {
+    if (!dragSrc) return;
+    const { dayId:srcId, exIdx:srcIdx } = dragSrc;
     setDragSrc(null);
+    setDragOver(null);
+    let moved = null;
+    updateWeek(w => {
+      const step = w.map(slot => {
+        if (slot?.id !== srcId) return slot;
+        const exs = [...slot.exercises]; [moved] = exs.splice(srcIdx, 1);
+        return {...slot, exercises: exs};
+      });
+      const updated = [...step];
+      if (!updated[dayIndex]) {
+        updated[dayIndex] = { id:uid(), name:DAY_LONG[dayIndex], exercises:[] };
+      }
+      updated[dayIndex] = { ...updated[dayIndex], exercises:[...updated[dayIndex].exercises, moved] };
+      return updated;
+    });
+  }
+
+  function setSessionColor(dayId, colorId) {
+    updateWeek(w => w.map(slot => slot?.id !== dayId ? slot : { ...slot, color: colorId || null }));
+    setColorPickerDay(null);
   }
 
   // ── Library mutations ────────────────────────────────────────────────────────
@@ -876,8 +916,8 @@ export default function WorkoutDashboard() {
     if (!tier || !TIER[tier]) return null;
     const { color, bg } = TIER[tier];
     return (
-      <span style={{ fontSize:"0.56rem", fontWeight:700, padding:"1px 5px", borderRadius:4,
-        border:`1px solid ${color}40`, background:bg, color, flexShrink:0, letterSpacing:"0.3px" }}>
+      <span style={{ fontSize:"0.55rem", fontWeight:700, padding:"1px 6px", borderRadius:20,
+        border:`1px solid ${color}30`, background:bg, color, flexShrink:0, letterSpacing:"0.2px" }}>
         {tier}
       </span>
     );
@@ -891,6 +931,7 @@ export default function WorkoutDashboard() {
     const fillPct = Math.min(100, (sets / BAR_MAX) * 100);
     const targPct = Math.min(100, (target / BAR_MAX) * 100);
     const isConflict = backToBack.some(b => b.muscles.includes(muscle));
+    const isFreq2    = summary?.freq2?.includes(muscle);
 
     return (
       <div style={{ marginBottom:8 }}>
@@ -898,6 +939,11 @@ export default function WorkoutDashboard() {
           <span style={{ fontSize:"0.7rem", fontWeight:500, color:C.textSub, display:"flex", alignItems:"center", gap:4 }}>
             <span style={{ fontSize:"0.8rem" }}>{MUSCLE_EMOJI[muscle]}</span>
             {muscle}
+            {isFreq2 && (
+              <span style={{ fontSize:"0.52rem", fontWeight:700, padding:"1px 5px", borderRadius:20,
+                background:"#EFF6FF", color:"#1D4ED8", border:"1px solid #BFDBFE",
+                letterSpacing:"0.2px" }}>×2</span>
+            )}
             {isConflict && <span style={{ fontSize:"0.58rem", color:C.orange, fontWeight:700 }}>⚡J-J</span>}
           </span>
           <div style={{ display:"flex", alignItems:"center", gap:5 }}>
@@ -912,9 +958,9 @@ export default function WorkoutDashboard() {
             </span>
           </div>
         </div>
-        <div style={{ height:4, background:C.borderLight, borderRadius:2, position:"relative" }}>
+        <div style={{ height:3, background:"rgba(0,0,0,0.06)", borderRadius:2, position:"relative" }}>
           <div style={{ position:"absolute", inset:0, width:`${fillPct}%`, height:4, borderRadius:2,
-            background: MUSCLE_COLOR[muscle], opacity: status === "prio" ? 0.55 : 0.85,
+            background: MUSCLE_COLOR[muscle], opacity: status === "prio" ? 0.6 : 0.9,
             transition:"width 0.25s ease" }} />
           <div style={{ position:"absolute", top:-2, left:`${(VOLUME.maintain/BAR_MAX)*100}%`,
             width:1.5, height:8, background:C.textGhost, borderRadius:1 }} />
@@ -938,7 +984,7 @@ export default function WorkoutDashboard() {
         {/* ── TOPBAR ─────────────────────────────────────────────────── */}
         <header className="topbar">
           <div style={{ display:"flex", alignItems:"center", gap:10 }}>
-            <span style={{ fontWeight:800, fontSize:"1.1rem", letterSpacing:"-0.3px", color:C.text }}>
+            <span style={{ fontWeight:800, fontSize:"1.05rem", letterSpacing:"-0.5px", color:C.text }}>
               Work<span style={{ color:C.accent }}>out</span>
             </span>
             <div style={{ width:1, height:18, background:C.border }} />
@@ -954,7 +1000,7 @@ export default function WorkoutDashboard() {
 
               {/* Grade badge */}
               <div style={{ display:"flex", alignItems:"baseline", gap:4, flexShrink:0 }}>
-                <span style={{ fontSize:"1.8rem", fontWeight:800, color:scoreData.color, lineHeight:1, letterSpacing:"-1px" }}>
+                <span style={{ fontSize:"1.7rem", fontWeight:800, color:scoreData.color, lineHeight:1, letterSpacing:"-1.5px" }}>
                   {scoreData.grade}
                 </span>
                 <span style={{ fontSize:"0.65rem", color:C.textFaint, fontWeight:600 }}>{scoreData.score}/100</span>
@@ -1019,7 +1065,7 @@ export default function WorkoutDashboard() {
         </header>
 
         {/* ── MAIN ───────────────────────────────────────────────────── */}
-        <div className="main">
+        <div className="main" onClick={() => setColorPickerId(null)}>
 
           {/* ── WEEK BOARD ──────────────────────────────────────────── */}
           <div className="week-board">
@@ -1029,10 +1075,15 @@ export default function WorkoutDashboard() {
 
               if (isRest) {
                 return (
-                  <div key={key} className="rest-slot" onClick={() => addSessionToDay(idx)}>
+                  <div key={key}
+                    className={`rest-slot${dragSrc && dragOver?.dayId === key ? " rest-slot-drag-over" : ""}`}
+                    onClick={() => addSessionToDay(idx)}
+                    onDragOver={e => { e.preventDefault(); setDragOver({ dayId:key, insertIdx:0 }); }}
+                    onDragLeave={() => setDragOver(null)}
+                    onDrop={e => { e.preventDefault(); onDropToRest(idx); }}>
                     <span className="rest-label">{DAY_LABELS[idx]}</span>
-                    <span className="rest-icon">+</span>
-                    <span className="rest-text">Repos</span>
+                    <span className="rest-icon">{dragSrc ? "⊕" : "+"}</span>
+                    <span className="rest-text">{dragSrc ? "Déposer ici" : "Repos"}</span>
                   </div>
                 );
               }
@@ -1044,13 +1095,25 @@ export default function WorkoutDashboard() {
                 b.dayALabel === DAY_LABELS[idx-1] && b.dayBLabel === DAY_LABELS[idx]
               );
 
+              const sessionColor = SESSION_COLORS.find(c => c.id === session.color);
+              const isDragTarget = dragOver?.dayId === session.id;
+
               return (
-                <div key={key} className={`session-col${isBackToBack ? " btb-warning" : ""}`}
-                  onDragOver={e => e.preventDefault()}
-                  onDrop={() => onDrop(session.id, session.exercises.length)}>
+                <div key={key}
+                  className={`session-col${isBackToBack ? " btb-warning" : ""}${isDragTarget ? " drag-target" : ""}`}
+                  style={sessionColor ? { borderColor: sessionColor.border } : {}}
+                  onDragOver={e => { e.preventDefault(); setDragOver({ dayId:session.id, exIdx:session.exercises.length }); }}
+                  onDragLeave={e => { if (!e.currentTarget.contains(e.relatedTarget)) setDragOver(null); }}
+                  onDrop={e => { e.preventDefault(); const idx = (dragOver && dragOver.dayId === session.id && dragOver.exIdx != null) ? dragOver.exIdx : session.exercises.length; onDrop(session.id, idx); }}>
+
+                  {/* Color band */}
+                  {sessionColor && (
+                    <div style={{ height:5, background:sessionColor.bg, borderRadius:"8px 8px 0 0",
+                      borderBottom:`1px solid ${sessionColor.border}40` }} />
+                  )}
 
                   {/* Column header */}
-                  <div className="col-header">
+                  <div className="col-header" style={{ position:"relative" }}>
                     <span style={{ fontSize:"0.6rem", fontWeight:700, color:C.accent, letterSpacing:"1px" }}>
                       {DAY_LABELS[idx]}
                     </span>
@@ -1067,15 +1130,39 @@ export default function WorkoutDashboard() {
                     <div style={{ display:"flex", alignItems:"center", gap:3, marginLeft:"auto", flexShrink:0 }}>
                       {activeMuscles.slice(0,6).map(m => (
                         <span key={m} title={m} style={{ width:6, height:6, borderRadius:"50%",
-                          background:MUSCLE_COLOR[m], display:"inline-block" }} />
+                          background:MUSCLE_COLOR[m], display:"inline-block", boxShadow:"0 0 0 1px rgba(255,255,255,0.6)" }} />
                       ))}
+                      {/* Color picker button */}
+                      <button className="col-icon-btn" title="Couleur"
+                        onClick={e => { e.stopPropagation(); setColorPickerDay(colorPickerDay === session.id ? null : session.id); }}
+                        style={{ fontSize:"0.75rem", opacity: session.color ? 1 : 0.4 }}>🎨</button>
                       <button className="col-del-btn" onClick={() => removeSessionFromDay(session.id)} title="Supprimer">✕</button>
                     </div>
+
+                    {/* Color picker popover */}
+                    {colorPickerDay === session.id && (
+                      <div style={{ position:"absolute", top:"100%", right:0, zIndex:50,
+                        background:C.surface, border:`1.5px solid ${C.border}`, borderRadius:10,
+                        padding:8, display:"flex", gap:5, flexWrap:"wrap", width:160,
+                        boxShadow:"0 4px 16px rgba(0,0,0,0.12)" }}
+                        onClick={e => e.stopPropagation()}>
+                        {SESSION_COLORS.map(c => (
+                          <button key={c.id} title={c.label}
+                            onClick={() => setSessionColor(session.id, c.id)}
+                            style={{ width:22, height:22, borderRadius:6, border:`2px solid ${session.color===c.id ? c.border : "transparent"}`,
+                              background:c.bg, cursor:"pointer", transition:"border 0.1s" }} />
+                        ))}
+                        <button title="Aucune couleur"
+                          onClick={() => setSessionColor(session.id, null)}
+                          style={{ width:22, height:22, borderRadius:6, border:`2px solid ${!session.color ? "#999" : "transparent"}`,
+                            background:"#F3F4F6", cursor:"pointer", fontSize:"0.6rem", display:"flex", alignItems:"center", justifyContent:"center" }}>✕</button>
+                      </div>
+                    )}
                   </div>
 
                   {isBackToBack && (
-                    <div style={{ padding:"3px 10px", background:C.orangeBg, borderBottom:`1px solid ${C.orange}30`,
-                      fontSize:"0.6rem", color:C.orange, fontWeight:600 }}>
+                    <div style={{ padding:"5px 14px", background:"#FFF7ED", borderBottom:"1px solid rgba(234,88,12,0.1)",
+                      fontSize:"0.62rem", color:"#C2410C", fontWeight:600, letterSpacing:"-0.1px" }}>
                       ⚡ Muscles en J-J consécutifs
                     </div>
                   )}
@@ -1086,12 +1173,25 @@ export default function WorkoutDashboard() {
                       const exData = db[ex.name];
                       const isFocused = focusedSets?.dayId === session.id && focusedSets?.exId === ex.id;
 
+                      const isDropTarget = dragOver?.dayId === session.id && dragOver?.exIdx === idx2;
                       return (
-                        <div key={ex.id} className="ex-row"
-                          draggable
-                          onDragStart={() => setDragSrc({ dayId:session.id, exIdx:idx2 })}
-                          onDragOver={e => e.preventDefault()}
-                          onDrop={e => { e.stopPropagation(); onDrop(session.id, idx2); }}>
+                        <div key={ex.id} style={{ position:"relative" }}>
+                          {/* Drop indicator line */}
+                          {isDropTarget && (
+                            <div style={{ position:"absolute", top:0, left:8, right:8, height:2,
+                              background:C.blue, borderRadius:1, zIndex:10 }} />
+                          )}
+                          <div className="ex-row"
+                            onDragOver={e => { e.preventDefault(); e.stopPropagation(); setDragOver({ dayId:session.id, exIdx:idx2 }); }}
+                            onDrop={e => { e.stopPropagation(); onDrop(session.id, idx2); }}>
+
+                          {/* Drag handle */}
+                          <span className="drag-handle"
+                            draggable
+                            onDragStart={e => { e.stopPropagation(); setDragSrc({ dayId:session.id, exIdx:idx2 }); }}
+                            onDragEnd={() => { setDragSrc(null); setDragOver(null); }}>
+                            ⠿
+                          </span>
 
                           {/* Index */}
                           <span className="ex-idx">{idx2+1}</span>
@@ -1106,9 +1206,9 @@ export default function WorkoutDashboard() {
                               </span>
                               <TierBadge tier={exData?.tier} />
                               {exData?.movement && exData.movement !== "neutral" && (
-                                <span style={{ fontSize:"0.55rem", fontWeight:700, padding:"1px 5px", borderRadius:3,
-                                  background: exData.movement==="push"?"#FFEDD5":"#DBEAFE",
-                                  color: exData.movement==="push"?"#EA580C":"#1D4ED8",
+                                <span style={{ fontSize:"0.52rem", fontWeight:700, padding:"1px 5px", borderRadius:20,
+                                  background: exData.movement==="push"?"#FFF3EE":"#EFF6FF",
+                                  color: exData.movement==="push"?"#E8500A":"#1D4ED8",
                                   flexShrink:0 }}>
                                   {exData.movement === "push" ? "PSH" : "PLL"}
                                 </span>
@@ -1120,13 +1220,13 @@ export default function WorkoutDashboard() {
                               {/* Muscle pills */}
                               <div style={{ display:"flex", gap:4, flex:1, minWidth:0, flexWrap:"wrap" }}>
                                 {exData?.primary.map(m => (
-                                  <span key={m} style={{ fontSize:"0.7rem", fontWeight:600, padding:"2px 8px",
-                                    borderRadius:4, background:MUSCLE_COLOR[m]+"18", color:MUSCLE_COLOR[m],
+                                  <span key={m} style={{ fontSize:"0.68rem", fontWeight:600, padding:"2px 7px",
+                                    borderRadius:20, background:MUSCLE_COLOR[m]+"15", color:MUSCLE_COLOR[m],
                                     whiteSpace:"nowrap" }}>{m}</span>
                                 ))}
                                 {exData?.secondary.map(m => (
-                                  <span key={m} style={{ fontSize:"0.65rem", fontWeight:500, padding:"2px 6px",
-                                    borderRadius:4, background:"#F2F2F7", color:C.textFaint,
+                                  <span key={m} style={{ fontSize:"0.63rem", fontWeight:500, padding:"2px 6px",
+                                    borderRadius:20, background:"rgba(0,0,0,0.04)", color:"#999",
                                     whiteSpace:"nowrap" }}>{m} ½</span>
                                 ))}
                               </div>
@@ -1139,15 +1239,20 @@ export default function WorkoutDashboard() {
                                   type="number" min={MIN_SETS} max={MAX_SETS}
                                   value={ex.sets}
                                   onChange={e => setSets(session.id, ex.id, e.target.value)}
+                                  onWheel={e => { e.preventDefault(); setSets(session.id, ex.id, ex.sets + (e.deltaY < 0 ? 1 : -1)); }}
                                   onFocus={() => setFocusedSets({ dayId:session.id, exId:ex.id })}
                                   onBlur={() => setFocusedSets(null)}
                                 />
                                 <button className="sets-btn" onClick={() => setSets(session.id, ex.id, ex.sets+1)}>+</button>
-                                <span style={{ fontSize:"0.65rem", color:C.textFaint, marginLeft:1 }}>sér.</span>
+                                <span style={{ fontSize:"0.62rem", color:"#BBBBBB", marginLeft:1, fontWeight:500 }}>sér.</span>
                               </div>
 
                               {/* Actions */}
                               <div style={{ display:"flex", gap:2, flexShrink:0 }}>
+                                <button className="ex-btn" title="Dupliquer dans cette séance"
+                                  onClick={() => updateDayExercises(session.id, exs => [...exs, { id:uid(), name:ex.name, sets:ex.sets }])}>
+                                  ⊕
+                                </button>
                                 <button className="ex-btn" title="Remplacer"
                                   onClick={() => { setModal({ type:"replaceEx", dayId:session.id, exId:ex.id }); setPickerSearch(""); }}>
                                   ⇄
@@ -1160,9 +1265,14 @@ export default function WorkoutDashboard() {
 
                           </div>
                         </div>
+                        </div>
                       );
                     })}
 
+                    {/* Insert line at end */}
+                    {dragOver?.dayId === session.id && dragOver?.insertIdx >= session.exercises.length && (
+                      <div style={{ height:3, background:C.accent, borderRadius:2, margin:"0 10px 2px", opacity:0.8 }} />
+                    )}
                     <button className="add-ex-btn"
                       onClick={() => { setModal({ type:"addEx", dayId:session.id }); setPickerSearch(""); }}>
                       + Exercice
@@ -1180,16 +1290,16 @@ export default function WorkoutDashboard() {
             <div className="panel-block">
               <div className="panel-label">NOTE</div>
               <div style={{ display:"flex", alignItems:"baseline", gap:8, marginTop:6 }}>
-                <span style={{ fontSize:"2.6rem", fontWeight:800, color:scoreData.color, lineHeight:1, letterSpacing:"-2px" }}>
+                <span style={{ fontSize:"2.4rem", fontWeight:800, color:scoreData.color, lineHeight:1, letterSpacing:"-2px" }}>
                   {scoreData.grade}
                 </span>
-                <span style={{ fontSize:"0.9rem", fontWeight:700, color:scoreData.color }}>{scoreData.score}</span>
-                <span style={{ fontSize:"0.7rem", color:C.textFaint }}>/100</span>
+                <span style={{ fontSize:"0.88rem", fontWeight:700, color:scoreData.color }}>{scoreData.score}</span>
+                <span style={{ fontSize:"0.68rem", color:"#BBBBBB" }}>/100</span>
               </div>
               {scoreData.issues.length > 0 && (
                 <div style={{ marginTop:8, display:"flex", flexDirection:"column", gap:3 }}>
                   {scoreData.issues.map((issue, i) => (
-                    <div key={i} style={{ fontSize:"0.68rem", color:issue.severity==="high"?C.red:C.orange,
+                    <div key={i} style={{ fontSize:"0.68rem", color:issue.severity==="high"?"#DC2626":"#EA580C",
                       display:"flex", gap:4, alignItems:"flex-start" }}>
                       <span style={{ flexShrink:0 }}>{issue.icon}</span>
                       <span>{issue.text}</span>
@@ -1255,9 +1365,9 @@ export default function WorkoutDashboard() {
               <div style={{ display:"flex", flexDirection:"column", gap:3, marginTop:8,
                 paddingTop:8, borderTop:`1px solid ${C.borderLight}` }}>
                 {[
-                  { c:C.textGhost, l:"MAINTIEN — 1–5 séries" },
-                  { c:C.green,     l:"BON — 6–12 séries" },
-                  { c:C.red,       l:"PRIO — 13+ séries" },
+                  { c:"#BBBBBB", l:"MAINTIEN — 1–5 séries" },
+                  { c:C.green, l:"BON — 6–12 séries" },
+                  { c:C.red, l:"PRIO — 13+ séries" },
                 ].map(({ c, l }) => (
                   <div key={l} style={{ display:"flex", alignItems:"center", gap:5 }}>
                     <div style={{ width:6, height:6, borderRadius:"50%", background:c, flexShrink:0 }} />
@@ -1317,29 +1427,36 @@ export default function WorkoutDashboard() {
         <div className="overlay" onClick={closeModal}>
 
           {/* Exercise Picker */}
-          {(modal.type === "addEx" || modal.type === "replaceEx") && (
+          {(modal.type === "addEx" || modal.type === "replaceEx") && (() => {
+            const alreadyIn = modal.type === "addEx"
+              ? new Set(week.find(s => s?.id === modal.dayId)?.exercises.map(e => e.name) ?? [])
+              : new Set();
+            const isReplace = modal.type === "replaceEx";
+            return (
             <div className="modal" onClick={e => e.stopPropagation()}>
               <div className="modal-handle" />
               <div className="modal-header">
-                <span className="modal-title">{modal.type === "addEx" ? "Ajouter un exercice" : "Remplacer"}</span>
+                <span className="modal-title">{isReplace ? "Remplacer l'exercice" : "Ajouter un exercice"}</span>
                 <button className="modal-close" onClick={closeModal}>✕</button>
               </div>
-              <div style={{ padding:"10px 14px 6px", flexShrink:0 }}>
-                <input ref={pickerInputRef} className="picker-search" placeholder="Rechercher..."
+              <div style={{ padding:"10px 14px 6px", flexShrink:0, display:"flex", gap:8 }}>
+                <input ref={pickerInputRef} className="picker-search" style={{ flex:1 }} placeholder="Rechercher..."
                   value={pickerSearch} onChange={e => setPickerSearch(e.target.value)} />
+                <button className="btn-save" style={{ flexShrink:0 }} onClick={() => { setPickerSearch(""); closeModal(); }}>Fermer</button>
               </div>
               <div style={{ overflowY:"auto", flex:1, background:C.surface }}>
                 {!pickerSearch && smartPicker.length > 0 && (
                   <>
-                    <div style={{ padding:"6px 14px 3px", fontSize:"0.6rem", fontWeight:700,
-                      textTransform:"uppercase", letterSpacing:"1px", color:C.accent }}>
+                    <div style={{ padding:"8px 14px 4px", fontSize:"0.58rem", fontWeight:700,
+                      textTransform:"uppercase", letterSpacing:"0.8px", color:C.accent }}>
                       ✨ Recommandés pour votre programme
                     </div>
                     {smartPicker.map(name => {
                       const d = db[name];
+                      const added = alreadyIn.has(name);
                       return (
                         <div key={`s-${name}`} className="picker-row" style={{ background:C.accentBg }}
-                          onClick={() => modal.type === "addEx" ? addEx(modal.dayId, name) : replaceEx(modal.dayId, modal.exId, name)}>
+                          onClick={() => isReplace ? replaceEx(modal.dayId, modal.exId, name) : addEx(modal.dayId, name, true)}>
                           <TierBadge tier={d?.tier} />
                           <div style={{ flex:1, minWidth:0 }}>
                             <div style={{ fontSize:"0.83rem", fontWeight:600, color:C.text }}>{name}</div>
@@ -1347,6 +1464,7 @@ export default function WorkoutDashboard() {
                               {d.primary.join(", ")}{d.secondary.length ? ` · ${d.secondary.join(", ")} ½` : ""}
                             </div>
                           </div>
+                          {added && <span style={{ fontSize:"0.6rem", color:C.green, fontWeight:700, flexShrink:0 }}>✓</span>}
                         </div>
                       );
                     })}
@@ -1357,9 +1475,10 @@ export default function WorkoutDashboard() {
                   ? <div style={{ padding:24, textAlign:"center", color:C.textFaint, fontSize:"0.85rem" }}>Aucun résultat</div>
                   : pickerList.map(name => {
                     const d = db[name];
+                    const added = alreadyIn.has(name);
                     return (
                       <div key={name} className="picker-row"
-                        onClick={() => modal.type === "addEx" ? addEx(modal.dayId, name) : replaceEx(modal.dayId, modal.exId, name)}>
+                        onClick={() => isReplace ? replaceEx(modal.dayId, modal.exId, name) : addEx(modal.dayId, name, true)}>
                         <TierBadge tier={d?.tier} />
                         <div style={{ flex:1, minWidth:0 }}>
                           <div style={{ fontSize:"0.83rem", fontWeight:600, color:C.text }}>{name}</div>
@@ -1367,13 +1486,20 @@ export default function WorkoutDashboard() {
                             {d.primary.join(", ")}{d.secondary.length ? ` · ${d.secondary.join(", ")} ½` : ""}
                           </div>
                         </div>
+                        {added && <span style={{ fontSize:"0.6rem", color:C.green, fontWeight:700, flexShrink:0 }}>✓</span>}
                       </div>
                     );
                   })
                 }
               </div>
+              {!isReplace && (
+                <div style={{ padding:"10px 14px", borderTop:`1px solid ${C.border}`, flexShrink:0 }}>
+                  <button className="btn-full-accent" onClick={closeModal}>Terminer</button>
+                </div>
+              )}
             </div>
-          )}
+            );
+          })()}
 
           {/* Exercise Detail */}
           {modal.type === "exDetail" && (() => {
@@ -1475,8 +1601,9 @@ export default function WorkoutDashboard() {
                   return (
                     <div key={p.id} onClick={() => { setActiveProgramId(p.id); closeModal(); }} style={{
                       display:"flex", alignItems:"center", gap:10, padding:"11px 14px",
-                      background: active ? C.accentBg : C.surface,
-                      border:`1.5px solid ${active ? C.accent : C.borderLight}`,
+                      background: active ? "#FFF3EE" : "#FFFFFF",
+                      border:`1.5px solid ${active ? C.accent : "rgba(0,0,0,0.07)"}`,
+                      boxShadow: active ? "0 0 0 3px rgba(232,80,10,0.08)" : "none",
                       borderRadius:10, cursor:"pointer", minHeight:50,
                     }}>
                       <div style={{ width:18, height:18, borderRadius:"50%", flexShrink:0,
@@ -1687,6 +1814,37 @@ export default function WorkoutDashboard() {
             </div>
           )}
 
+          {/* Copy exercise to another day */}
+          {modal.type === "copyEx" && (
+            <div className="modal" style={{ width:380 }} onClick={e => e.stopPropagation()}>
+              <div className="modal-handle" />
+              <div className="modal-header">
+                <span className="modal-title">Copier vers…</span>
+                <button className="modal-close" onClick={closeModal}>✕</button>
+              </div>
+              <div style={{ padding:"10px 12px", display:"flex", flexDirection:"column", gap:6 }}>
+                <div style={{ fontSize:"0.75rem", color:C.textMuted, marginBottom:4 }}>
+                  Copier <strong>{modal.ex?.name}</strong> dans :
+                </div>
+                {sessions.filter(s => s.id !== modal.srcDayId).map(s => (
+                  <button key={s.id} onClick={() => { duplicateExToDay(modal.ex, s.id); closeModal(); }}
+                    style={{ padding:"10px 14px", background:C.surface, border:`1.5px solid ${C.borderLight}`,
+                      borderRadius:9, cursor:"pointer", fontFamily:"inherit", fontSize:"0.84rem",
+                      fontWeight:600, color:C.text, textAlign:"left", transition:"all 0.1s" }}
+                    onMouseEnter={e => { e.currentTarget.style.borderColor=C.accent; e.currentTarget.style.background=C.accentBg; }}
+                    onMouseLeave={e => { e.currentTarget.style.borderColor=C.borderLight; e.currentTarget.style.background=C.surface; }}>
+                    {s.name}
+                  </button>
+                ))}
+                {sessions.filter(s => s.id !== modal.srcDayId).length === 0 && (
+                  <div style={{ fontSize:"0.78rem", color:C.textFaint, padding:"8px 0" }}>
+                    Aucune autre séance dans ce programme.
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
           {/* Import */}
           {modal.type === "import" && (
             <div className="modal" onClick={e => e.stopPropagation()}>
@@ -1719,127 +1877,722 @@ export default function WorkoutDashboard() {
 // Compatibilité Safari iOS 14+. Aucune fonction CSS moderne.
 
 const CSS = `
-  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+  @import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,300;0,14..32,400;0,14..32,500;0,14..32,600;0,14..32,700;0,14..32,800;1,14..32,400&display=swap');
+
   *, *::before, *::after { box-sizing:border-box; margin:0; padding:0; -webkit-tap-highlight-color:transparent; }
-  html, body { height:100%; background:#EEEEF3; font-family:'Inter',-apple-system,sans-serif; color:#1C1C1E; }
-  ::-webkit-scrollbar { width:4px; height:4px; }
+
+  html, body {
+    height:100%;
+    background:#F1F1F4;
+    font-family:'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    color:#111;
+    -webkit-font-smoothing:antialiased;
+    -moz-osx-font-smoothing:grayscale;
+  }
+
+  ::-webkit-scrollbar { width:5px; height:5px; }
   ::-webkit-scrollbar-track { background:transparent; }
-  ::-webkit-scrollbar-thumb { background:#C7C7CC; border-radius:2px; }
+  ::-webkit-scrollbar-thumb { background:#D1D1D6; border-radius:3px; }
+  ::-webkit-scrollbar-thumb:hover { background:#AEAEB2; }
 
   .app { display:flex; flex-direction:column; height:100dvh; }
 
-  /* ── Topbar ── */
-  .topbar { flex-shrink:0; height:58px; display:flex; align-items:center; justify-content:space-between; padding:0 16px; gap:12px; background:#FFFFFF; border-bottom:1.5px solid #D1D1D6; }
-  .prog-btn { display:flex; align-items:center; padding:5px 11px; background:#F0F0F5; border:1.5px solid #AEAEB2; border-radius:7px; cursor:pointer; font-family:inherit; font-size:0.76rem; font-weight:600; color:#1C1C1E; max-width:160px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; transition:border-color 0.15s; }
-  .prog-btn:hover { border-color:#E8500A; }
-  .save-dot { width:7px; height:7px; border-radius:50%; background:#AEAEB2; flex-shrink:0; transition:background 0.3s; }
-  .save-dot.saving { background:#F97316; }
+  /* ─────────────────────────────────────────────
+     TOPBAR
+  ───────────────────────────────────────────── */
+
+  .topbar {
+    flex-shrink:0;
+    height:52px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding:0 20px;
+    gap:12px;
+    background:rgba(255,255,255,0.92);
+    backdrop-filter:blur(12px);
+    -webkit-backdrop-filter:blur(12px);
+    border-bottom:1px solid rgba(0,0,0,0.07);
+    position:relative;
+    z-index:10;
+  }
+
+  .prog-btn {
+    display:flex;
+    align-items:center;
+    gap:4px;
+    padding:5px 10px;
+    background:transparent;
+    border:1px solid #E0E0E4;
+    border-radius:8px;
+    cursor:pointer;
+    font-family:inherit;
+    font-size:0.78rem;
+    font-weight:600;
+    color:#111;
+    max-width:180px;
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    transition:all 0.15s;
+  }
+  .prog-btn:hover { border-color:#E8500A; background:#FFF3EE; color:#E8500A; }
+
+  .save-dot { width:6px; height:6px; border-radius:50%; background:#D1D1D6; flex-shrink:0; transition:background 0.4s; }
+  .save-dot.saving { background:#F59E0B; }
   .save-dot.saved  { background:#22C55E; }
   .save-dot.error  { background:#EF4444; }
-  .hdr-ghost { font-family:inherit; font-size:0.7rem; font-weight:600; padding:6px 12px; background:none; border:1.5px solid #AEAEB2; border-radius:7px; color:#3A3A3C; cursor:pointer; transition:all 0.15s; white-space:nowrap; }
-  .hdr-ghost:hover { border-color:#E8500A; color:#E8500A; }
-  .hdr-solid { font-family:inherit; font-size:0.7rem; font-weight:700; padding:6px 12px; background:#E8500A; border:none; border-radius:7px; color:#FFFFFF; cursor:pointer; transition:background 0.15s; white-space:nowrap; }
-  .hdr-solid:hover { background:#C94209; }
 
-  /* ── Main grid ── */
-  .main { flex:1; min-height:0; display:grid; grid-template-columns:1fr 284px; overflow:hidden; }
+  .hdr-ghost {
+    font-family:inherit;
+    font-size:0.72rem;
+    font-weight:500;
+    padding:5px 12px;
+    background:transparent;
+    border:1px solid #E0E0E4;
+    border-radius:8px;
+    color:#555;
+    cursor:pointer;
+    transition:all 0.15s;
+    white-space:nowrap;
+    letter-spacing:-0.1px;
+  }
+  .hdr-ghost:hover { border-color:#111; color:#111; background:#F7F7F8; }
 
-  /* ── Week board ── */
-  .week-board { display:flex; align-items:flex-start; gap:8px; padding:12px; overflow-x:auto; overflow-y:auto; }
+  .hdr-solid {
+    font-family:inherit;
+    font-size:0.72rem;
+    font-weight:600;
+    padding:5px 14px;
+    background:#E8500A;
+    border:none;
+    border-radius:8px;
+    color:#FFFFFF;
+    cursor:pointer;
+    transition:all 0.15s;
+    white-space:nowrap;
+    letter-spacing:-0.1px;
+    box-shadow:0 1px 3px rgba(232,80,10,0.3);
+  }
+  .hdr-solid:hover { background:#C94209; box-shadow:0 1px 4px rgba(232,80,10,0.4); }
 
-  /* ── Rest slot — compact, vertical ── */
-  .rest-slot { flex-shrink:0; width:62px; min-height:90px; background:#FFFFFF; border:1.5px dashed #D1D1D6; border-radius:10px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:4px; cursor:pointer; transition:all 0.15s; align-self:stretch; opacity:0.7; }
-  .rest-slot:hover { border-color:#E8500A; background:#FFF3EE; opacity:1; }
-  .rest-label { font-size:0.62rem; font-weight:700; color:#8E8E93; letter-spacing:0.5px; text-transform:uppercase; }
-  .rest-icon  { font-size:1rem; color:#AEAEB2; line-height:1; }
-  .rest-text  { font-size:0.58rem; color:#AEAEB2; }
+  /* ─────────────────────────────────────────────
+     LAYOUT
+  ───────────────────────────────────────────── */
+
+  .main { flex:1; min-height:0; display:grid; grid-template-columns:1fr 292px; overflow:hidden; }
+
+  /* ─────────────────────────────────────────────
+     WEEK BOARD
+  ───────────────────────────────────────────── */
+
+  .week-board {
+    display:flex;
+    align-items:flex-start;
+    gap:10px;
+    padding:16px;
+    overflow-x:auto;
+    overflow-y:auto;
+    background:#F1F1F4;
+  }
+
+  /* ─────────────────────────────────────────────
+     REST SLOT
+  ───────────────────────────────────────────── */
+
+  .rest-slot {
+    flex-shrink:0;
+    width:64px;
+    min-height:120px;
+    background:rgba(255,255,255,0.5);
+    border:1.5px dashed #D1D1D6;
+    border-radius:12px;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    gap:5px;
+    cursor:pointer;
+    transition:all 0.2s;
+    align-self:stretch;
+  }
+  .rest-slot:hover {
+    border-color:#E8500A;
+    background:rgba(255,243,238,0.8);
+    transform:scale(1.01);
+  }
+  .rest-slot-drag-over {
+    border-color:#E8500A !important;
+    background:rgba(255,243,238,0.9) !important;
+    transform:scale(1.02) !important;
+    box-shadow:0 0 0 3px rgba(232,80,10,0.12) !important;
+  }
+  .rest-label { font-size:0.6rem; font-weight:700; color:#AEAEB2; letter-spacing:0.8px; text-transform:uppercase; }
+  .rest-icon  { font-size:1.1rem; color:#D1D1D6; line-height:1; transition:color 0.2s; }
+  .rest-text  { font-size:0.58rem; color:#C7C7CC; }
   .rest-slot:hover .rest-icon { color:#E8500A; }
-  .rest-slot:hover .rest-text { color:#E8500A; }
+  .rest-slot:hover .rest-text { color:#E8500A88; }
+  .rest-slot:hover .rest-label { color:#E8500A88; }
 
-  /* ── Session column ── */
-  .session-col { flex-shrink:0; width:380px; background:#FFFFFF; border-radius:10px; border:1.5px solid #D1D1D6; display:flex; flex-direction:column; box-shadow:0 1px 3px rgba(0,0,0,0.05); align-self:flex-start; }
-  .session-col.btb-warning { border-color:#EA580C; }
-  .col-header { display:flex; align-items:center; gap:6px; padding:12px 14px 10px; border-bottom:1px solid #F2F2F7; flex-shrink:0; min-height:50px; }
-  .session-name { font-size:0.85rem; font-weight:700; color:#1C1C1E; flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; cursor:pointer; }
+  /* ─────────────────────────────────────────────
+     SESSION COLUMN
+  ───────────────────────────────────────────── */
+
+  .session-col {
+    flex-shrink:0;
+    width:340px;
+    background:#FFFFFF;
+    border-radius:14px;
+    border:1px solid rgba(0,0,0,0.07);
+    display:flex;
+    flex-direction:column;
+    box-shadow:0 1px 4px rgba(0,0,0,0.05), 0 4px 16px rgba(0,0,0,0.03);
+    align-self:flex-start;
+    transition:box-shadow 0.2s, border-color 0.2s;
+    overflow:hidden;
+  }
+  .session-col:hover {
+    box-shadow:0 2px 8px rgba(0,0,0,0.08), 0 8px 24px rgba(0,0,0,0.04);
+  }
+  .session-col.drag-target {
+    border-color:#E8500A;
+    box-shadow:0 0 0 3px rgba(232,80,10,0.12), 0 4px 16px rgba(0,0,0,0.08);
+  }
+  .session-col.btb-warning { border-color:#FB923C; }
+
+  .col-header {
+    display:flex;
+    align-items:center;
+    gap:6px;
+    padding:12px 14px 11px;
+    border-bottom:1px solid #F4F4F5;
+    flex-shrink:0;
+    min-height:50px;
+  }
+
+  .session-name {
+    font-size:0.88rem;
+    font-weight:700;
+    color:#111;
+    flex:1;
+    min-width:0;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    white-space:nowrap;
+    cursor:pointer;
+    letter-spacing:-0.2px;
+    transition:color 0.1s;
+  }
   .session-name:hover { color:#E8500A; }
-  .rename-input { flex:1; background:transparent; border:none; border-bottom:2px solid #E8500A; font-family:inherit; font-size:0.74rem; font-weight:700; color:#1C1C1E; outline:none; padding-bottom:1px; min-width:0; }
-  .col-del-btn { background:none; border:none; color:#AEAEB2; font-size:0.7rem; cursor:pointer; padding:2px 4px; border-radius:4px; min-width:22px; min-height:22px; display:flex; align-items:center; justify-content:center; transition:all 0.1s; }
-  .col-del-btn:hover { color:#EF4444; background:#FFF0F0; }
 
-  /* ── Exercise row ── */
+  .rename-input {
+    flex:1;
+    background:transparent;
+    border:none;
+    border-bottom:2px solid #E8500A;
+    font-family:inherit;
+    font-size:0.88rem;
+    font-weight:700;
+    color:#111;
+    outline:none;
+    padding-bottom:1px;
+    min-width:0;
+    letter-spacing:-0.2px;
+  }
+
+  .col-icon-btn {
+    background:none;
+    border:none;
+    cursor:pointer;
+    padding:3px 4px;
+    border-radius:6px;
+    min-width:24px;
+    min-height:24px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    transition:all 0.15s;
+    opacity:0;
+    font-size:0.8rem;
+  }
+  .col-header:hover .col-icon-btn { opacity:0.5; }
+  .col-icon-btn:hover { opacity:1 !important; background:#F4F4F5; }
+
+  .col-del-btn {
+    background:none;
+    border:none;
+    color:#C7C7CC;
+    font-size:0.65rem;
+    cursor:pointer;
+    padding:3px 4px;
+    border-radius:6px;
+    min-width:24px;
+    min-height:24px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    transition:all 0.15s;
+    opacity:0;
+  }
+  .col-header:hover .col-del-btn { opacity:1; }
+  .col-del-btn:hover { color:#EF4444; background:#FEF2F2; }
+
+  /* ─────────────────────────────────────────────
+     EXERCISE LIST & ROW
+  ───────────────────────────────────────────── */
+
   .ex-list { display:flex; flex-direction:column; }
-  .ex-row { display:flex; align-items:flex-start; gap:10px; padding:12px 12px 12px 14px; border-bottom:1px solid #F2F2F7; cursor:grab; transition:background 0.1s; }
+
+  .ex-row {
+    display:flex;
+    align-items:flex-start;
+    gap:8px;
+    padding:11px 14px 11px 10px;
+    border-bottom:1px solid #F7F7F8;
+    transition:background 0.12s;
+    position:relative;
+  }
   .ex-row:last-of-type { border-bottom:none; }
   .ex-row:hover { background:#FAFAFA; }
-  .ex-idx { font-size:0.72rem; font-weight:600; color:#AEAEB2; width:16px; text-align:center; flex-shrink:0; padding-top:2px; }
-  .ex-name { font-size:0.9rem; font-weight:600; color:#1C1C1E; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; flex:1; cursor:pointer; }
+
+  .drag-handle {
+    font-size:0.85rem;
+    color:#D1D1D6;
+    cursor:grab;
+    user-select:none;
+    flex-shrink:0;
+    padding:2px 1px;
+    line-height:1;
+    opacity:0;
+    transition:opacity 0.15s, color 0.15s;
+    margin-top:2px;
+  }
+  .ex-row:hover .drag-handle { opacity:1; }
+  .drag-handle:hover { color:#AEAEB2; }
+  .drag-handle:active { cursor:grabbing; }
+
+  .ex-idx {
+    font-size:0.68rem;
+    font-weight:500;
+    color:#C7C7CC;
+    width:14px;
+    text-align:center;
+    flex-shrink:0;
+    padding-top:3px;
+    font-variant-numeric:tabular-nums;
+  }
+
+  .ex-name {
+    font-size:0.86rem;
+    font-weight:600;
+    color:#111;
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    flex:1;
+    cursor:pointer;
+    letter-spacing:-0.2px;
+    transition:color 0.1s;
+  }
   .ex-name:hover { color:#E8500A; }
 
-  /* Sets — inline input */
-  .sets-btn { width:26px; height:26px; background:#F2F2F7; border:1px solid #D1D1D6; border-radius:5px; cursor:pointer; font-size:0.9rem; display:flex; align-items:center; justify-content:center; color:#3A3A3C; flex-shrink:0; transition:all 0.1s; }
-  .sets-btn:hover { background:#E8500A; border-color:#E8500A; color:#fff; }
-  .sets-input { width:32px; height:26px; text-align:center; border:1px solid #E5E5EA; border-radius:4px; font-family:inherit; font-size:0.9rem; font-weight:700; color:#1C1C1E; background:transparent; outline:none; padding:0; -moz-appearance:textfield; }
-  .sets-input:focus { border-color:#E8500A; background:#FFF3EE; }
+  /* Sets controls */
+  .sets-btn {
+    width:24px;
+    height:24px;
+    background:#F4F4F5;
+    border:none;
+    border-radius:6px;
+    cursor:pointer;
+    font-size:0.85rem;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    color:#555;
+    flex-shrink:0;
+    transition:all 0.12s;
+    font-weight:500;
+  }
+  .sets-btn:hover { background:#E8500A; color:#fff; }
+  .sets-btn:active { transform:scale(0.92); }
+
+  .sets-input {
+    width:30px;
+    height:24px;
+    text-align:center;
+    border:1px solid #EBEBED;
+    border-radius:6px;
+    font-family:inherit;
+    font-size:0.86rem;
+    font-weight:700;
+    color:#111;
+    background:#FAFAFA;
+    outline:none;
+    padding:0;
+    -moz-appearance:textfield;
+    transition:all 0.12s;
+    font-variant-numeric:tabular-nums;
+  }
+  .sets-input:hover { border-color:#D1D1D6; background:#F4F4F5; }
+  .sets-input:focus { border-color:#E8500A; background:#FFF3EE; box-shadow:0 0 0 2px rgba(232,80,10,0.1); }
   .sets-input::-webkit-inner-spin-button, .sets-input::-webkit-outer-spin-button { -webkit-appearance:none; }
 
-  .ex-btn { background:none; border:none; font-size:0.7rem; color:#AEAEB2; cursor:pointer; padding:2px 4px; border-radius:4px; min-width:22px; min-height:22px; display:flex; align-items:center; justify-content:center; transition:all 0.1s; }
-  .ex-btn:hover { background:#F2F2F7; color:#3A3A3C; }
-  .ex-btn.del:hover { background:#FFF0F0; color:#EF4444; }
+  .ex-btn {
+    background:none;
+    border:none;
+    font-size:0.68rem;
+    color:#C7C7CC;
+    cursor:pointer;
+    padding:3px 4px;
+    border-radius:5px;
+    min-width:20px;
+    min-height:20px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    transition:all 0.12s;
+    opacity:0;
+  }
+  .ex-row:hover .ex-btn { opacity:1; }
+  .ex-btn:hover { background:#F4F4F5; color:#333; opacity:1; }
+  .ex-btn.del:hover { background:#FEF2F2; color:#EF4444; }
 
-  .add-ex-btn { display:flex; align-items:center; gap:6px; padding:11px 14px; font-family:inherit; font-size:0.82rem; font-weight:600; color:#E8500A; background:none; border:none; border-top:1px solid #F2F2F7; cursor:pointer; width:100%; min-height:40px; transition:background 0.1s; }
-  .add-ex-btn:hover { background:#FFF3EE; }
+  .add-ex-btn {
+    display:flex;
+    align-items:center;
+    gap:7px;
+    padding:11px 14px;
+    font-family:inherit;
+    font-size:0.78rem;
+    font-weight:600;
+    color:#AEAEB2;
+    background:none;
+    border:none;
+    border-top:1px solid #F4F4F5;
+    cursor:pointer;
+    width:100%;
+    min-height:38px;
+    transition:all 0.12s;
+    letter-spacing:-0.1px;
+  }
+  .add-ex-btn:hover { color:#E8500A; background:#FFF9F7; }
 
-  /* ── Analysis panel ── */
-  .analysis-panel { border-left:1.5px solid #D1D1D6; background:#FFFFFF; overflow-y:auto; display:flex; flex-direction:column; }
-  .panel-block { padding:12px 13px; border-bottom:1px solid #F2F2F7; }
+  /* ─────────────────────────────────────────────
+     ANALYSIS PANEL
+  ───────────────────────────────────────────── */
+
+  .analysis-panel {
+    border-left:1px solid rgba(0,0,0,0.07);
+    background:#FAFAFA;
+    overflow-y:auto;
+    display:flex;
+    flex-direction:column;
+  }
+
+  .panel-block {
+    padding:14px 15px;
+    border-bottom:1px solid #F0F0F0;
+  }
   .panel-block:last-child { border-bottom:none; }
-  .panel-label { font-size:0.58rem; font-weight:700; text-transform:uppercase; letter-spacing:1.5px; color:#8E8E93; }
 
-  /* ── Modals ── */
-  .overlay { position:fixed; inset:0; background:rgba(0,0,0,0.45); z-index:200; display:flex; align-items:center; justify-content:center; padding:20px; }
-  .modal { background:#F2F2F7; border-radius:14px; width:480px; max-height:88vh; display:flex; flex-direction:column; box-shadow:0 20px 60px rgba(0,0,0,0.2); }
-  .modal-handle { width:36px; height:4px; background:#AEAEB2; border-radius:2px; margin:10px auto 0; flex-shrink:0; }
-  .modal-header { padding:13px 15px 11px; border-bottom:1.5px solid #D1D1D6; display:flex; justify-content:space-between; align-items:center; flex-shrink:0; background:#FFFFFF; border-radius:14px 14px 0 0; }
-  .modal-title  { font-size:0.92rem; font-weight:700; color:#1C1C1E; }
-  .modal-close  { background:#E5E5EA; border:none; color:#3A3A3C; font-size:0.7rem; font-weight:700; cursor:pointer; width:24px; height:24px; border-radius:50%; display:flex; align-items:center; justify-content:center; transition:background 0.1s; }
-  .modal-close:hover { background:#AEAEB2; }
+  .panel-label {
+    font-size:0.58rem;
+    font-weight:700;
+    text-transform:uppercase;
+    letter-spacing:1.2px;
+    color:#AEAEB2;
+  }
 
-  .picker-search { width:100%; background:#FFFFFF; border:1.5px solid #AEAEB2; border-radius:9px; padding:9px 13px; color:#1C1C1E; font-family:inherit; font-size:0.86rem; outline:none; }
-  .picker-search::placeholder { color:#8E8E93; }
-  .picker-search:focus { border-color:#E8500A; box-shadow:0 0 0 3px rgba(232,80,10,0.1); }
-  .picker-row { display:flex; align-items:center; gap:9px; padding:10px 13px; border-bottom:1px solid #F2F2F7; cursor:pointer; min-height:48px; transition:background 0.1s; }
+  /* ─────────────────────────────────────────────
+     SUMMARY CHIPS (topbar)
+  ───────────────────────────────────────────── */
+
+  .summary-chip {
+    display:flex;
+    align-items:center;
+    gap:5px;
+    padding:4px 10px;
+    background:rgba(0,0,0,0.04);
+    border-radius:20px;
+    font-size:0.71rem;
+    font-weight:500;
+    color:#555;
+    white-space:nowrap;
+    border:1px solid rgba(0,0,0,0.06);
+    transition:all 0.1s;
+  }
+  .summary-chip-main {
+    background:rgba(0,0,0,0.06);
+    font-weight:600;
+    color:#111;
+    border-color:rgba(0,0,0,0.09);
+  }
+  .summary-chip-warn {
+    background:rgba(232,80,10,0.08);
+    color:#E8500A;
+    border-color:rgba(232,80,10,0.15);
+    font-weight:600;
+  }
+  .summary-chip-label { font-weight:700; color:#111; }
+  .summary-chip-sep { color:#D1D1D6; font-weight:400; }
+  .summary-chip-icon { font-size:0.7rem; }
+
+  /* ─────────────────────────────────────────────
+     MODALS
+  ───────────────────────────────────────────── */
+
+  .overlay {
+    position:fixed;
+    inset:0;
+    background:rgba(0,0,0,0.35);
+    backdrop-filter:blur(4px);
+    -webkit-backdrop-filter:blur(4px);
+    z-index:200;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:20px;
+    animation:fadeIn 0.15s ease;
+  }
+  @keyframes fadeIn { from { opacity:0; } to { opacity:1; } }
+  @keyframes slideUp { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } }
+
+  .modal {
+    background:#FFFFFF;
+    border-radius:16px;
+    width:480px;
+    max-height:88vh;
+    display:flex;
+    flex-direction:column;
+    box-shadow:0 8px 32px rgba(0,0,0,0.12), 0 2px 8px rgba(0,0,0,0.08);
+    animation:slideUp 0.18s ease;
+    border:1px solid rgba(0,0,0,0.06);
+  }
+
+  .modal-handle {
+    width:32px;
+    height:3px;
+    background:#E0E0E4;
+    border-radius:2px;
+    margin:10px auto 0;
+    flex-shrink:0;
+  }
+
+  .modal-header {
+    padding:14px 16px 12px;
+    border-bottom:1px solid #F4F4F5;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    flex-shrink:0;
+  }
+
+  .modal-title {
+    font-size:0.95rem;
+    font-weight:700;
+    color:#111;
+    letter-spacing:-0.3px;
+  }
+
+  .modal-close {
+    background:#F4F4F5;
+    border:none;
+    color:#555;
+    font-size:0.65rem;
+    font-weight:700;
+    cursor:pointer;
+    width:22px;
+    height:22px;
+    border-radius:50%;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    transition:all 0.12s;
+    flex-shrink:0;
+  }
+  .modal-close:hover { background:#E0E0E4; color:#111; }
+
+  .picker-search {
+    width:100%;
+    background:#F7F7F8;
+    border:1px solid #EBEBED;
+    border-radius:10px;
+    padding:9px 13px;
+    color:#111;
+    font-family:inherit;
+    font-size:0.86rem;
+    outline:none;
+    transition:all 0.15s;
+  }
+  .picker-search::placeholder { color:#AEAEB2; }
+  .picker-search:focus {
+    background:#FFFFFF;
+    border-color:#E8500A;
+    box-shadow:0 0 0 3px rgba(232,80,10,0.1);
+  }
+
+  .picker-row {
+    display:flex;
+    align-items:center;
+    gap:10px;
+    padding:10px 14px;
+    border-bottom:1px solid #F7F7F8;
+    cursor:pointer;
+    min-height:50px;
+    transition:background 0.1s;
+  }
   .picker-row:last-child { border-bottom:none; }
-  .picker-row:hover { background:#FFF3EE; }
+  .picker-row:hover { background:#FFF9F7; }
 
-  .lib-row { display:flex; align-items:center; gap:9px; padding:10px 13px; border-bottom:1px solid #F2F2F7; cursor:pointer; transition:background 0.1s; }
-  .lib-row:hover { background:#FFFAF7; }
+  .lib-row {
+    display:flex;
+    align-items:center;
+    gap:10px;
+    padding:10px 14px;
+    border-bottom:1px solid #F7F7F8;
+    cursor:pointer;
+    transition:background 0.1s;
+  }
+  .lib-row:hover { background:#FFF9F7; }
 
-  .modal-form { padding:13px; display:flex; flex-direction:column; gap:13px; overflow-y:auto; }
-  .form-label  { font-size:0.63rem; font-weight:700; text-transform:uppercase; letter-spacing:0.8px; color:#6B6B6B; margin-bottom:5px; display:block; }
-  .form-input  { width:100%; background:#FFFFFF; border:1.5px solid #AEAEB2; border-radius:9px; padding:10px 13px; color:#1C1C1E; font-family:inherit; font-size:0.9rem; outline:none; min-height:42px; }
-  .form-input::placeholder { color:#8E8E93; }
-  .form-input:focus { border-color:#E8500A; box-shadow:0 0 0 3px rgba(232,80,10,0.1); }
-  .form-select { background:#FFFFFF; border:1.5px solid #AEAEB2; border-radius:9px; padding:10px 13px; color:#1C1C1E; font-family:inherit; font-size:0.9rem; outline:none; cursor:pointer; min-height:42px; }
-  .form-select:focus { border-color:#E8500A; }
+  .modal-form {
+    padding:16px;
+    display:flex;
+    flex-direction:column;
+    gap:14px;
+    overflow-y:auto;
+  }
 
-  /* Summary chips */
-  .summary-chip { display:flex; align-items:center; gap:5px; padding:4px 10px; background:#F2F2F7; border-radius:20px; font-size:0.72rem; font-weight:500; color:#3A3A3C; white-space:nowrap; border:1px solid #E5E5EA; }
-  .summary-chip-main { background:#EEEEF3; font-weight:600; color:#1C1C1E; border-color:#D1D1D6; }
-  .summary-chip-warn { background:#FFF3EE; color:#EA580C; border-color:#FFDDD0; font-weight:600; }
-  .summary-chip-label { font-weight:700; color:#1C1C1E; }
-  .summary-chip-sep { color:#AEAEB2; font-weight:400; margin:0 1px; }
-  .summary-chip-icon { font-size:0.75rem; }
+  .form-label {
+    font-size:0.62rem;
+    font-weight:700;
+    text-transform:uppercase;
+    letter-spacing:0.7px;
+    color:#AEAEB2;
+    margin-bottom:5px;
+    display:block;
+  }
 
-  .btn-cancel { background:#F2F2F7; border:1.5px solid #D1D1D6; color:#3A3A3C; font-family:inherit; font-size:0.78rem; font-weight:600; padding:9px 15px; border-radius:9px; cursor:pointer; min-height:38px; transition:background 0.1s; }
-  .btn-cancel:hover { background:#E5E5EA; }
-  .btn-save { background:#E8500A; border:none; color:#FFFFFF; font-family:inherit; font-size:0.78rem; font-weight:700; padding:9px 16px; border-radius:9px; cursor:pointer; min-height:38px; transition:background 0.1s; }
-  .btn-save:hover { background:#C94209; }
-  .btn-full-accent { width:100%; font-family:inherit; font-size:0.83rem; font-weight:700; padding:12px; background:#E8500A; border:none; color:#FFFFFF; border-radius:9px; cursor:pointer; min-height:44px; transition:background 0.1s; }
-  .btn-full-accent:hover { background:#C94209; }
-  .btn-icon-sm { background:#F2F2F7; border:1px solid #D1D1D6; color:#6B6B6B; font-size:0.8rem; cursor:pointer; padding:3px 7px; border-radius:5px; min-width:28px; min-height:28px; display:flex; align-items:center; justify-content:center; transition:all 0.1s; }
-  .btn-icon-sm:hover { border-color:#E8500A; color:#E8500A; background:#FFF3EE; }
-  .btn-icon-sm.del:hover { border-color:#EF4444; color:#EF4444; background:#FFF0F0; }
+  .form-input {
+    width:100%;
+    background:#F7F7F8;
+    border:1px solid #EBEBED;
+    border-radius:10px;
+    padding:10px 13px;
+    color:#111;
+    font-family:inherit;
+    font-size:0.9rem;
+    outline:none;
+    min-height:42px;
+    transition:all 0.15s;
+  }
+  .form-input::placeholder { color:#AEAEB2; }
+  .form-input:focus {
+    background:#FFFFFF;
+    border-color:#E8500A;
+    box-shadow:0 0 0 3px rgba(232,80,10,0.1);
+  }
 
-  .spinner { width:13px; height:13px; border:2px solid rgba(255,255,255,0.3); border-top-color:#fff; border-radius:50%; animation:spin 0.7s linear infinite; display:inline-block; }
+  .form-select {
+    width:100%;
+    background:#F7F7F8;
+    border:1px solid #EBEBED;
+    border-radius:10px;
+    padding:10px 13px;
+    color:#111;
+    font-family:inherit;
+    font-size:0.9rem;
+    outline:none;
+    cursor:pointer;
+    min-height:42px;
+    transition:all 0.15s;
+  }
+  .form-select:focus { border-color:#E8500A; box-shadow:0 0 0 3px rgba(232,80,10,0.1); }
+
+  /* ─────────────────────────────────────────────
+     BUTTONS
+  ───────────────────────────────────────────── */
+
+  .btn-cancel {
+    background:#F4F4F5;
+    border:none;
+    color:#555;
+    font-family:inherit;
+    font-size:0.8rem;
+    font-weight:600;
+    padding:9px 16px;
+    border-radius:10px;
+    cursor:pointer;
+    min-height:38px;
+    transition:all 0.12s;
+    letter-spacing:-0.1px;
+  }
+  .btn-cancel:hover { background:#E8E8EA; color:#111; }
+
+  .btn-save {
+    background:#E8500A;
+    border:none;
+    color:#FFFFFF;
+    font-family:inherit;
+    font-size:0.8rem;
+    font-weight:700;
+    padding:9px 18px;
+    border-radius:10px;
+    cursor:pointer;
+    min-height:38px;
+    transition:all 0.12s;
+    letter-spacing:-0.1px;
+    box-shadow:0 1px 3px rgba(232,80,10,0.25);
+  }
+  .btn-save:hover { background:#C94209; box-shadow:0 2px 6px rgba(232,80,10,0.35); }
+
+  .btn-full-accent {
+    width:100%;
+    font-family:inherit;
+    font-size:0.85rem;
+    font-weight:700;
+    padding:12px;
+    background:#E8500A;
+    border:none;
+    color:#FFFFFF;
+    border-radius:10px;
+    cursor:pointer;
+    min-height:44px;
+    transition:all 0.12s;
+    letter-spacing:-0.1px;
+    box-shadow:0 1px 3px rgba(232,80,10,0.25);
+  }
+  .btn-full-accent:hover { background:#C94209; box-shadow:0 2px 6px rgba(232,80,10,0.35); }
+
+  .btn-icon-sm {
+    background:#F4F4F5;
+    border:none;
+    color:#777;
+    font-size:0.8rem;
+    cursor:pointer;
+    padding:4px 8px;
+    border-radius:7px;
+    min-width:28px;
+    min-height:28px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    transition:all 0.12s;
+  }
+  .btn-icon-sm:hover { background:#E8500A; color:#fff; }
+  .btn-icon-sm.del:hover { background:#FEF2F2; color:#EF4444; }
+
+  /* ─────────────────────────────────────────────
+     MISC
+  ───────────────────────────────────────────── */
+
+  .spinner {
+    width:13px; height:13px;
+    border:2px solid rgba(255,255,255,0.3);
+    border-top-color:#fff;
+    border-radius:50%;
+    animation:spin 0.7s linear infinite;
+    display:inline-block;
+  }
   @keyframes spin { to { transform:rotate(360deg); } }
 `;
