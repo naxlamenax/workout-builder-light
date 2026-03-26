@@ -1337,16 +1337,16 @@ export default function WorkoutDashboard() {
                                       e.stopPropagation();
                                       if (exMenu?.dayId === session.id && exMenu?.exId === ex.id) { setExMenu(null); return; }
                                       const r = e.currentTarget.getBoundingClientRect();
-                                      setExMenu({ dayId:session.id, exId:ex.id, x:r.right, y:r.bottom });
+                                      setExMenu({ dayId:session.id, exId:ex.id, x:r.right, y:r.bottom, btnH:r.height });
                                     }}>
                                     ···
                                   </button>
                                   {exMenu?.dayId === session.id && exMenu?.exId === ex.id && (
                                     <div className="ex-menu-popover" onClick={e => e.stopPropagation()}
                                     style={{
-                                      left: exMenu.x - 170,
-                                      ...(exMenu.y + 220 > window.innerHeight
-                                        ? { bottom: window.innerHeight - exMenu.y + 4 }
+                                      right: window.innerWidth - exMenu.x,
+                                      ...(exMenu.y + 240 > window.innerHeight
+                                        ? { bottom: window.innerHeight - exMenu.y + exMenu.btnH + 4 }
                                         : { top: exMenu.y + 4 }),
                                     }}>
                                       <button className="ex-menu-item" onClick={() => {
