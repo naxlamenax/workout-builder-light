@@ -1337,16 +1337,17 @@ export default function WorkoutDashboard() {
                                       e.stopPropagation();
                                       if (exMenu?.dayId === session.id && exMenu?.exId === ex.id) { setExMenu(null); return; }
                                       const r = e.currentTarget.getBoundingClientRect();
-                                      setExMenu({ dayId:session.id, exId:ex.id, top:r.bottom + 4, right:window.innerWidth - r.right });
+                                      setExMenu({ dayId:session.id, exId:ex.id, btnBottom:r.bottom, btnRight:r.right });
                                     }}>
                                     ···
                                   </button>
                                   {exMenu?.dayId === session.id && exMenu?.exId === ex.id && (
                                     <div className="ex-menu-popover" onClick={e => e.stopPropagation()}
                                     style={{
-                                      top: exMenu.top + 240 > window.innerHeight ? "auto" : exMenu.top,
-                                      bottom: exMenu.top + 240 > window.innerHeight ? window.innerHeight - exMenu.top + 28 : "auto",
-                                      right: exMenu.right,
+                                      left: exMenu.btnRight - 174,
+                                      ...(exMenu.btnBottom + 240 > window.innerHeight
+                                        ? { bottom: window.innerHeight - exMenu.btnBottom + 8 }
+                                        : { top: exMenu.btnBottom + 4 }),
                                     }}>
                                       <button className="ex-menu-item" onClick={() => {
                                         setModal({ type:"replaceEx", dayId:session.id, exId:ex.id }); setPickerSearch(""); setExMenu(null);
