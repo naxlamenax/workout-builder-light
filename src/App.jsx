@@ -1364,6 +1364,8 @@ export default function WorkoutDashboard() {
                                     </div>
                                   )}
                                 </div>
+                                <button className="ex-btn del" title="Supprimer"
+                                  onClick={() => deleteEx(session.id, ex.id)}>✕</button>
                                 {/* Sets badge */}
                                 {editingSets?.dayId === session.id && editingSets?.exId === ex.id ? (
                                   <div style={{ display:"flex", alignItems:"center", gap:3 }}>
