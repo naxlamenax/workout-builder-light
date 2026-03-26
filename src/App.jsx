@@ -2082,18 +2082,17 @@ export default function WorkoutDashboard() {
       )}
       {/* Context menu via portal — escapes zoom transform + overflow clipping */}
       {exMenu?.btnRect && (() => {
-        const r      = exMenu.btnRect;
-        const MENU_W = 174;
-        const MENU_H = 220;
-        const left   = Math.min(r.right - MENU_W, window.innerWidth - MENU_W - 8);
-        const top    = r.bottom + 4 + MENU_H > window.innerHeight ? r.top - MENU_H - 4 : r.bottom + 4;
+        const r       = exMenu.btnRect;
+        const MENU_H  = 220;
+        const right   = window.innerWidth - r.right;
+        const top     = r.bottom + 4 + MENU_H > window.innerHeight ? r.top - MENU_H - 4 : r.bottom + 4;
         const menuSession = sessions.find(s => s.id === exMenu.dayId);
         const menuEx      = menuSession?.exercises.find(e => e.id === exMenu.exId);
         if (!menuEx) return null;
         const menuExInSs  = !!menuEx.supersetWith || menuSession.exercises.some(e => e.supersetWith === menuEx.id);
         return createPortal(
           <div className="ex-menu-popover"
-            style={{ position:"fixed", left, top, zIndex:9999 }}
+            style={{ position:"fixed", right, top, zIndex:9999 }}
             onClick={e => e.stopPropagation()}>
             <button className="ex-menu-item" onClick={() => {
               setModal({ type:"replaceEx", dayId:exMenu.dayId, exId:exMenu.exId }); setPickerSearch(""); setExMenu(null);
