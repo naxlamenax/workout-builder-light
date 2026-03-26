@@ -1322,7 +1322,7 @@ export default function WorkoutDashboard() {
             {muscle}
             {isFreq2 && (
               <span style={{ fontSize:"0.52rem", fontWeight:700, padding:"1px 5px", borderRadius:20,
-                background:"#EFF6FF", color:"#1D4ED8", border:"1px solid #BFDBFE",
+                background:"var(--accent-bg)", color:"var(--accent)", border:"1px solid var(--border)",
                 letterSpacing:"0.2px" }}>×2</span>
             )}
             {isConflict && <span style={{ fontSize:"0.58rem", color:C.orange, fontWeight:700 }}>⚡J-J</span>}
@@ -1544,15 +1544,15 @@ export default function WorkoutDashboard() {
                         ))}
                         <button title="Aucune couleur"
                           onClick={() => setSessionColor(session.id, null)}
-                          style={{ width:22, height:22, borderRadius:6, border:`2px solid ${!session.color ? "#999" : "transparent"}`,
-                            background:"#F3F4F6", cursor:"pointer", fontSize:"0.6rem", display:"flex", alignItems:"center", justifyContent:"center" }}>✕</button>
+                          style={{ width:22, height:22, borderRadius:6, border:`2px solid ${!session.color ? "var(--text-muted)" : "transparent"}`,
+                            background:"var(--sets-bg)", cursor:"pointer", fontSize:"0.6rem", display:"flex", alignItems:"center", justifyContent:"center" }}>✕</button>
                       </div>
                     )}
                   </div>
 
                   {sessionIsBackToBack && (
-                    <div style={{ padding:"5px 14px", background:"#FFF7ED", borderBottom:"1px solid rgba(234,88,12,0.1)",
-                      fontSize:"0.62rem", color:"#C2410C", fontWeight:600, letterSpacing:"-0.1px" }}>
+                    <div style={{ padding:"5px 14px", background:"rgba(234,88,12,0.08)", borderBottom:"1px solid rgba(234,88,12,0.15)",
+                      fontSize:"0.62rem", color:darkMode?"#FB923C":"#C2410C", fontWeight:600, letterSpacing:"-0.1px" }}>
                       ⚡ Muscles en J-J consécutifs
                     </div>
                   )}
@@ -1604,9 +1604,9 @@ export default function WorkoutDashboard() {
                                 <TierBadge tier={exData?.tier} />
                                 {exData?.movement && exData.movement !== "neutral" && (
                                   <span style={{ fontSize:"0.56rem", fontWeight:800, padding:"2px 6px", borderRadius:20,
-                                    background: exData.movement==="push"?"#FFF3EE":"#EFF6FF",
-                                    color: exData.movement==="push"?"#C94209":"#1D4ED8",
-                                    border: exData.movement==="push"?"1px solid #FDDDD0":"1px solid #BFDBFE",
+                                    background: exData.movement==="push"?"var(--accent-bg)":"var(--blueBg, #EFF6FF)",
+                                    color: exData.movement==="push"?"var(--accent)":"#1D4ED8",
+                                    border: "1px solid var(--border)",
                                     flexShrink:0 }}>
                                     {exData.movement === "push" ? "PSH" : "PLL"}
                                   </span>
@@ -1719,7 +1719,7 @@ export default function WorkoutDashboard() {
               {scoreData.issues.length > 0 && (
                 <div style={{ marginTop:8, display:"flex", flexDirection:"column", gap:3 }}>
                   {scoreData.issues.map((issue, i) => (
-                    <div key={i} style={{ fontSize:"0.68rem", color:issue.severity==="high"?"#B91C1C":"#C2410C",
+                    <div key={i} style={{ fontSize:"0.68rem", color:issue.severity==="high"?"#EF4444":"var(--accent)",
                       display:"flex", gap:4, alignItems:"flex-start" }}>
                       <span style={{ flexShrink:0 }}>{issue.icon}</span>
                       <span>{issue.text}</span>
@@ -1859,7 +1859,7 @@ export default function WorkoutDashboard() {
                         <div style={{ display:"flex", alignItems:"flex-start", gap:7 }}>
                           <span style={{ fontSize:"0.72rem", flexShrink:0, marginTop:1 }}>🔒</span>
                           <div style={{ minWidth:0 }}>
-                            <span style={{ fontSize:"0.62rem", fontWeight:700, color:"#1D4ED8",
+                            <span style={{ fontSize:"0.62rem", fontWeight:700, color:"var(--accent)",
                               textTransform:"uppercase", letterSpacing:"0.5px" }}>Maintien</span>
                             <div style={{ fontSize:"0.74rem", fontWeight:600, color:"var(--text)", lineHeight:1.4, marginTop:2 }}>
                               {maintains.map(m => `${MUSCLE_EMOJI[m]} ${m}`).join("  ·  ")}
@@ -2045,9 +2045,9 @@ export default function WorkoutDashboard() {
                   {d?.movement && d.movement !== "neutral" && (
                     <div style={{ display:"flex", gap:6 }}>
                       <span style={{ fontSize:"0.72rem", fontWeight:700, padding:"3px 10px", borderRadius:20,
-                        background: d.movement==="push" ? "#FFEDD5" : "#DBEAFE",
-                        color: d.movement==="push" ? "#EA580C" : "#1D4ED8",
-                        border: `1.5px solid ${d.movement==="push" ? "#EA580C" : "#1D4ED8"}` }}>
+                        background: d.movement==="push" ? "var(--accent-bg)" : "rgba(29,78,216,0.1)",
+                        color: d.movement==="push" ? "var(--accent)" : "#60A5FA",
+                        border: `1.5px solid ${d.movement==="push" ? "var(--accent)" : "#60A5FA"}` }}>
                         {d.movement === "push" ? "Push" : "Pull"}
                       </span>
                     </div>
@@ -2101,7 +2101,7 @@ export default function WorkoutDashboard() {
                   return (
                     <div key={p.id} onClick={() => { setActiveProgramId(p.id); closeModal(); }} style={{
                       display:"flex", alignItems:"center", gap:10, padding:"11px 14px",
-                      background: active ? "#FFF3EE" : "#FFFFFF",
+                      background: active ? "var(--accent-bg)" : "var(--surface)",
                       border:`1.5px solid ${active ? C.accent : "rgba(0,0,0,0.07)"}`,
                       boxShadow: active ? "0 0 0 3px rgba(232,80,10,0.08)" : "none",
                       borderRadius:10, cursor:"pointer", minHeight:50,
@@ -2110,8 +2110,7 @@ export default function WorkoutDashboard() {
                         background: active ? C.accent : "transparent",
                         border:`2px solid ${active ? C.accent : C.textGhost}`,
                         display:"flex", alignItems:"center", justifyContent:"center",
-                        fontSize:"0.55rem", fontWeight:700, color:"#fff" }}>
-                        {active ? "✓" : ""}
+                        fontSize:"0.55rem", fontWeight:700, color:"#fff" }}>                        {active ? "✓" : ""}
                       </div>
                       <div style={{ flex:1, minWidth:0 }}>
                         <div style={{ fontSize:"0.85rem", fontWeight:600, color: active ? C.accentDark : C.text }}>{p.name}</div>
@@ -2332,7 +2331,7 @@ export default function WorkoutDashboard() {
                         <button key={opt.value} onClick={() => setExForm(f => ({...f, movement:opt.value}))} style={{
                           padding:"7px 16px", borderRadius:20, cursor:"pointer", fontFamily:"inherit",
                           fontSize:"0.78rem", fontWeight:active?700:500,
-                          background:active?opt.bg:"#F2F2F7",
+                          background:active?opt.bg:"var(--sets-bg)",
                           color:active?opt.c:C.textFaint,
                           border:`1.5px solid ${active?opt.c:C.borderLight}`,
                         }}>{opt.label}</button>
@@ -2412,7 +2411,7 @@ export default function WorkoutDashboard() {
                         background:"var(--surface)", border:"1px solid var(--border)",
                         borderRadius:10, cursor:"pointer", fontFamily:"inherit", textAlign:"left",
                         transition:"all 0.12s" }}
-                      onMouseEnter={e => { e.currentTarget.style.borderColor="#7C3AED"; e.currentTarget.style.background="#F5F3FF"; }}
+                      onMouseEnter={e => { e.currentTarget.style.borderColor=SUPERSET_COLOR; e.currentTarget.style.background="rgba(124,58,237,0.08)"; }}
                       onMouseLeave={e => { e.currentTarget.style.borderColor="var(--border)"; e.currentTarget.style.background="var(--surface)"; }}>
                       <TierBadge tier={db[target.name]?.tier} />
                       <div style={{ flex:1, minWidth:0 }}>
@@ -2519,6 +2518,7 @@ const CSS = `
     --shadow-sm: 0 1px 4px rgba(0,0,0,0.05), 0 4px 16px rgba(0,0,0,0.03);
     --shadow-md: 0 2px 8px rgba(0,0,0,0.08), 0 8px 24px rgba(0,0,0,0.04);
     --row-alt: rgba(0,0,0,0.016);
+    --ex-separator: #E2E2E5;
   }
 
   .dark {
@@ -2544,6 +2544,7 @@ const CSS = `
     --shadow-sm: 0 1px 4px rgba(0,0,0,0.4), 0 4px 16px rgba(0,0,0,0.25);
     --shadow-md: 0 2px 8px rgba(0,0,0,0.5), 0 8px 24px rgba(0,0,0,0.35);
     --row-alt: rgba(255,255,255,0.025);
+    --ex-separator: #252528;
   }
 
   html, body {
@@ -2558,8 +2559,8 @@ const CSS = `
 
   ::-webkit-scrollbar { width:5px; height:5px; }
   ::-webkit-scrollbar-track { background:transparent; }
-  ::-webkit-scrollbar-thumb { background:#D1D1D6; border-radius:3px; }
-  ::-webkit-scrollbar-thumb:hover { background:#AEAEB2; }
+  ::-webkit-scrollbar-thumb { background:var(--text-ghost); border-radius:3px; }
+  ::-webkit-scrollbar-thumb:hover { background:var(--text-faint); }
 
   .app { display:flex; flex-direction:column; height:100dvh; }
 
@@ -2602,7 +2603,7 @@ const CSS = `
     text-overflow:ellipsis;
     transition:all 0.15s;
   }
-  .prog-btn:hover { border-color:#E8500A; background:#FFF3EE; color:#E8500A; }
+  .prog-btn:hover { border-color:var(--accent); background:var(--accent-bg); color:var(--accent); }
 
   .save-dot { width:6px; height:6px; border-radius:50%; background:#D1D1D6; flex-shrink:0; transition:background 0.4s; }
   .save-dot.saving { background:#F59E0B; }
@@ -2617,7 +2618,7 @@ const CSS = `
     background:transparent;
     border:1px solid var(--border);
     border-radius:8px;
-    color:#555;
+    color:var(--text-muted);
     cursor:pointer;
     transition:all 0.15s;
     white-space:nowrap;
@@ -2723,7 +2724,7 @@ const CSS = `
     border-color:#E8500A;
     box-shadow:0 0 0 3px rgba(232,80,10,0.12), 0 4px 16px rgba(0,0,0,0.08);
   }
-  .session-col.btb-warning { border-color:#FB923C; }
+  .session-col.btb-warning { border-color:#F97316; }
 
   .col-header {
     display:flex;
@@ -2748,7 +2749,7 @@ const CSS = `
     letter-spacing:-0.2px;
     transition:color 0.1s;
   }
-  .session-name:hover { color:#E8500A; }
+  .session-name:hover { color:var(--accent); }
 
   .rename-input {
     flex:1;
@@ -2800,17 +2801,16 @@ const CSS = `
     opacity:0;
   }
   .col-header:hover .col-del-btn { opacity:1; }
-  .col-del-btn:hover { color:#EF4444; background:#FEF2F2; }
+  .col-del-btn:hover { color:#EF4444; background:rgba(239,68,68,0.1); }
 
   /* ─────────────────────────────────────────────
      EXERCISE LIST & ROW
   ───────────────────────────────────────────── */
 
   .ex-list { display:flex; flex-direction:column; overflow:visible; }
-  .ex-wrapper { border-bottom:1px solid #E2E2E5; position:relative; overflow:visible; }
+  .ex-wrapper { border-bottom:1px solid var(--ex-separator, #E2E2E5); position:relative; overflow:visible; }
   .ex-wrapper.ss-row { border-left:3px solid #7C3AED; }
   .ex-wrapper:last-child { border-bottom:none; }
-  .dark .ex-wrapper { border-bottom-color:#252528; }
   .dark .ex-wrapper.ss-row { border-left-color:#9333EA; }
 
   .ex-row {
@@ -2974,7 +2974,7 @@ const CSS = `
   }
   .ex-menu-item:hover { background:var(--row-hover); color:var(--text); }
   .ex-menu-del { color:#DC2626 !important; }
-  .ex-menu-del:hover { background:#FEF2F2 !important; }
+  .ex-menu-del:hover { background:rgba(220,38,38,0.1) !important; }
   .dark .ex-menu-del:hover { background:rgba(220,38,38,0.1) !important; }
   .ex-menu-sep { height:1px; background:var(--border); margin:3px 6px; }
 
@@ -2996,8 +2996,8 @@ const CSS = `
   }
   .ex-row:hover .ex-btn { opacity:1; }
   .ex-btn:focus { opacity:1; }
-  .ex-btn:hover { background:#F4F4F5; color:#333; opacity:1; }
-  .ex-btn.del:hover { background:#FEF2F2; color:#EF4444; }
+  .ex-btn:hover { background:var(--sets-bg); color:var(--text-sub); opacity:1; }
+  .ex-btn.del:hover { background:rgba(239,68,68,0.1); color:#EF4444; }
 
   .add-ex-btn {
     display:flex;
@@ -3075,8 +3075,8 @@ const CSS = `
     border-color:rgba(232,80,10,0.15);
     font-weight:600;
   }
-  .summary-chip-label { font-weight:700; color:#111; }
-  .summary-chip-sep { color:#D1D1D6; font-weight:400; }
+  .summary-chip-label { font-weight:700; color:var(--text); }
+  .summary-chip-sep { color:var(--text-ghost); font-weight:400; }
   .summary-chip-icon { font-size:0.7rem; }
 
   /* ─────────────────────────────────────────────
@@ -3407,4 +3407,16 @@ const CSS = `
     display:inline-block;
   }
   @keyframes spin { to { transform:rotate(360deg); } }
+
+  /* ── Dark mode overrides for elements that can't use CSS vars ── */
+  .dark .prog-btn { color:var(--text); }
+  .dark .hdr-ghost { color:var(--text-muted); }
+  .dark .session-col.drag-target { background:rgba(255,255,255,0.03); }
+  .dark .picker-row:hover { background:var(--accent-bg); }
+  .dark .lib-row:hover { background:var(--accent-bg); }
+  .dark .btn-icon-sm:hover { background:var(--accent); color:#fff; }
+  .dark .add-ex-btn:hover { color:var(--accent); background:var(--accent-bg); }
+  .dark .modal-close:hover { background:var(--input-border); }
+  .dark .rest-slot { background:var(--surface); opacity:0.8; }
+  .dark .rest-slot:hover { background:var(--accent-bg); }
 `;
