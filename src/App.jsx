@@ -1333,24 +1333,11 @@ export default function WorkoutDashboard() {
                                 {/* ··· menu */}
                                 <div style={{ position:"relative" }}>
                                   <button className="ex-btn ex-menu-btn"
-                                    onClick={e => {
-                                      e.stopPropagation();
-                                      if (exMenu?.dayId === session.id && exMenu?.exId === ex.id) { setExMenu(null); return; }
-                                      const r = e.currentTarget.getBoundingClientRect();
-                                      setExMenu({ dayId:session.id, exId:ex.id,
-                                        x: r.right,
-                                        y: r.bottom });
-                                    }}>
+                                    onClick={e => { e.stopPropagation(); setExMenu(exMenu?.dayId === session.id && exMenu?.exId === ex.id ? null : { dayId:session.id, exId:ex.id }); }}>
                                     ···
                                   </button>
                                   {exMenu?.dayId === session.id && exMenu?.exId === ex.id && (
-                                    <div className="ex-menu-popover" onClick={e => e.stopPropagation()}
-                                    style={{
-                                      left: Math.min(exMenu.x - 174, window.innerWidth - 182),
-                                      ...(exMenu.y + 240 > window.innerHeight
-                                        ? { bottom: window.innerHeight - exMenu.y + 4 }
-                                        : { top: exMenu.y + 4 }),
-                                    }}>
+                                    <div className="ex-menu-popover" onClick={e => e.stopPropagation()}>
                                       <button className="ex-menu-item" onClick={() => {
                                         setModal({ type:"replaceEx", dayId:session.id, exId:ex.id }); setPickerSearch(""); setExMenu(null);
                                       }}>⇄ Remplacer</button>
@@ -2579,7 +2566,9 @@ const CSS = `
     line-height:1;
   }
   .ex-menu-popover {
-    position:fixed;
+    position:absolute;
+    right:0;
+    top:calc(100% + 4px);
     background:var(--surface);
     border:1px solid var(--border);
     border-radius:10px;
