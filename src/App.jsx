@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from "react";
+import { createPortal } from "react-dom";
 
 // ─── DESIGN TOKENS ────────────────────────────────────────────────────────────
 
@@ -1303,7 +1304,12 @@ export default function WorkoutDashboard() {
                               <div style={{ display:"flex", alignItems:"center", gap:4, flexShrink:0 }}>
                                 <div style={{ position:"relative" }}>
                                   <button className="ex-btn ex-menu-btn"
-                                    onClick={e => { e.stopPropagation(); setExMenu(exMenu?.dayId === session.id && exMenu?.exId === ex.id ? null : { dayId:session.id, exId:ex.id }); }}>
+                                    onClick={e => {
+                                      e.stopPropagation();
+                                      if (exMenu?.dayId === session.id && exMenu?.exId === ex.id) { setExMenu(null); return; }
+                                      const r = e.currentTarget.getBoundingClientRect();
+                                      setExMenu({ dayId:session.id, exId:ex.id, btnRect:r });
+                                    }}>
                                     ···
                                   </button>
                                   {exMenu?.dayId === session.id && exMenu?.exId === ex.id && (
@@ -2074,6 +2080,48 @@ export default function WorkoutDashboard() {
 
         </div>
       )}
+      {/* Context menu via portal — escapes zoom transform + overflow clipping */}
+      {exMenu?.btnRect && (() => {
+        const r      = exMenu.btnRect;
+        const MENU_W = 174;
+        const MENU_H = 220;
+        const left   = Math.min(r.right - MENU_W, window.innerWidth - MENU_W - 8);
+        const top    = r.bottom + 4 + MENU_H > window.innerHeight ? r.top - MENU_H - 4 : r.bottom + 4;
+        const menuSession = sessions.find(s => s.id === exMenu.dayId);
+        const menuEx      = menuSession?.exercises.find(e => e.id === exMenu.exId);
+        if (!menuEx) return null;
+        const menuExInSs  = !!menuEx.supersetWith || menuSession.exercises.some(e => e.supersetWith === menuEx.id);
+        return createPortal(
+          <div className="ex-menu-popover"
+            style={{ position:"fixed", left, top, zIndex:9999 }}
+            onClick={e => e.stopPropagation()}>
+            <button className="ex-menu-item" onClick={() => {
+              setModal({ type:"replaceEx", dayId:exMenu.dayId, exId:exMenu.exId }); setPickerSearch(""); setExMenu(null);
+            }}>⇄ Remplacer</button>
+            <button className="ex-menu-item" onClick={() => {
+              updateDayExercises(exMenu.dayId, exs => [...exs, { id:uid(), name:menuEx.name, sets:menuEx.sets }]); setExMenu(null);
+            }}>⊕ Dupliquer ici</button>
+            <button className="ex-menu-item" onClick={() => {
+              setModal({ type:"copyEx", ex:menuEx, srcDayId:exMenu.dayId }); setExMenu(null);
+            }}>⧉ Copier vers…</button>
+            <div className="ex-menu-sep" />
+            {menuExInSs ? (
+              <button className="ex-menu-item" style={{ color:SUPERSET_COLOR }} onClick={() => {
+                unlinkSuperset(exMenu.dayId, exMenu.exId); setExMenu(null);
+              }}>⊘ Défaire le superset</button>
+            ) : (
+              <button className="ex-menu-item" style={{ color:SUPERSET_COLOR }} onClick={() => {
+                setModal({ type:"linkSuperset", dayId:exMenu.dayId, exId:exMenu.exId, exName:menuEx.name }); setExMenu(null);
+              }}>⇌ Lier en superset</button>
+            )}
+            <div className="ex-menu-sep" />
+            <button className="ex-menu-item ex-menu-del" onClick={() => {
+              deleteEx(exMenu.dayId, exMenu.exId); setExMenu(null);
+            }}>✕ Supprimer</button>
+          </div>,
+          document.body
+        );
+      })()}
     </>
   );
 }
@@ -2531,9 +2579,6 @@ const CSS = `
     line-height:1;
   }
   .ex-menu-popover {
-    position:absolute;
-    right:0;
-    top:calc(100% + 4px);
     background:var(--surface);
     border:1px solid var(--border);
     border-radius:10px;
