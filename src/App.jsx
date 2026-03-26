@@ -1333,22 +1333,11 @@ export default function WorkoutDashboard() {
                                 {/* ··· menu */}
                                 <div style={{ position:"relative" }}>
                                   <button className="ex-btn ex-menu-btn"
-                                    onClick={e => {
-                                      e.stopPropagation();
-                                      if (exMenu?.dayId === session.id && exMenu?.exId === ex.id) { setExMenu(null); return; }
-                                      const r = e.currentTarget.getBoundingClientRect();
-                                      setExMenu({ dayId:session.id, exId:ex.id, x:r.right, y:r.bottom, btnH:r.height });
-                                    }}>
+                                    onClick={e => { e.stopPropagation(); setExMenu(exMenu?.dayId === session.id && exMenu?.exId === ex.id ? null : { dayId:session.id, exId:ex.id }); }}>
                                     ···
                                   </button>
                                   {exMenu?.dayId === session.id && exMenu?.exId === ex.id && (
-                                    <div className="ex-menu-popover" onClick={e => e.stopPropagation()}
-                                    style={{
-                                      right: window.innerWidth - exMenu.x,
-                                      ...(exMenu.y + 240 > window.innerHeight
-                                        ? { bottom: window.innerHeight - exMenu.y + exMenu.btnH + 4 }
-                                        : { top: exMenu.y + 4 }),
-                                    }}>
+                                    <div className="ex-menu-popover" onClick={e => e.stopPropagation()}>
                                       <button className="ex-menu-item" onClick={() => {
                                         setModal({ type:"replaceEx", dayId:session.id, exId:ex.id }); setPickerSearch(""); setExMenu(null);
                                       }}>⇄ Remplacer</button>
@@ -2443,7 +2432,7 @@ const CSS = `
   ───────────────────────────────────────────── */
 
   .ex-list { display:flex; flex-direction:column; overflow:visible; }
-  .ex-wrapper { border-bottom:1px solid #E2E2E5; position:relative; }
+  .ex-wrapper { border-bottom:1px solid #E2E2E5; position:relative; overflow:visible; }
   .ex-wrapper.ss-row { border-left:3px solid #7C3AED; }
   .ex-wrapper:last-child { border-bottom:none; }
   .dark .ex-wrapper { border-bottom-color:#252528; }
@@ -2577,7 +2566,9 @@ const CSS = `
     line-height:1;
   }
   .ex-menu-popover {
-    position:fixed;
+    position:absolute;
+    right:0;
+    top:calc(100% + 4px);
     background:var(--surface);
     border:1px solid var(--border);
     border-radius:10px;
