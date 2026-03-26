@@ -1749,6 +1749,123 @@ export default function WorkoutDashboard() {
               )}
             </div>
 
+
+            {/* Distribution — muscles × days + push/pull bar */}
+            {sessions.length > 0 && (
+              <div className="panel-block">
+                <div className="panel-label">RÉPARTITION</div>
+
+                {/* Muscles × days grid */}
+                <div style={{ marginTop:8, overflowX:"auto" }}>
+                  <table style={{ borderCollapse:"collapse", width:"100%", tableLayout:"fixed" }}>
+                    <thead>
+                      <tr>
+                        <td style={{ width:80 }} />
+                        {DAY_KEYS.map((key, i) => {
+                          const hasSession = week[i] !== null;
+                          return (
+                            <td key={key} style={{ textAlign:"center", paddingBottom:4,
+                              width:`${(100-80/3)/7}%` }}>
+                              <span style={{ fontSize:"0.56rem", fontWeight:700,
+                                color: hasSession ? "var(--accent)" : "var(--text-ghost)",
+                                textTransform:"uppercase", letterSpacing:"0.5px" }}>
+                                {DAY_LABELS[i]}
+                              </span>
+                            </td>
+                          );
+                        })}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {ALL_MUSCLES.map(muscle => {
+                        const totalSets = weeklyVol[muscle] ?? 0;
+                        if (totalSets === 0) return null;
+                        return (
+                          <tr key={muscle}>
+                            <td style={{ paddingRight:6, paddingBottom:3 }}>
+                              <span style={{ fontSize:"0.62rem", fontWeight:500,
+                                color:"var(--text-sub)", whiteSpace:"nowrap",
+                                display:"flex", alignItems:"center", gap:4 }}>
+                                <span style={{ width:6, height:6, borderRadius:"50%",
+                                  background:MUSCLE_COLOR[muscle], flexShrink:0,
+                                  display:"inline-block" }} />
+                                {muscle}
+                              </span>
+                            </td>
+                            {DAY_KEYS.map((key, i) => {
+                              const slot = week[i];
+                              if (!slot) return (
+                                <td key={key} style={{ textAlign:"center", paddingBottom:3 }}>
+                                  <span style={{ display:"inline-block", width:8, height:8 }} />
+                                </td>
+                              );
+                              const daySets = slot.exercises.reduce((n, e) => {
+                                const d = db[e.name];
+                                if (!d) return n;
+                                const isPrimary   = d.primary.includes(muscle);
+                                const isSecondary = d.secondary.includes(muscle);
+                                return n + (isPrimary ? e.sets : isSecondary ? e.sets * SECONDARY_WEIGHT : 0);
+                              }, 0);
+                              if (daySets === 0) return (
+                                <td key={key} style={{ textAlign:"center", paddingBottom:3 }}>
+                                  <span style={{ display:"inline-block", width:8, height:8,
+                                    borderRadius:"50%", background:"var(--border)" }} />
+                                </td>
+                              );
+                              const opacity = Math.min(0.3 + (daySets / 8) * 0.7, 1);
+                              return (
+                                <td key={key} style={{ textAlign:"center", paddingBottom:3 }}>
+                                  <span title={`${daySets} sér.`} style={{ display:"inline-block",
+                                    width:8, height:8, borderRadius:"50%",
+                                    background:MUSCLE_COLOR[muscle],
+                                    opacity, cursor:"default" }} />
+                                </td>
+                              );
+                            })}
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+
+                {/* Push / Pull bar */}
+                {summary && summary.pushSets + summary.pullSets > 0 && (() => {
+                  const total  = summary.pushSets + summary.pullSets;
+                  const pushPct = Math.round((summary.pushSets / total) * 100);
+                  const pullPct = 100 - pushPct;
+                  const balanced = Math.abs(pushPct - pullPct) <= 10;
+                  return (
+                    <div style={{ marginTop:12 }}>
+                      <div style={{ display:"flex", justifyContent:"space-between",
+                        alignItems:"center", marginBottom:4 }}>
+                        <span style={{ fontSize:"0.6rem", fontWeight:700, color:"var(--text-muted)",
+                          textTransform:"uppercase", letterSpacing:"0.8px" }}>Push / Pull</span>
+                        <span style={{ fontSize:"0.62rem", fontWeight:600,
+                          color: balanced ? C.green : "var(--accent)" }}>
+                          {balanced ? "✓ Équilibré" : pushPct > pullPct ? `+${pushPct - pullPct}% push` : `+${pullPct - pushPct}% pull`}
+                        </span>
+                      </div>
+                      <div style={{ display:"flex", height:8, borderRadius:20, overflow:"hidden", gap:1 }}>
+                        <div style={{ width:`${pushPct}%`, background:"var(--accent)",
+                          borderRadius:"20px 0 0 20px", transition:"width 0.3s" }} />
+                        <div style={{ flex:1, background:"#1D4ED8",
+                          borderRadius:"0 20px 20px 0", opacity:0.75 }} />
+                      </div>
+                      <div style={{ display:"flex", justifyContent:"space-between", marginTop:3 }}>
+                        <span style={{ fontSize:"0.58rem", color:"var(--accent)", fontWeight:600 }}>
+                          Push {summary.pushSets} sér. ({pushPct}%)
+                        </span>
+                        <span style={{ fontSize:"0.58rem", color:"#1D4ED8", fontWeight:600 }}>
+                          Pull {summary.pullSets} sér. ({pullPct}%)
+                        </span>
+                      </div>
+                    </div>
+                  );
+                })()}
+              </div>
+            )}
+
             {/* Suggestions */}
             {suggestions.length > 0 && (
               <div className="panel-block">
