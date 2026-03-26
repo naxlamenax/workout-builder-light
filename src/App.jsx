@@ -572,6 +572,8 @@ export default function WorkoutDashboard() {
   // ── UI State ────────────────────────────────────────────────────────────────
   const [modal,          setModal]          = useState(null);
   const [pickerSearch,   setPickerSearch]   = useState("");
+  const [pickerMuscle,   setPickerMuscle]   = useState("Tous");
+  const [pickerTier,     setPickerTier]     = useState("Tous");
   const [libSearch,      setLibSearch]      = useState("");
   const [libMuscle,      setLibMuscle]      = useState("Tous");
   const [libTier,        setLibTier]        = useState("Tous");
@@ -586,6 +588,7 @@ export default function WorkoutDashboard() {
   const [renamingDay,    setRenamingDay]    = useState(null); // dayId
   const [renamingName,   setRenamingName]   = useState("");
   const [editingSets,    setEditingSets]    = useState(null); // {dayId, exId} — null = compact badge
+  const [exMenu,         setExMenu]         = useState(null);  // {dayId, exId} — open context menu
   const [priosExpanded,  setPriosExpanded]  = useState(false);
 
   const [progFormName,   setProgFormName]   = useState("");
@@ -616,7 +619,12 @@ export default function WorkoutDashboard() {
 
   // ── Picker lists ────────────────────────────────────────────────────────────
   const pickerList = sortByTier(
-    Object.keys(db).filter(n => n.toLowerCase().includes(pickerSearch.toLowerCase())),
+    Object.keys(db).filter(n => {
+      const d = db[n];
+      return n.toLowerCase().includes(pickerSearch.toLowerCase())
+        && (pickerMuscle === "Tous" || d?.primary.includes(pickerMuscle) || d?.secondary.includes(pickerMuscle))
+        && (pickerTier   === "Tous" || d?.tier === pickerTier);
+    }),
     db
   );
 
@@ -722,6 +730,7 @@ export default function WorkoutDashboard() {
 
   useEffect(() => {
     if (modal?.type === "addEx" || modal?.type === "replaceEx") {
+      setPickerMuscle("Tous"); setPickerTier("Tous");
       setTimeout(() => pickerInputRef.current?.focus(), 60);
     }
   }, [modal]);
@@ -818,7 +827,41 @@ export default function WorkoutDashboard() {
   }
 
   function deleteEx(dayId, exId) {
-    updateDayExercises(dayId, exs => exs.filter(e => e.id !== exId));
+    updateDayExercises(dayId, exs =>
+      exs.filter(e => e.id !== exId)
+         .map(e => e.supersetWith === exId ? { ...e, supersetWith: null } : e)
+    );
+  }
+
+  function linkSuperset(dayId, exIdA, exIdB) {
+    // Ensure A and B are adjacent — move B right after A if needed
+    updateDayExercises(dayId, exs => {
+      const idxA = exs.findIndex(e => e.id === exIdA);
+      const idxB = exs.findIndex(e => e.id === exIdB);
+      if (idxA < 0 || idxB < 0) return exs;
+      // Unlink any existing superset for these two
+      let arr = exs.map(e => ({
+        ...e,
+        supersetWith: (e.supersetWith === exIdA || e.supersetWith === exIdB || e.id === exIdA || e.id === exIdB)
+          ? null : e.supersetWith
+      }));
+      // Move B to right after A if not already adjacent
+      const a = arr.find(e => e.id === exIdA);
+      const b = arr.find(e => e.id === exIdB);
+      arr = arr.filter(e => e.id !== exIdB);
+      const newIdxA = arr.findIndex(e => e.id === exIdA);
+      arr.splice(newIdxA + 1, 0, b);
+      // Set the link
+      arr = arr.map(e => e.id === exIdA ? { ...e, supersetWith: exIdB } : e);
+      return arr;
+    });
+  }
+
+  function unlinkSuperset(dayId, exId) {
+    updateDayExercises(dayId, exs =>
+      exs.map(e => (e.id === exId || e.supersetWith === exId)
+        ? { ...e, supersetWith: null } : e)
+    );
   }
 
   function setSets(dayId, exId, val) {
@@ -1094,7 +1137,7 @@ export default function WorkoutDashboard() {
         </header>
 
         {/* ── MAIN ───────────────────────────────────────────────────── */}
-        <div className="main" onClick={() => setColorPickerId(null)}>
+        <div className="main" onClick={() => { setColorPickerId(null); setExMenu(null); }}>
 
           {/* ── WEEK BOARD ──────────────────────────────────────────── */}
           <div className="week-board" style={{ overflow:"auto" }}>
@@ -1210,8 +1253,23 @@ export default function WorkoutDashboard() {
                     {session.exercises.map((ex, idx2) => {
                       const exData = db[ex.name];
                       const isDropTarget = dragOver?.dayId === session.id && dragOver?.exIdx === idx2;
+                      // Superset detection
+                      const isSsTop    = !!ex.supersetWith;
+                      const isSsBottom = session.exercises.some(e => e.supersetWith === ex.id);
+                      const isInSs     = isSsTop || isSsBottom;
+                      const SS_COLOR   = "#7C3AED"; // violet — distinct from everything
                       return (
-                        <div key={ex.id} className="ex-wrapper">
+                        <div key={ex.id} className={`ex-wrapper${isInSs ? " ss-row" : ""}`}
+                          style={ isInSs ? { borderLeft:`3px solid ${SS_COLOR}` } : {} }>
+                          {/* SS connector badge between top and bottom */}
+                          {isSsBottom && (
+                            <div style={{ display:"flex", alignItems:"center", gap:6, padding:"2px 10px 2px 8px",
+                              background:`${SS_COLOR}10`, borderBottom:`1px solid ${SS_COLOR}20` }}>
+                              <div style={{ width:2, height:10, background:SS_COLOR, borderRadius:1, opacity:0.4 }} />
+                              <span style={{ fontSize:"0.58rem", fontWeight:800, color:SS_COLOR,
+                                letterSpacing:"0.5px", textTransform:"uppercase" }}>Superset</span>
+                            </div>
+                          )}
                           {/* Drop indicator line */}
                           {isDropTarget && (
                             <div style={{ position:"absolute", top:0, left:8, right:8, height:2,
@@ -1272,16 +1330,39 @@ export default function WorkoutDashboard() {
 
                               {/* Sets right + actions */}
                               <div style={{ display:"flex", alignItems:"center", gap:4, flexShrink:0 }}>
-                                {/* Actions — visible on row hover */}
-                                <div style={{ display:"flex", gap:2 }}>
-                                  <button className="ex-btn" title="Dupliquer"
-                                    onClick={() => updateDayExercises(session.id, exs => [...exs, { id:uid(), name:ex.name, sets:ex.sets }])}>⊕</button>
-                                  <button className="ex-btn" title="Remplacer"
-                                    onClick={() => { setModal({ type:"replaceEx", dayId:session.id, exId:ex.id }); setPickerSearch(""); }}>⇄</button>
-                                  <button className="ex-btn" title="Copier vers…"
-                                    onClick={() => setModal({ type:"copyEx", ex, srcDayId:session.id })}>⧉</button>
-                                  <button className="ex-btn del" title="Supprimer"
-                                    onClick={() => deleteEx(session.id, ex.id)}>✕</button>
+                                {/* ··· menu */}
+                                <div style={{ position:"relative" }}>
+                                  <button className="ex-btn ex-menu-btn"
+                                    onClick={e => { e.stopPropagation(); setExMenu(exMenu?.exId === ex.id ? null : { dayId:session.id, exId:ex.id }); }}>
+                                    ···
+                                  </button>
+                                  {exMenu?.exId === ex.id && (
+                                    <div className="ex-menu-popover" onClick={e => e.stopPropagation()}>
+                                      <button className="ex-menu-item" onClick={() => {
+                                        setModal({ type:"replaceEx", dayId:session.id, exId:ex.id }); setPickerSearch(""); setExMenu(null);
+                                      }}>⇄ Remplacer</button>
+                                      <button className="ex-menu-item" onClick={() => {
+                                        updateDayExercises(session.id, exs => [...exs, { id:uid(), name:ex.name, sets:ex.sets }]); setExMenu(null);
+                                      }}>⊕ Dupliquer ici</button>
+                                      <button className="ex-menu-item" onClick={() => {
+                                        setModal({ type:"copyEx", ex, srcDayId:session.id }); setExMenu(null);
+                                      }}>⧉ Copier vers…</button>
+                                      <div className="ex-menu-sep" />
+                                      {isInSs ? (
+                                        <button className="ex-menu-item" style={{ color:"#7C3AED" }} onClick={() => {
+                                          unlinkSuperset(session.id, ex.id); setExMenu(null);
+                                        }}>⊘ Défaire le superset</button>
+                                      ) : (
+                                        <button className="ex-menu-item" style={{ color:"#7C3AED" }} onClick={() => {
+                                          setModal({ type:"linkSuperset", dayId:session.id, exId:ex.id, exName:ex.name }); setExMenu(null);
+                                        }}>⇌ Lier en superset</button>
+                                      )}
+                                      <div className="ex-menu-sep" />
+                                      <button className="ex-menu-item ex-menu-del" onClick={() => {
+                                        deleteEx(session.id, ex.id); setExMenu(null);
+                                      }}>✕ Supprimer</button>
+                                    </div>
+                                  )}
                                 </div>
                                 {/* Sets badge */}
                                 {editingSets?.dayId === session.id && editingSets?.exId === ex.id ? (
@@ -1547,7 +1628,17 @@ export default function WorkoutDashboard() {
                   value={pickerSearch} onChange={e => setPickerSearch(e.target.value)} />
                 <button className="btn-save" style={{ flexShrink:0 }} onClick={() => { setPickerSearch(""); closeModal(); }}>Fermer</button>
               </div>
-              <div style={{ overflowY:"auto", flex:1, background:C.surface }}>
+              <div style={{ padding:"0 14px 8px", flexShrink:0, display:"flex", gap:6 }}>
+                <select className="filter-select" value={pickerMuscle} onChange={e => setPickerMuscle(e.target.value)}>
+                  <option value="Tous">Tous les muscles</option>
+                  {ALL_MUSCLES.map(m => <option key={m} value={m}>{MUSCLE_EMOJI[m]} {m}</option>)}
+                </select>
+                <select className="filter-select" value={pickerTier} onChange={e => setPickerTier(e.target.value)}>
+                  <option value="Tous">Tous les tiers</option>
+                  {TIER_ORDER.map(t => <option key={t} value={t}>{t} — {TIER[t].label.slice(0,28)}</option>)}
+                </select>
+              </div>
+              <div style={{ overflowY:"auto", flex:1, background:"var(--surface)" }}>
                 {!pickerSearch && smartPicker.length > 0 && (
                   <>
                     <div style={{ padding:"8px 14px 4px", fontSize:"0.58rem", fontWeight:700,
@@ -1916,6 +2007,50 @@ export default function WorkoutDashboard() {
               </div>
             </div>
           )}
+
+          {/* Link superset */}
+          {modal.type === "linkSuperset" && (() => {
+            const dayExs = week.find(s => s?.id === modal.dayId)?.exercises ?? [];
+            const others = dayExs.filter(e => e.id !== modal.exId && !e.supersetWith && !dayExs.some(e2 => e2.supersetWith === e.id));
+            return (
+              <div className="modal" style={{ width:360 }} onClick={e => e.stopPropagation()}>
+                <div className="modal-handle" />
+                <div className="modal-header">
+                  <span className="modal-title">Lier en superset</span>
+                  <button className="modal-close" onClick={closeModal}>✕</button>
+                </div>
+                <div style={{ padding:"10px 12px 4px", fontSize:"0.72rem", color:"var(--text-muted)" }}>
+                  Enchaîner <strong style={{ color:"var(--text)" }}>{modal.exName}</strong> avec :
+                </div>
+                <div style={{ padding:"4px 12px 12px", display:"flex", flexDirection:"column", gap:5 }}>
+                  {others.length === 0 && (
+                    <div style={{ fontSize:"0.78rem", color:"var(--text-muted)", padding:"8px 0", fontStyle:"italic" }}>
+                      Aucun autre exercice disponible dans cette séance.
+                    </div>
+                  )}
+                  {others.map(target => (
+                    <button key={target.id}
+                      onClick={() => { linkSuperset(modal.dayId, modal.exId, target.id); closeModal(); }}
+                      style={{ display:"flex", alignItems:"center", gap:10, padding:"10px 12px",
+                        background:"var(--surface)", border:"1px solid var(--border)",
+                        borderRadius:10, cursor:"pointer", fontFamily:"inherit", textAlign:"left",
+                        transition:"all 0.12s" }}
+                      onMouseEnter={e => { e.currentTarget.style.borderColor="#7C3AED"; e.currentTarget.style.background="#F5F3FF"; }}
+                      onMouseLeave={e => { e.currentTarget.style.borderColor="var(--border)"; e.currentTarget.style.background="var(--surface)"; }}>
+                      <TierBadge tier={db[target.name]?.tier} />
+                      <div style={{ flex:1, minWidth:0 }}>
+                        <div style={{ fontSize:"0.84rem", fontWeight:600, color:"var(--text)" }}>{target.name}</div>
+                        <div style={{ fontSize:"0.65rem", color:"var(--text-muted)", marginTop:1 }}>
+                          {db[target.name]?.primary.join(", ")}
+                        </div>
+                      </div>
+                      <span style={{ fontSize:"0.65rem", color:"#7C3AED", fontWeight:700 }}>⇌</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            );
+          })()}
 
           {/* Copy exercise to another day */}
           {modal.type === "copyEx" && (
@@ -2295,9 +2430,11 @@ const CSS = `
   ───────────────────────────────────────────── */
 
   .ex-list { display:flex; flex-direction:column; }
-  .ex-wrapper { border-bottom:1px solid #C8C8CC; }
+  .ex-wrapper { border-bottom:1px solid #E2E2E5; position:relative; }
+  .ex-wrapper.ss-row { border-left:3px solid #7C3AED; }
   .ex-wrapper:last-child { border-bottom:none; }
-  .dark .ex-wrapper { border-bottom-color:#2C2C30; }
+  .dark .ex-wrapper { border-bottom-color:#252528; }
+  .dark .ex-wrapper.ss-row { border-left-color:#9333EA; }
 
   .ex-row {
     display:flex;
@@ -2419,6 +2556,50 @@ const CSS = `
   .sets-input:hover { border-color:var(--text-ghost); background:var(--sets-bg); }
   .sets-input:focus { border-color:var(--accent); background:var(--accent-bg); box-shadow:0 0 0 2px rgba(232,80,10,0.15); }
   .sets-input::-webkit-inner-spin-button, .sets-input::-webkit-outer-spin-button { -webkit-appearance:none; }
+
+  .ex-menu-btn {
+    font-size:1rem;
+    letter-spacing:1px;
+    font-weight:700;
+    line-height:1;
+  }
+  .ex-menu-popover {
+    position:absolute;
+    right:0;
+    top:calc(100% + 4px);
+    background:var(--surface);
+    border:1px solid var(--border);
+    border-radius:10px;
+    box-shadow:0 4px 20px rgba(0,0,0,0.12), 0 1px 4px rgba(0,0,0,0.06);
+    min-width:170px;
+    z-index:100;
+    padding:4px;
+    display:flex;
+    flex-direction:column;
+    gap:1px;
+  }
+  .ex-menu-item {
+    display:flex;
+    align-items:center;
+    gap:8px;
+    width:100%;
+    padding:7px 10px;
+    background:none;
+    border:none;
+    border-radius:7px;
+    font-family:inherit;
+    font-size:0.8rem;
+    font-weight:500;
+    color:var(--text-sub);
+    cursor:pointer;
+    text-align:left;
+    transition:background 0.1s;
+  }
+  .ex-menu-item:hover { background:var(--row-hover); color:var(--text); }
+  .ex-menu-del { color:#DC2626 !important; }
+  .ex-menu-del:hover { background:#FEF2F2 !important; }
+  .dark .ex-menu-del:hover { background:rgba(220,38,38,0.1) !important; }
+  .ex-menu-sep { height:1px; background:var(--border); margin:3px 6px; }
 
   .ex-btn {
     background:none;
@@ -2595,6 +2776,23 @@ const CSS = `
     flex-shrink:0;
   }
   .modal-close:hover { background:var(--input-border); color:var(--text); }
+
+  .filter-select {
+    flex:1;
+    min-width:0;
+    background:var(--input-bg);
+    border:1px solid var(--input-border);
+    border-radius:8px;
+    padding:5px 8px;
+    color:var(--text);
+    font-family:inherit;
+    font-size:0.72rem;
+    font-weight:500;
+    outline:none;
+    cursor:pointer;
+    transition:border-color 0.15s;
+  }
+  .filter-select:focus { border-color:var(--accent); }
 
   .picker-search {
     width:100%;
