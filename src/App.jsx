@@ -1336,14 +1336,17 @@ export default function WorkoutDashboard() {
                                     onClick={e => {
                                       e.stopPropagation();
                                       if (exMenu?.dayId === session.id && exMenu?.exId === ex.id) { setExMenu(null); return; }
-                                      setExMenu({ dayId:session.id, exId:ex.id, x:e.clientX, y:e.clientY });
+                                      const r = e.currentTarget.getBoundingClientRect();
+                                      setExMenu({ dayId:session.id, exId:ex.id,
+                                        x: r.right,
+                                        y: r.bottom });
                                     }}>
                                     ···
                                   </button>
                                   {exMenu?.dayId === session.id && exMenu?.exId === ex.id && (
                                     <div className="ex-menu-popover" onClick={e => e.stopPropagation()}
                                     style={{
-                                      left: Math.min(exMenu.x, window.innerWidth - 180),
+                                      left: Math.min(exMenu.x - 174, window.innerWidth - 182),
                                       ...(exMenu.y + 240 > window.innerHeight
                                         ? { bottom: window.innerHeight - exMenu.y + 4 }
                                         : { top: exMenu.y + 4 }),
