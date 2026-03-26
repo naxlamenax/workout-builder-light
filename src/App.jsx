@@ -588,7 +588,7 @@ export default function WorkoutDashboard() {
   const [renamingDay,    setRenamingDay]    = useState(null); // dayId
   const [renamingName,   setRenamingName]   = useState("");
   const [editingSets,    setEditingSets]    = useState(null); // {dayId, exId} — null = compact badge
-  const [exMenu,         setExMenu]         = useState(null);  // {dayId, exId} — open context menu
+  const [exMenu,         setExMenu]         = useState(null);  // {dayId, exId, x, y} — open context menu
   const [priosExpanded,  setPriosExpanded]  = useState(false);
 
   const [progFormName,   setProgFormName]   = useState("");
@@ -1333,11 +1333,22 @@ export default function WorkoutDashboard() {
                                 {/* ··· menu */}
                                 <div style={{ position:"relative" }}>
                                   <button className="ex-btn ex-menu-btn"
-                                    onClick={e => { e.stopPropagation(); setExMenu(exMenu?.dayId === session.id && exMenu?.exId === ex.id ? null : { dayId:session.id, exId:ex.id }); }}>
+                                    onClick={e => {
+                                      e.stopPropagation();
+                                      if (exMenu?.dayId === session.id && exMenu?.exId === ex.id) { setExMenu(null); return; }
+                                      const r = e.currentTarget.getBoundingClientRect();
+                                      setExMenu({ dayId:session.id, exId:ex.id, x:r.right, y:r.bottom });
+                                    }}>
                                     ···
                                   </button>
                                   {exMenu?.dayId === session.id && exMenu?.exId === ex.id && (
-                                    <div className="ex-menu-popover" onClick={e => e.stopPropagation()}>
+                                    <div className="ex-menu-popover" onClick={e => e.stopPropagation()}
+                                    style={{
+                                      left: exMenu.x - 170,
+                                      ...(exMenu.y + 220 > window.innerHeight
+                                        ? { bottom: window.innerHeight - exMenu.y + 4 }
+                                        : { top: exMenu.y + 4 }),
+                                    }}>
                                       <button className="ex-menu-item" onClick={() => {
                                         setModal({ type:"replaceEx", dayId:session.id, exId:ex.id }); setPickerSearch(""); setExMenu(null);
                                       }}>⇄ Remplacer</button>
@@ -2566,9 +2577,7 @@ const CSS = `
     line-height:1;
   }
   .ex-menu-popover {
-    position:absolute;
-    right:0;
-    bottom:calc(100% + 4px);
+    position:fixed;
     background:var(--surface);
     border:1px solid var(--border);
     border-radius:10px;
