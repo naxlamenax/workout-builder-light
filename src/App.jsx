@@ -225,6 +225,237 @@ const MUSCLE_EMOJI = {
   "Fessiers":"🔵","Mollets":"🟢","Trapèzes":"🔮","Abdominaux":"⬜","Avant-bras":"🦾",
 };
 
+
+// ─── PROGRAM TEMPLATES ────────────────────────────────────────────────────────
+// week[] slots: index = day (0=Lun … 6=Dim), null = rest day.
+// Exercises use tier S+/S/A+ picks from the database.
+
+const PROGRAM_TEMPLATES = [
+  {
+    id: "ppl-6j",
+    name: "Push / Pull / Legs — 6j",
+    description: "Le classique hypertrophie. Chaque groupe musculaire 2×/semaine.",
+    tags: ["Avancé", "6 séances"],
+    week: [
+      { name:"Push A", exercises:[
+        { name:"Développé couché barre",        sets:4 },
+        { name:"Développé incliné haltères",    sets:3 },
+        { name:"Écarté câble assis",            sets:3 },
+        { name:"Développé épaules machine",     sets:3 },
+        { name:"Élévations latérales câble",    sets:4 },
+        { name:"Extension triceps câble barre", sets:3 },
+      ]},
+      { name:"Pull A", exercises:[
+        { name:"Tirage vertical prise large",   sets:4 },
+        { name:"Rowing buste appuyé",           sets:4 },
+        { name:"Rowing câble",                  sets:3 },
+        { name:"Curl pupitre haltère",          sets:3 },
+        { name:"Curl marteau",                  sets:3 },
+      ]},
+      { name:"Legs A", exercises:[
+        { name:"Squat barre",                   sets:4 },
+        { name:"Leg extension",                 sets:3 },
+        { name:"Leg curl assis",                sets:3 },
+        { name:"Fentes bulgares",               sets:3 },
+        { name:"Mollets debout",                sets:4 },
+      ]},
+      { name:"Push B", exercises:[
+        { name:"Presse pectoraux machine",      sets:4 },
+        { name:"Développé incliné barre",       sets:3 },
+        { name:"Croisé poulies",                sets:3 },
+        { name:"Arnold press",                  sets:3 },
+        { name:"Élévations latérales câble",    sets:4 },
+        { name:"Barre front (Skullcrusher)",    sets:3 },
+      ]},
+      { name:"Pull B", exercises:[
+        { name:"Tractions lestées",             sets:4 },
+        { name:"Meadows row",                   sets:4 },
+        { name:"Tirage vertical prise neutre",  sets:3 },
+        { name:"Bayesian curl face away",       sets:3 },
+        { name:"Curl incliné",                  sets:3 },
+      ]},
+      { name:"Legs B", exercises:[
+        { name:"Hack squat",                    sets:4 },
+        { name:"Soulevé de terre Roumain",      sets:3 },
+        { name:"Leg curl couché",               sets:3 },
+        { name:"Abduction machine",             sets:3 },
+        { name:"Mollets assis",                 sets:4 },
+      ]},
+      null,
+    ],
+  },
+  {
+    id: "ppl-4j",
+    name: "Push / Pull / Legs — 4j",
+    description: "Version allégée du PPL. Idéal si 4 jours disponibles.",
+    tags: ["Intermédiaire", "4 séances"],
+    week: [
+      { name:"Push", exercises:[
+        { name:"Développé couché barre",        sets:4 },
+        { name:"Développé incliné haltères",    sets:3 },
+        { name:"Développé épaules machine",     sets:3 },
+        { name:"Élévations latérales câble",    sets:4 },
+        { name:"Extension triceps câble barre", sets:3 },
+      ]},
+      { name:"Pull", exercises:[
+        { name:"Tirage vertical prise large",   sets:4 },
+        { name:"Rowing buste appuyé",           sets:4 },
+        { name:"Curl pupitre haltère",          sets:3 },
+        { name:"Curl marteau",                  sets:3 },
+        { name:"Face pull corde",               sets:3 },
+      ]},
+      null,
+      { name:"Legs", exercises:[
+        { name:"Squat barre",                   sets:4 },
+        { name:"Leg extension",                 sets:3 },
+        { name:"Soulevé de terre Roumain",      sets:3 },
+        { name:"Leg curl assis",                sets:3 },
+        { name:"Mollets debout",                sets:4 },
+      ]},
+      null,
+      null,
+      null,
+    ],
+  },
+  {
+    id: "upper-lower-4j",
+    name: "Upper / Lower — 4j",
+    description: "Fréquence 2× pour le haut et le bas du corps. Excellent équilibre volume/récupération.",
+    tags: ["Intermédiaire", "4 séances"],
+    week: [
+      { name:"Upper A", exercises:[
+        { name:"Développé couché barre",        sets:4 },
+        { name:"Tirage vertical prise large",   sets:4 },
+        { name:"Développé militaire haltères",  sets:3 },
+        { name:"Rowing câble",                  sets:3 },
+        { name:"Curl barre EZ",                 sets:3 },
+        { name:"Extension triceps câble barre", sets:3 },
+      ]},
+      { name:"Lower A", exercises:[
+        { name:"Squat barre",                   sets:4 },
+        { name:"Soulevé de terre Roumain",      sets:4 },
+        { name:"Leg extension",                 sets:3 },
+        { name:"Leg curl assis",                sets:3 },
+        { name:"Mollets debout",                sets:4 },
+      ]},
+      null,
+      { name:"Upper B", exercises:[
+        { name:"Développé incliné haltères",    sets:4 },
+        { name:"Rowing buste appuyé",           sets:4 },
+        { name:"Élévations latérales câble",    sets:4 },
+        { name:"Tirage vertical prise neutre",  sets:3 },
+        { name:"Curl marteau",                  sets:3 },
+        { name:"Barre front (Skullcrusher)",    sets:3 },
+      ]},
+      { name:"Lower B", exercises:[
+        { name:"Hack squat",                    sets:4 },
+        { name:"Fentes bulgares",               sets:3 },
+        { name:"Leg curl couché",               sets:3 },
+        { name:"Abduction machine",             sets:3 },
+        { name:"Mollets assis",                 sets:4 },
+      ]},
+      null,
+      null,
+    ],
+  },
+  {
+    id: "full-body-3j",
+    name: "Full Body — 3j",
+    description: "Chaque groupe musculaire sollicité 3 fois par semaine. Parfait pour progresser rapidement.",
+    tags: ["Débutant / Intermédiaire", "3 séances"],
+    week: [
+      { name:"Full Body A", exercises:[
+        { name:"Squat barre",                   sets:3 },
+        { name:"Développé couché barre",        sets:3 },
+        { name:"Tirage vertical prise large",   sets:3 },
+        { name:"Développé militaire haltères",  sets:3 },
+        { name:"Curl barre EZ",                 sets:3 },
+        { name:"Extension triceps câble barre", sets:3 },
+      ]},
+      null,
+      { name:"Full Body B", exercises:[
+        { name:"Hack squat",                    sets:3 },
+        { name:"Développé incliné haltères",    sets:3 },
+        { name:"Rowing buste appuyé",           sets:3 },
+        { name:"Élévations latérales câble",    sets:3 },
+        { name:"Curl pupitre haltère",          sets:3 },
+        { name:"Barre front (Skullcrusher)",    sets:3 },
+      ]},
+      null,
+      { name:"Full Body C", exercises:[
+        { name:"Fentes bulgares",               sets:3 },
+        { name:"Presse pectoraux machine",      sets:3 },
+        { name:"Tractions lestées",             sets:3 },
+        { name:"Arnold press",                  sets:3 },
+        { name:"Curl marteau",                  sets:3 },
+        { name:"Mollets debout",                sets:3 },
+      ]},
+      null,
+      null,
+    ],
+  },
+  {
+    id: "bro-split-5j",
+    name: "Bro Split — 5j",
+    description: "Un groupe musculaire par jour. Volume élevé par séance, fréquence 1×/semaine.",
+    tags: ["Tous niveaux", "5 séances"],
+    week: [
+      { name:"Pectoraux", exercises:[
+        { name:"Développé couché barre",        sets:4 },
+        { name:"Développé incliné haltères",    sets:4 },
+        { name:"Écarté câble assis",            sets:3 },
+        { name:"Presse pectoraux machine",      sets:3 },
+        { name:"Dips lestés",                   sets:3 },
+      ]},
+      { name:"Dos", exercises:[
+        { name:"Tractions lestées",             sets:4 },
+        { name:"Rowing buste appuyé",           sets:4 },
+        { name:"Tirage vertical prise neutre",  sets:3 },
+        { name:"Rowing câble",                  sets:3 },
+        { name:"Meadows row",                   sets:3 },
+      ]},
+      { name:"Épaules", exercises:[
+        { name:"Développé épaules machine",     sets:4 },
+        { name:"Élévations latérales câble",    sets:4 },
+        { name:"Oiseau machine",                sets:3 },
+        { name:"Arnold press",                  sets:3 },
+        { name:"Face pull corde",               sets:3 },
+      ]},
+      { name:"Bras", exercises:[
+        { name:"Curl pupitre haltère",          sets:4 },
+        { name:"Bayesian curl face away",       sets:3 },
+        { name:"Curl marteau",                  sets:3 },
+        { name:"Extension triceps câble barre", sets:4 },
+        { name:"Barre front (Skullcrusher)",    sets:3 },
+      ]},
+      { name:"Jambes", exercises:[
+        { name:"Squat barre",                   sets:4 },
+        { name:"Leg extension",                 sets:3 },
+        { name:"Soulevé de terre Roumain",      sets:3 },
+        { name:"Leg curl assis",                sets:3 },
+        { name:"Mollets debout",                sets:4 },
+        { name:"Mollets assis",                 sets:3 },
+      ]},
+      null,
+      null,
+    ],
+  },
+];
+
+// Instancie un template en programme réel (UIDs frais pour éviter les collisions)
+function createProgramFromTemplate(template) {
+  const week = Array(7).fill(null);
+  template.week.forEach((slot, i) => {
+    if (!slot) return;
+    week[i] = {
+      id: uid(),
+      name: slot.name,
+      exercises: slot.exercises.map(e => ({ id: uid(), name: e.name, sets: e.sets })),
+    };
+  });
+  return { id: uid(), name: template.name, week };
+}
+
 // ─── DEMO WEEK ────────────────────────────────────────────────────────────────
 // week = array of 7 (DAY_KEYS order). null = repos. object = session.
 
@@ -458,58 +689,155 @@ function bestExForMuscle(muscle, db, exclude = []) {
     [0]?.[0] ?? null;
 }
 
+// Returns the session that best fits adding an exercise for a given muscle:
+// prefers sessions already training that muscle, then the least-loaded session.
+function bestSessionForMuscle(muscle, sessions, db) {
+  const withMuscle = sessions.filter(s => s.exercises.some(e => db[e.name]?.primary.includes(muscle)));
+  if (withMuscle.length) return withMuscle.reduce((a, b) => a.exercises.length <= b.exercises.length ? a : b);
+  return sessions.reduce((a, b) => a.exercises.length <= b.exercises.length ? a : b);
+}
+
+// Returns the session with the most sets for a given movement tag ("push" or "pull")
+function heaviestSessionByMovement(movement, sessions, db) {
+  let best = null, bestSets = 0;
+  sessions.forEach(s => {
+    const sets = s.exercises.reduce((n, e) => n + (db[e.name]?.movement === movement ? e.sets : 0), 0);
+    if (sets > bestSets) { bestSets = sets; best = s; }
+  });
+  return best;
+}
+
 function computeSuggestions(weeklyVol, priorities, sessions, db, backToBack) {
-  const inProgram = sessions.flatMap(d => d.exercises.map(e => e.name));
+  if (!sessions.length) return [];
+  const inProgram = sessions.flatMap(s => s.exercises.map(e => e.name));
   const suggestions = [];
 
+  // ── 1. Priority muscles with insufficient volume ───────────────────────────
   ALL_MUSCLES.forEach(m => {
     if (priorities[m] !== "priority") return;
-    const status = classifyVolume(weeklyVol[m] ?? 0);
+    const sets   = weeklyVol[m] ?? 0;
+    const status = classifyVolume(sets);
     if (status !== "neutral" && status !== "maintain") return;
-    const best = bestExForMuscle(m, db, inProgram);
-    const targetDay = sessions.find(d => d.exercises.some(e => db[e.name]?.primary.includes(m))) ?? sessions[0];
+
+    // If the muscle is already in the program, suggest increasing sets on existing exercise
+    const sessionWithMuscle = sessions.find(s => s.exercises.some(e => db[e.name]?.primary.includes(m)));
+    if (sessionWithMuscle) {
+      const exWithMuscle = sessionWithMuscle.exercises.find(e => db[e.name]?.primary.includes(m));
+      suggestions.push({
+        id:`prio-${m}`, icon:"🎯", priority:4,
+        text:`Augmente le volume ${m} — ${sets} sér. actuellement, objectif 6+`,
+        subtext:`Ajoute 1–2 séries sur "${exWithMuscle.name}" dans "${sessionWithMuscle.name}"`,
+        action: null,
+      });
+    } else {
+      // Muscle not in program at all — suggest adding best exercise
+      const best      = bestExForMuscle(m, db, inProgram);
+      const targetDay = bestSessionForMuscle(m, sessions, db);
+      suggestions.push({
+        id:`prio-${m}`, icon:"🎯", priority:4,
+        text:`Ajoute un exercice ${m} — priorité non couverte`,
+        subtext: best ? `Meilleur choix : ${best} (tier ${db[best]?.tier})` : null,
+        action: best ? { label:`Ajouter dans "${targetDay.name}"`, dayId:targetDay.id, exName:best } : null,
+      });
+    }
+  });
+
+  // ── 2. Priority muscles trained only once — suggest 2nd frequency ──────────
+  ALL_MUSCLES.forEach(m => {
+    if (priorities[m] !== "priority") return;
+    const sets = weeklyVol[m] ?? 0;
+    if (sets === 0) return; // already handled above
+    // Count sessions training this muscle
+    const sessionsWithMuscle = sessions.filter(s => s.exercises.some(e => db[e.name]?.primary.includes(m)));
+    if (sessionsWithMuscle.length >= 2) return;
+    // Only 1 session — suggest adding a 2nd frequency
+    const otherSessions = sessions.filter(s => !sessionsWithMuscle.includes(s));
+    if (!otherSessions.length) return;
+    const best      = bestExForMuscle(m, db, inProgram);
+    const targetDay = otherSessions.reduce((a, b) => a.exercises.length <= b.exercises.length ? a : b);
     suggestions.push({
-      id: `prio-${m}`, icon:"🎯", priority:3,
-      text:`${m} en Priorité — ${weeklyVol[m]??0} sér., objectif 6+`,
-      subtext: best ? `Suggéré : ${best} (${db[best]?.tier})` : null,
-      action: best && targetDay ? { label:`Ajouter à "${targetDay.name}"`, dayId:targetDay.id, exName:best } : null,
+      id:`freq-${m}`, icon:"🔁", priority:3,
+      text:`${m} entraîné 1×/semaine — passe à 2× pour plus de gains`,
+      subtext: best ? `Ajoute "${best}" dans une 2ème séance` : null,
+      action: best ? { label:`Ajouter dans "${targetDay.name}"`, dayId:targetDay.id, exName:best } : null,
     });
   });
 
-  // Back-to-back suggestions
+  // ── 3. Back-to-back conflicts — suggest which session to reorganize ─────────
   backToBack.forEach(b => {
+    const dayBSession = sessions.find(s =>
+      s.exercises.some(e => db[e.name]?.primary.some(m => b.muscles.includes(m))) &&
+      sessions.indexOf(s) > 0
+    );
     suggestions.push({
-      id:`btb-${b.dayALabel}`, icon:"🔄", priority:2,
-      text:`${b.muscles.join(", ")} entraîné ${b.dayALabel} et ${b.dayBLabel} — récupération insuffisante`,
-      subtext:`Placer un jour de repos entre ${b.dayALabel} et ${b.dayBLabel}, ou changer l'exercice de ${b.dayBLabel}`,
+      id:`btb-${b.dayALabel}`, icon:"⚡", priority:3,
+      text:`${b.muscles.join(", ")} : J-J ${b.dayALabel}→${b.dayBLabel}, récupération insuffisante`,
+      subtext: dayBSession
+        ? `Déplace ou remplace les exercices ${b.muscles.join("/")} du ${b.dayBLabel}`
+        : `Place un jour de repos entre ${b.dayALabel} et ${b.dayBLabel}`,
       action: null,
     });
   });
 
+  // ── 4. Push/pull imbalance ─────────────────────────────────────────────────
   const { push: pushSets, pull: pullSets } = computePushPullSets(sessions, db);
-  if (pushSets > 0 && pullSets / pushSets < 0.7) {
-    const best = bestExForMuscle("Dos", db, inProgram);
-    const day  = sessions.find(d => d.exercises.some(e => db[e.name]?.primary.includes("Dos"))) ?? sessions[0];
-    suggestions.push({
-      id:"balance", icon:"⚖️", priority:2,
-      text:`Push/pull déséquilibré — ${pushSets} push vs ${pullSets} pull`,
-      subtext: best ? `Suggéré : ${best} (${db[best]?.tier})` : null,
-      action: best && day ? { label:`Ajouter à "${day.name}"`, dayId:day.id, exName:best } : null,
-    });
+  if (pushSets + pullSets > 0) {
+    const ratio = pullSets / Math.max(pushSets, 1);
+    if (ratio < 0.7) {
+      const best        = bestExForMuscle("Dos", db, inProgram);
+      const heavyPush   = heaviestSessionByMovement("push", sessions, db);
+      const pullSession = heaviestSessionByMovement("pull", sessions, db) ?? sessions[0];
+      suggestions.push({
+        id:"balance-pull", icon:"⚖️", priority:3,
+        text:`Trop de push — ${pushSets} push vs ${pullSets} pull (ratio ${(ratio).toFixed(1)}×)`,
+        subtext: best && pullSession ? `Ajoute "${best}" dans "${pullSession.name}"` : `Ajoute des exercices de tirage`,
+        action: best ? { label:`Ajouter dans "${pullSession.name}"`, dayId:pullSession.id, exName:best } : null,
+      });
+    } else if (ratio > 1.6) {
+      const best        = bestExForMuscle("Pectoraux", db, inProgram);
+      const pushSession = heaviestSessionByMovement("push", sessions, db) ?? sessions[0];
+      suggestions.push({
+        id:"balance-push", icon:"⚖️", priority:2,
+        text:`Trop de pull — ${pullSets} pull vs ${pushSets} push (ratio ${(ratio).toFixed(1)}×)`,
+        subtext: best && pushSession ? `Ajoute "${best}" dans "${pushSession.name}"` : null,
+        action: best ? { label:`Ajouter dans "${pushSession.name}"`, dayId:pushSession.id, exName:best } : null,
+      });
+    }
   }
 
+  // ── 5. Major muscle completely absent ─────────────────────────────────────
   MAJOR_MUSCLES.forEach(m => {
     if ((weeklyVol[m] ?? 0) > 0) return;
-    const best = bestExForMuscle(m, db, inProgram);
+    const best      = bestExForMuscle(m, db, inProgram);
+    const targetDay = bestSessionForMuscle(m, sessions, db);
     suggestions.push({
-      id:`absent-${m}`, icon:"⚠️", priority:1,
-      text:`${m} absent du programme`,
-      subtext: best ? `Suggéré : ${best} (${db[best]?.tier})` : null,
-      action: best && sessions[0] ? { label:`Ajouter à "${sessions[0].name}"`, dayId:sessions[0].id, exName:best } : null,
+      id:`absent-${m}`, icon:"⚠️", priority:2,
+      text:`${m} absent — groupe majeur non couvert`,
+      subtext: best ? `Meilleur choix : ${best} (tier ${db[best]?.tier})` : null,
+      action: best ? { label:`Ajouter dans "${targetDay.name}"`, dayId:targetDay.id, exName:best } : null,
     });
   });
 
-  return suggestions.sort((a,b) => b.priority - a.priority).slice(0, 6);
+  // ── 6. Maintain muscle with too much volume ────────────────────────────────
+  ALL_MUSCLES.forEach(m => {
+    if (priorities[m] !== "maintain") return;
+    if (classifyVolume(weeklyVol[m] ?? 0) !== "prio") return;
+    const sessionWithMost = sessions.reduce((best, s) => {
+      const sets = s.exercises.filter(e => db[e.name]?.primary.includes(m)).reduce((n, e) => n + e.sets, 0);
+      const bestSets = best.exercises.filter(e => db[e.name]?.primary.includes(m)).reduce((n, e) => n + e.sets, 0);
+      return sets > bestSets ? s : best;
+    }, sessions[0]);
+    suggestions.push({
+      id:`over-${m}`, icon:"🔒", priority:1,
+      text:`${m} en Maintien mais sur-entraîné (${weeklyVol[m]} sér.)`,
+      subtext: `Réduis les séries ${m} dans "${sessionWithMost.name}"`,
+      action: null,
+    });
+  });
+
+  return suggestions
+    .sort((a, b) => b.priority - a.priority)
+    .slice(0, 5); // max 5 suggestions
 }
 
 // ─── DISPLAY CONSTANTS ────────────────────────────────────────────────────────
@@ -1425,22 +1753,33 @@ export default function WorkoutDashboard() {
             {suggestions.length > 0 && (
               <div className="panel-block">
                 <div className="panel-label">SUGGESTIONS</div>
-                <div style={{ marginTop:6, display:"flex", flexDirection:"column", gap:6 }}>
+                <div style={{ marginTop:8, display:"flex", flexDirection:"column", gap:5 }}>
                   {suggestions.map(suggestion => (
-                    <div key={suggestion.id} style={{ background:C.bg, borderRadius:7, padding:"7px 9px",
-                      border:`1px solid ${C.borderLight}` }}>
-                      <div style={{ fontSize:"0.68rem", fontWeight:600, color:C.textSub, display:"flex", gap:4 }}>
-                        <span>{suggestion.icon}</span><span>{suggestion.text}</span>
+                    <div key={suggestion.id} style={{
+                      borderRadius:9, padding:"9px 11px",
+                      background:"var(--surface)",
+                      border:"1px solid var(--border)",
+                      boxShadow:"0 1px 3px rgba(0,0,0,0.04)",
+                    }}>
+                      <div style={{ display:"flex", alignItems:"flex-start", gap:6 }}>
+                        <span style={{ fontSize:"0.85rem", flexShrink:0, lineHeight:1.2 }}>{suggestion.icon}</span>
+                        <span style={{ fontSize:"0.72rem", fontWeight:600, color:"var(--text)", lineHeight:1.35 }}>
+                          {suggestion.text}
+                        </span>
                       </div>
                       {suggestion.subtext && (
-                        <div style={{ fontSize:"0.62rem", color:C.textFaint, marginTop:2 }}>{suggestion.subtext}</div>
+                        <div style={{ fontSize:"0.65rem", color:"var(--text-muted)", marginTop:4, paddingLeft:22, lineHeight:1.4 }}>
+                          {suggestion.subtext}
+                        </div>
                       )}
                       {suggestion.action && (
-                        <button onClick={() => applySuggestion(suggestion.action)} style={{
-                          marginTop:5, fontSize:"0.62rem", fontWeight:700, padding:"3px 9px",
-                          background:C.accent, color:"#fff", border:"none", borderRadius:5,
-                          cursor:"pointer", fontFamily:"inherit",
-                        }}>{suggestion.action.label}</button>
+                        <div style={{ paddingLeft:22, marginTop:6 }}>
+                          <button onClick={() => applySuggestion(suggestion.action)} style={{
+                            fontSize:"0.65rem", fontWeight:700, padding:"4px 10px",
+                            background:"var(--accent)", color:"#fff", border:"none", borderRadius:20,
+                            cursor:"pointer", fontFamily:"inherit", letterSpacing:"-0.1px",
+                          }}>{suggestion.action.label}</button>
+                        </div>
                       )}
                     </div>
                   ))}
@@ -1797,10 +2136,81 @@ export default function WorkoutDashboard() {
                   );
                 })}
               </div>
-              <div style={{ padding:"10px 12px", borderTop:`1.5px solid ${C.border}`, flexShrink:0 }}>
-                <button className="btn-full-accent" onClick={() => { closeModal(); setTimeout(openNewProg, 50); }}>
-                  + Nouveau programme
+              <div style={{ padding:"10px 12px", borderTop:`1px solid var(--border)`, flexShrink:0,
+                display:"flex", gap:8 }}>
+                <button className="btn-full-accent" style={{ flex:1 }}
+                  onClick={() => { closeModal(); setTimeout(openNewProg, 50); }}>
+                  + Vide
                 </button>
+                <button className="btn-full-accent" style={{ flex:2, background:"var(--surface)",
+                  color:"var(--text)", border:"1.5px solid var(--border)", boxShadow:"none" }}
+                  onClick={() => setModal({ type:"templates" })}>
+                  📋 Depuis un template
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Templates */}
+          {modal.type === "templates" && (
+            <div className="modal" style={{ width:520 }} onClick={e => e.stopPropagation()}>
+              <div className="modal-handle" />
+              <div className="modal-header">
+                <span className="modal-title">Choisir un template</span>
+                <button className="modal-close" onClick={closeModal}>✕</button>
+              </div>
+              <div style={{ overflowY:"auto", flex:1, padding:"10px 12px", display:"flex", flexDirection:"column", gap:8 }}>
+                {PROGRAM_TEMPLATES.map(tpl => (
+                  <div key={tpl.id} style={{
+                    borderRadius:12, border:"1px solid var(--border)",
+                    background:"var(--surface)", overflow:"hidden",
+                    cursor:"pointer", transition:"all 0.12s",
+                  }}
+                    onClick={() => {
+                      const prog = createProgramFromTemplate(tpl);
+                      setPrograms(all => [...all, prog]);
+                      setActiveProgramId(prog.id);
+                      closeModal();
+                    }}
+                    onMouseEnter={e => { e.currentTarget.style.borderColor=C.accent; e.currentTarget.style.boxShadow="0 0 0 3px rgba(232,80,10,0.08)"; }}
+                    onMouseLeave={e => { e.currentTarget.style.borderColor="var(--border)"; e.currentTarget.style.boxShadow="none"; }}>
+                    {/* Header */}
+                    <div style={{ padding:"12px 14px 8px" }}>
+                      <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:4 }}>
+                        <span style={{ fontSize:"0.88rem", fontWeight:700, color:"var(--text)", letterSpacing:"-0.2px" }}>
+                          {tpl.name}
+                        </span>
+                        <div style={{ display:"flex", gap:4, marginLeft:"auto" }}>
+                          {tpl.tags.map(tag => (
+                            <span key={tag} style={{ fontSize:"0.6rem", fontWeight:600, padding:"2px 7px",
+                              borderRadius:20, background:"var(--sets-bg)", color:"var(--text-muted)" }}>
+                              {tag}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                      <div style={{ fontSize:"0.72rem", color:"var(--text-muted)", lineHeight:1.4 }}>
+                        {tpl.description}
+                      </div>
+                    </div>
+                    {/* Days preview */}
+                    <div style={{ padding:"6px 14px 12px", display:"flex", gap:4, flexWrap:"wrap" }}>
+                      {tpl.week.map((slot, i) => slot ? (
+                        <div key={i} style={{ fontSize:"0.6rem", fontWeight:600, padding:"3px 8px",
+                          borderRadius:20, background:C.accentBg, color:C.accentDark,
+                          display:"flex", alignItems:"center", gap:4 }}>
+                          <span style={{ opacity:0.6 }}>{DAY_LABELS[i]}</span>
+                          <span>{slot.name}</span>
+                        </div>
+                      ) : (
+                        <div key={i} style={{ fontSize:"0.6rem", padding:"3px 8px",
+                          borderRadius:20, background:"var(--sets-bg)", color:"var(--text-faint)" }}>
+                          {DAY_LABELS[i]} Repos
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ))}
               </div>
             </div>
           )}
