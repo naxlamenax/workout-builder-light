@@ -1172,7 +1172,7 @@ export default function WorkoutDashboard() {
       + 'body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:#111;background:#fff;padding:32px;font-size:13px}'
       + '.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px;margin-bottom:28px}'
       + '.vol-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px}'
-      + '@media print{body{padding:16px}@page{margin:12mm;size:A4}.grid{grid-template-columns:repeat(2,1fr)}}'
+      + '@media print{body{padding:16px}@page{margin:10mm;size:A4 landscape}.grid{grid-template-columns:repeat(3,1fr)}}'
       + '</style></head><body>'
       + '<h1 style="font-size:22px;font-weight:800;letter-spacing:-0.5px;margin-bottom:4px">' + prog.name + '</h1>'
       + '<p style="font-size:13px;color:#777;margin-bottom:20px">Généré avec Workout · ' + date + '</p>'
