@@ -1169,7 +1169,7 @@ export default function WorkoutDashboard() {
         + '<h2 style="font-size:18px;font-weight:800;letter-spacing:-0.4px;color:#111">' + block.name + '</h2>'
         + '<span style="font-size:12px;color:#999;font-weight:500">' + block.duration + ' semaine' + (block.duration > 1 ? 's' : '') + '</span>'
         + '</div>'
-        + (block.description ? '<p style="font-size:13px;color:#555;margin-bottom:10px;line-height:1.5">' + block.description + '</p>' : '')
+        + (block.description ? '<p style="font-size:13px;color:#555;margin-bottom:10px;line-height:1.5">' + block.description.replace(/\n/g, '<br>') + '</p>' : '')
         + '<div style="display:flex;gap:8px;flex-wrap:wrap">' + chips + '</div>'
         + '</div>'
         + '<div class="grid">' + sessionsHtml + '</div>'
@@ -1223,7 +1223,7 @@ export default function WorkoutDashboard() {
       + '<div style="background:#0F0F11;color:#fff;padding:48px 52px 44px;display:flex;flex-direction:column;justify-content:flex-end;min-height:220px">'
       +   '<div style="font-size:11px;font-weight:700;color:#E8500A;letter-spacing:2px;text-transform:uppercase;margin-bottom:12px">Programme d&#39;entra&#238;nement</div>'
       +   '<h1 style="font-size:38px;font-weight:800;letter-spacing:-1px;line-height:1.1;margin-bottom:12px">' + prog.name + '</h1>'
-      +   (prog.description ? '<p style="font-size:15px;color:#AEAEB2;margin-bottom:16px;line-height:1.5;max-width:600px">' + prog.description + '</p>' : '')
+      +   (prog.description ? '<p style="font-size:15px;color:#AEAEB2;margin-bottom:16px;line-height:1.5;max-width:600px">' + prog.description.replace(/\n/g, '<br>') + '</p>' : '')
       +   '<div style="font-size:13px;color:#888">'
       +     blocks.length + ' bloc' + (blocks.length > 1 ? 's' : '') + ' · '
       +     totalWeeks + ' semaines · Généré le ' + date
@@ -2665,7 +2665,7 @@ export default function WorkoutDashboard() {
                       <div style={{ flex:1, minWidth:0 }}>
                         <div style={{ fontSize:"0.85rem", fontWeight:600, color: active ? C.accentDark : C.text }}>{p.name}</div>
                         {p.description && (
-                          <div style={{ fontSize:"0.68rem", color:"var(--text-muted)", marginTop:1, lineHeight:1.4 }}>{p.description}</div>
+                          <div style={{ fontSize:"0.68rem", color:"var(--text-muted)", marginTop:1, lineHeight:1.4, whiteSpace:"pre-wrap" }}>{p.description}</div>
                         )}
                         <div style={{ fontSize:"0.66rem", color:C.textFaint, marginTop:1 }}>
                           {(p.blocks?.length ?? 1)} bloc{(p.blocks?.length ?? 1) > 1 ? "s" : ""} · {sess.length} séance{sess.length !== 1 ? "s" : ""}/sem.
