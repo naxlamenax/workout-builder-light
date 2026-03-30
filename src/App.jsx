@@ -1219,7 +1219,7 @@ export default function WorkoutDashboard() {
       + '<div style="background:#0F0F11;color:#fff;padding:48px 52px 44px;display:flex;flex-direction:column;justify-content:flex-end;min-height:220px">'
       +   '<div style="font-size:11px;font-weight:700;color:#E8500A;letter-spacing:2px;text-transform:uppercase;margin-bottom:12px">Programme d&#39;entra&#238;nement</div>'
       +   '<h1 style="font-size:38px;font-weight:800;letter-spacing:-1px;line-height:1.1;margin-bottom:12px">' + prog.name + '</h1>'
-      +   (prog.description ? '<p style="font-size:12px;color:#AEAEB2;margin-bottom:14px;line-height:1.6">' + prog.description.replace(/\n/g, '<br>') + '</p>' : '')
+      +   (prog.description ? '<p style="font-size:14px;color:#AEAEB2;margin-bottom:14px;line-height:1.6">' + prog.description.replace(/\n/g, '<br>') + '</p>' : '')
       +   '<div style="font-size:13px;color:#888">'
       +     blocks.length + ' bloc' + (blocks.length > 1 ? 's' : '') + ' · '
       +     totalWeeks + ' semaines · Généré le ' + date
