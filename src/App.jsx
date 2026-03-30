@@ -1096,6 +1096,8 @@ export default function WorkoutDashboard() {
         const primary = (d.primary ?? []).map(m =>
           '<span style="font-size:10px;font-weight:600;padding:1px 6px;border-radius:10px;color:' + (MUSCLE_COLOR[m]||"#666") + ';background:' + (MUSCLE_COLOR[m]||"#666") + '18">' + m + '</span>'
         ).join("");
+        const repsLabel = ex.reps ? ('<span style="font-size:10px;font-weight:600;color:#777;background:#F0F0F0;border-radius:8px;padding:1px 7px;white-space:nowrap">' + ex.reps + '</span>') : '';
+        const noteHtml  = ex.note ? ('<div style="font-size:11px;color:#666;margin-top:4px;line-height:1.5;white-space:pre-wrap;border-left:2px solid #E0E0E0;padding-left:7px">' + ex.note + '</div>') : '';
         exHtml += '<div style="padding:7px 14px;border-bottom:1px solid #F4F4F5;display:flex;align-items:flex-start;gap:8px">'
           + '<span style="font-size:11px;font-weight:600;color:#AEAEB2;width:16px;flex-shrink:0;padding-top:1px">' + (j+1) + '</span>'
           + '<div style="flex:1;min-width:0">'
@@ -1103,8 +1105,10 @@ export default function WorkoutDashboard() {
           +     '<span style="font-size:12px;font-weight:600;color:#111;flex:1;min-width:0">' + ex.name + '</span>'
           +     tierBadge
           +     '<span style="font-size:11px;font-weight:700;color:#111;background:#F4F4F5;border-radius:10px;padding:2px 8px;flex-shrink:0;white-space:nowrap">' + ex.sets + ' sér.</span>'
+          +     repsLabel
           +   '</div>'
           + (primary ? '<div style="display:flex;gap:4px;flex-wrap:wrap;margin-top:4px">' + primary + '</div>' : '')
+          + noteHtml
           + '</div>'
           + '</div>';
       });
@@ -1173,6 +1177,69 @@ export default function WorkoutDashboard() {
     win.document.close();
     win.focus();
     setTimeout(() => win.print(), 400);
+  }
+
+  function exportXlsx() {
+    const prog    = activeProgram;
+    const days    = prog.week ?? [];
+    const vol     = computeWeeklyVolume(days.filter(Boolean), db);
+    const { push: pushSets, pull: pullSets } = computePushPullSets(days.filter(Boolean), db);
+    const dayLabels = ["Lun","Mar","Mer","Jeu","Ven","Sam","Dim"];
+
+    // Dynamically load SheetJS from CDN
+    const script = document.createElement("script");
+    script.src = "https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js";
+    script.onload = () => {
+      const XLSX = window.XLSX;
+      const wb   = XLSX.utils.book_new();
+
+      // ── 1. One sheet per session ──────────────────────────────
+      days.forEach((slot, i) => {
+        if (!slot) return;
+        const rows = [["#", "Exercice", "Séries", "Reps cibles", "Tier", "Muscles principaux", "Muscles secondaires", "Push/Pull", "Notes"]];
+        slot.exercises.forEach((ex, j) => {
+          const d = db[ex.name] ?? {};
+          rows.push([
+            j + 1,
+            ex.name,
+            ex.sets,
+            ex.reps ?? "",
+            d.tier ?? "",
+            (d.primary ?? []).join(", "),
+            (d.secondary ?? []).join(", "),
+            d.movement && d.movement !== "neutral" ? (d.movement === "push" ? "Push" : "Pull") : "",
+            ex.note ?? "",
+          ]);
+        });
+        const ws = XLSX.utils.aoa_to_sheet(rows);
+        // Column widths
+        ws["!cols"] = [
+          {wch:4}, {wch:36}, {wch:8}, {wch:14}, {wch:6},
+          {wch:28}, {wch:24}, {wch:10}, {wch:40}
+        ];
+        XLSX.utils.book_append_sheet(wb, ws, dayLabels[i] + " — " + slot.name.slice(0, 20));
+      });
+
+      // ── 2. Summary sheet ──────────────────────────────────────
+      const summaryRows = [["Programme", prog.name], ["Export", new Date().toLocaleDateString("fr-FR")], []];
+      summaryRows.push(["VOLUME HEBDOMADAIRE", ""]);
+      summaryRows.push(["Muscle", "Séries/semaine", "Statut"]);
+      ALL_MUSCLES.forEach(m => {
+        const sets = vol[m] ?? 0;
+        const status = sets === 0 ? "—" : sets <= 5 ? "Maintien" : sets <= 12 ? "Bon" : "Priorité";
+        summaryRows.push([m, sets > 0 ? (Number.isInteger(sets) ? sets : parseFloat(sets.toFixed(1))) : 0, status]);
+      });
+      summaryRows.push([]);
+      summaryRows.push(["PUSH / PULL", "", ""]);
+      summaryRows.push(["Push", pushSets, ""]);
+      summaryRows.push(["Pull", pullSets, ""]);
+      const wsSummary = XLSX.utils.aoa_to_sheet(summaryRows);
+      wsSummary["!cols"] = [{wch:24}, {wch:18}, {wch:12}];
+      XLSX.utils.book_append_sheet(wb, wsSummary, "Résumé");
+
+      XLSX.writeFile(wb, prog.name.replace(/[^a-zA-Z0-9]/g, "_") + ".xlsx");
+    };
+    document.head.appendChild(script);
   }
 
   function exportBackup() {
@@ -1580,6 +1647,7 @@ export default function WorkoutDashboard() {
             <button className="hdr-ghost" onClick={() => setModal({ type:"library" })}>Bibliothèque</button>
             <button className="hdr-ghost" onClick={() => fileInputRef.current?.click()}>↑ Importer</button>
             <button className="hdr-ghost" onClick={exportPdf} title="Exporter en PDF">↓ PDF</button>
+            <button className="hdr-ghost" onClick={exportXlsx} title="Exporter en Excel">↓ XLS</button>
             <button className="hdr-solid" onClick={exportBackup}>↓ JSON</button>
             {/* Zoom controls */}
             <div style={{ display:"flex", alignItems:"center", gap:1, background:"var(--sets-bg)",
