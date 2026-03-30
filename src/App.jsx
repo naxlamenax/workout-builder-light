@@ -1219,7 +1219,6 @@ export default function WorkoutDashboard() {
       + '<div style="background:#0F0F11;color:#fff;padding:48px 52px 44px;display:flex;flex-direction:column;justify-content:flex-end;min-height:220px">'
       +   '<div style="font-size:11px;font-weight:700;color:#E8500A;letter-spacing:2px;text-transform:uppercase;margin-bottom:12px">Programme d&#39;entra&#238;nement</div>'
       +   '<h1 style="font-size:38px;font-weight:800;letter-spacing:-1px;line-height:1.1;margin-bottom:12px">' + prog.name + '</h1>'
-      +   (prog.description ? '<p style="font-size:15px;color:#AEAEB2;margin-bottom:16px;line-height:1.5;max-width:600px">' + prog.description.replace(/\n/g, '<br>') + '</p>' : '')
       +   '<div style="font-size:13px;color:#888">'
       +     blocks.length + ' bloc' + (blocks.length > 1 ? 's' : '') + ' · '
       +     totalWeeks + ' semaines · Généré le ' + date
@@ -1227,6 +1226,7 @@ export default function WorkoutDashboard() {
       + '</div>'
       // Bottom — white, summary table
       + '<div style="background:#fff;padding:36px 52px">'
+      +   (prog.description ? '<p style="font-size:13px;color:#555;margin-bottom:20px;line-height:1.6;max-width:800px;white-space:pre-wrap">' + prog.description.replace(/\n/g, '<br>') + '</p>' : '')
       +   '<div style="display:flex;gap:32px;margin-bottom:28px">'
       +     ['<div><div style="font-size:28px;font-weight:800;color:#111;letter-spacing:-1px">' + totalWeeks + '</div><div style="font-size:11px;color:#999;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;margin-top:2px">Semaines</div></div>',
              '<div><div style="font-size:28px;font-weight:800;color:#111;letter-spacing:-1px">' + blocks.length + '</div><div style="font-size:11px;color:#999;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;margin-top:2px">Blocs</div></div>',
