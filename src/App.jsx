@@ -1122,6 +1122,7 @@ export default function WorkoutDashboard() {
           '<span style="font-size:10px;font-weight:600;padding:1px 6px;border-radius:10px;color:' + (MUSCLE_COLOR[m]||"#666") + ';background:' + (MUSCLE_COLOR[m]||"#666") + '18">' + m + '</span>'
         ).join("");
         const repsLabel = ex.reps ? ('<span style="font-size:10px;font-weight:600;color:#777;background:#F0F0F0;border-radius:8px;padding:1px 7px;white-space:nowrap">' + ex.reps + '</span>') : '';
+        const restLabel = ex.rest ? ('<span style="font-size:10px;font-weight:600;color:#555;background:#F0F0F0;border-radius:8px;padding:1px 7px;white-space:nowrap">⏱ ' + ex.rest + 's</span>') : '';
         const noteHtml  = ex.note ? ('<div style="font-size:11px;color:#666;margin-top:4px;line-height:1.5;white-space:pre-wrap;border-left:2px solid #E0E0E0;padding-left:7px">' + ex.note + '</div>') : '';
         exHtml += '<div style="padding:7px 14px;border-bottom:1px solid #F4F4F5;display:flex;align-items:flex-start;gap:8px">'
           + '<span style="font-size:11px;font-weight:600;color:#AEAEB2;width:16px;flex-shrink:0;padding-top:1px">' + (j+1) + '</span>'
@@ -1131,6 +1132,7 @@ export default function WorkoutDashboard() {
           +     tierBadge
           +     '<span style="font-size:11px;font-weight:700;color:#111;background:#F4F4F5;border-radius:10px;padding:2px 8px;flex-shrink:0;white-space:nowrap">' + ex.sets + ' sér.</span>'
           +     repsLabel
+          +     restLabel
           +   '</div>'
           + (primary ? '<div style="display:flex;gap:4px;flex-wrap:wrap;margin-top:4px">' + primary + '</div>' : '')
           + noteHtml
@@ -1221,7 +1223,7 @@ export default function WorkoutDashboard() {
       // ── 1. One sheet per session ──────────────────────────────
       days.forEach((slot, i) => {
         if (!slot) return;
-        const rows = [["#", "Exercice", "Séries", "Reps cibles", "Tier", "Muscles principaux", "Muscles secondaires", "Push/Pull", "Notes"]];
+        const rows = [["#", "Exercice", "Séries", "Reps cibles", "Récup. (sec)", "Tier", "Muscles principaux", "Muscles secondaires", "Push/Pull", "Notes"]];
         slot.exercises.forEach((ex, j) => {
           const d = db[ex.name] ?? {};
           rows.push([
@@ -1229,6 +1231,7 @@ export default function WorkoutDashboard() {
             ex.name,
             ex.sets,
             ex.reps ?? "",
+            ex.rest ?? "",
             d.tier ?? "",
             (d.primary ?? []).join(", "),
             (d.secondary ?? []).join(", "),
@@ -1239,7 +1242,7 @@ export default function WorkoutDashboard() {
         const ws = XLSX.utils.aoa_to_sheet(rows);
         // Column widths
         ws["!cols"] = [
-          {wch:4}, {wch:36}, {wch:8}, {wch:14}, {wch:6},
+          {wch:4}, {wch:36}, {wch:8}, {wch:14}, {wch:12}, {wch:6},
           {wch:28}, {wch:24}, {wch:10}, {wch:40}
         ];
         XLSX.utils.book_append_sheet(wb, ws, dayLabels[i] + " — " + slot.name.slice(0, 20));
@@ -2502,7 +2505,7 @@ export default function WorkoutDashboard() {
                   {exInProgram && (
                     <div style={{ display:"flex", flexDirection:"column", gap:10,
                       borderTop:"1px solid var(--border-light)", paddingTop:12 }}>
-                      <div style={{ display:"flex", alignItems:"center", gap:12 }}>
+                      <div style={{ display:"flex", alignItems:"flex-end", gap:10 }}>
                         <div style={{ flex:1 }}>
                           <label className="form-label" style={{ marginBottom:4 }}>Répétitions cibles</label>
                           <input
@@ -2512,6 +2515,21 @@ export default function WorkoutDashboard() {
                             value={exInProgram.reps ?? ""}
                             onChange={e => updateExField(modal.dayId, modal.exId, "reps", e.target.value)}
                           />
+                        </div>
+                        <div style={{ width:110, flexShrink:0 }}>
+                          <label className="form-label" style={{ marginBottom:4 }}>Récupération</label>
+                          <div style={{ display:"flex", alignItems:"center", gap:4 }}>
+                            <input
+                              className="form-input"
+                              type="number"
+                              min={0} max={600} step={15}
+                              placeholder="90"
+                              value={exInProgram.rest ?? ""}
+                              onChange={e => updateExField(modal.dayId, modal.exId, "rest", e.target.value === "" ? null : Number(e.target.value))}
+                              style={{ textAlign:"center" }}
+                            />
+                            <span style={{ fontSize:"0.72rem", color:"var(--text-muted)", flexShrink:0 }}>sec.</span>
+                          </div>
                         </div>
                       </div>
                       <div>
