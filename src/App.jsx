@@ -1254,7 +1254,7 @@ export default function WorkoutDashboard() {
       + '.block-section{margin-bottom:8px}.block-header{break-after:avoid;break-inside:avoid}'
       + '@media print{'
       +   'body{padding:0}'
-      +   '@page{margin:0;size:A4 landscape}'
+      +   '@page{margin:16mm 10mm 10mm 10mm;size:A4 landscape}'
       +   '.cover-page{page-break-after:always;height:100vh}'
       +   '.grid{grid-template-columns:repeat(3,1fr)}'
       +   '.block-section+.block-section{break-before:page}'
