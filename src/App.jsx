@@ -448,12 +448,12 @@ function createProgramFromTemplate(template) {
   template.week.forEach((slot, i) => {
     if (!slot) return;
     week[i] = {
-      id: uid(),
-      name: slot.name,
+      id: uid(), name: slot.name,
       exercises: slot.exercises.map(e => ({ id: uid(), name: e.name, sets: e.sets })),
     };
   });
-  return { id: uid(), name: template.name, week, priorities: Object.fromEntries(ALL_MUSCLES.map(m => [m, "balanced"])) };
+  const block = makeBlock("Bloc 1", 4, week);
+  return { id: uid(), name: template.name, blocks: [block], activeBlockId: block.id, priorities: Object.fromEntries(ALL_MUSCLES.map(m => [m, "balanced"])) };
 }
 
 // ─── DEMO WEEK ────────────────────────────────────────────────────────────────
@@ -853,7 +853,19 @@ const PRIO_OPTS = [
 ];
 
 const emptyExForm = () => ({ name:"", tier:"A", primary:[], secondary:[], movement:"neutral" });
-const makeProgram = name => ({ id:uid(), name, week: Array(7).fill(null), priorities: Object.fromEntries(ALL_MUSCLES.map(m => [m, "balanced"])) });
+const makeBlock   = (name = "Bloc 1", duration = 4, week = null) => ({
+  id: uid(), name, duration, week: week ?? Array(7).fill(null),
+});
+const makeProgram = name => {
+  const block = makeBlock("Bloc 1");
+  return { id: uid(), name, blocks: [block], activeBlockId: block.id, priorities: Object.fromEntries(ALL_MUSCLES.map(m => [m, "balanced"])) };
+};
+// Migrate old program.week[] → blocks[]
+function migrateToBlocks(p) {
+  if (p.blocks) return p; // already migrated
+  const block = makeBlock("Bloc 1", 4, p.week ?? Array(7).fill(null));
+  return { ...p, blocks: [block], activeBlockId: block.id, week: undefined };
+}
 
 // ─── MIGRATION: old days[] format → new week[] format ────────────────────────
 function migrateToWeek(oldDays) {
@@ -874,19 +886,31 @@ const SECONDARY_WEIGHT  = 0.5; // secondary muscles count half toward weekly vol
 
 export default function WorkoutDashboard() {
 
-  const [programs,        setPrograms]        = useState([{ id:"p1", name:"Mon Programme", week: DEMO_WEEK }]);
+  const demoBlock = makeBlock("Bloc 1", 4, DEMO_WEEK);
+  const [programs,        setPrograms]        = useState([{ id:"p1", name:"Mon Programme", blocks:[demoBlock], activeBlockId:demoBlock.id, priorities: Object.fromEntries(ALL_MUSCLES.map(m=>[m,"balanced"])) }]);
   const [activeProgramId, setActiveProgramId] = useState("p1");
   const [showOnboarding,  setShowOnboarding]  = useState(false);
 
   const activeProgram     = programs.find(p => p.id === activeProgramId);
-  const week              = activeProgram?.week ?? Array(7).fill(null);
+  const activeBlock       = activeProgram?.blocks?.find(b => b.id === activeProgram.activeBlockId) ?? activeProgram?.blocks?.[0];
+  const week              = activeBlock?.week ?? Array(7).fill(null);
   const sessions          = week.filter(Boolean);
   const activeProgramName = activeProgram?.name ?? "—";
 
-  function updateWeek(fn) {
+  function setActiveBlock(blockId) {
     setPrograms(all => all.map(p =>
-      p.id !== activeProgramId ? p : { ...p, week: fn([...p.week]) }
+      p.id !== activeProgramId ? p : { ...p, activeBlockId: blockId }
     ));
+  }
+
+  function updateWeek(fn) {
+    setPrograms(all => all.map(p => {
+      if (p.id !== activeProgramId) return p;
+      const blocks = p.blocks.map(b =>
+        b.id !== p.activeBlockId ? b : { ...b, week: fn([...b.week]) }
+      );
+      return { ...p, blocks };
+    }));
   }
 
   function updateDayExercises(dayId, fn) {
@@ -919,6 +943,7 @@ export default function WorkoutDashboard() {
   const [editingSets,    setEditingSets]    = useState(null); // {dayId, exId} — null = compact badge
   const [exMenu,         setExMenu]         = useState(null);  // {dayId, exId, x, y} — open context menu
   const [priosExpanded,  setPriosExpanded]  = useState(false);
+  const [renamingBlock,  setRenamingBlock]  = useState(null); // blockId
 
   const [progFormName,   setProgFormName]   = useState("");
   const [progFormError,  setProgFormError]  = useState("");
@@ -999,12 +1024,12 @@ export default function WorkoutDashboard() {
         // First launch — show onboarding instead of demo
         setShowOnboarding(true);
       } else if (s?.programs?.length) {
-        const migrated = s.programs.map(p => ({
-          // Migrate pre-week[] format (legacy backups)
-          ...p,
-          week: p.week ?? migrateToWeek(p.days ?? []),
-          priorities: p.priorities ?? Object.fromEntries(ALL_MUSCLES.map(m => [m, "balanced"])),
-        }));
+        const migrated = s.programs.map(p => {
+          // Migrate pre-week[] → week[] if needed, then week[] → blocks[]
+          const withWeek = { ...p, week: p.week ?? migrateToWeek(p.days ?? []) };
+          const withBlocks = migrateToBlocks(withWeek);
+          return { ...withBlocks, priorities: withBlocks.priorities ?? Object.fromEntries(ALL_MUSCLES.map(m => [m, "balanced"])) };
+        });
         setPrograms(migrated);
         setActiveProgramId(s.activeProgramId ?? migrated[0].id);
       }
@@ -1067,7 +1092,7 @@ export default function WorkoutDashboard() {
 // PDF export function to be inserted before exportBackup
   function exportPdf() {
     const prog     = activeProgram;
-    const days     = prog.week ?? [];
+    const days     = activeBlock?.week ?? [];
     const sessions = days.filter(Boolean);
     const vol      = computeWeeklyVolume(sessions, db);
     const { push: pushSets, pull: pullSets } = computePushPullSets(sessions, db);
@@ -1181,7 +1206,7 @@ export default function WorkoutDashboard() {
 
   function exportXlsx() {
     const prog    = activeProgram;
-    const days    = prog.week ?? [];
+    const days    = activeBlock?.week ?? [];
     const vol     = computeWeeklyVolume(days.filter(Boolean), db);
     const { push: pushSets, pull: pullSets } = computePushPullSets(days.filter(Boolean), db);
     const dayLabels = ["Lun","Mar","Mer","Jeu","Ven","Sam","Dim"];
@@ -1263,7 +1288,11 @@ export default function WorkoutDashboard() {
     try {
       const data = JSON.parse(importText);
       if (data.programs) {
-        const migrated = data.programs.map(p => ({ ...p, week: p.week ?? migrateToWeek(p.days ?? []), priorities: p.priorities ?? Object.fromEntries(ALL_MUSCLES.map(m => [m, "balanced"])) }));
+        const migrated = data.programs.map(p => {
+          const withWeek = { ...p, week: p.week ?? migrateToWeek(p.days ?? []) };
+          const withBlocks = migrateToBlocks(withWeek);
+          return { ...withBlocks, priorities: withBlocks.priorities ?? Object.fromEntries(ALL_MUSCLES.map(m => [m, "balanced"])) };
+        });
         setPrograms(migrated);
         setActiveProgramId(data.activeProgramId ?? migrated[0].id);
       } else if (data.days) {
@@ -1290,7 +1319,7 @@ export default function WorkoutDashboard() {
   }
   function duplicateProg(id) {
     const src = programs.find(p => p.id === id); if (!src) return;
-    const copy = { id:uid(), name:`${src.name} (copie)`, week: JSON.parse(JSON.stringify(src.week)) };
+    const copy = { ...JSON.parse(JSON.stringify(src)), id:uid(), name:`${src.name} (copie)`, blocks: src.blocks.map(b => ({ ...JSON.parse(JSON.stringify(b)), id:uid() })) };
     setPrograms(all => [...all, copy]); setActiveProgramId(copy.id); closeModal();
   }
   function deleteProg(id) {
@@ -1298,6 +1327,54 @@ export default function WorkoutDashboard() {
     if (!window.confirm("Supprimer ce programme ?")) return;
     setPrograms(all => all.filter(p => p.id !== id));
     if (activeProgramId === id) setActiveProgramId(programs.find(p => p.id !== id)?.id ?? "");
+  }
+
+  // ── Block mutations ──────────────────────────────────────────────────────────
+
+  function addBlock() {
+    const b = makeBlock("Bloc " + ((activeProgram?.blocks?.length ?? 0) + 1));
+    setPrograms(all => all.map(p =>
+      p.id !== activeProgramId ? p : { ...p, blocks: [...p.blocks, b], activeBlockId: b.id }
+    ));
+  }
+
+  function duplicateBlock(blockId) {
+    const src = activeProgram?.blocks?.find(b => b.id === blockId);
+    if (!src) return;
+    const copy = { ...JSON.parse(JSON.stringify(src)), id: uid(), name: src.name + " (copie)" };
+    setPrograms(all => all.map(p =>
+      p.id !== activeProgramId ? p : { ...p, blocks: [...p.blocks, copy], activeBlockId: copy.id }
+    ));
+  }
+
+  function deleteBlock(blockId) {
+    const blocks = activeProgram?.blocks ?? [];
+    if (blocks.length <= 1) { alert("Impossible de supprimer le seul bloc."); return; }
+    if (!window.confirm("Supprimer ce bloc ?")) return;
+    const remaining = blocks.filter(b => b.id !== blockId);
+    setPrograms(all => all.map(p =>
+      p.id !== activeProgramId ? p : {
+        ...p,
+        blocks: remaining,
+        activeBlockId: p.activeBlockId === blockId ? remaining[0].id : p.activeBlockId,
+      }
+    ));
+  }
+
+  function renameBlock(blockId, name) {
+    setPrograms(all => all.map(p =>
+      p.id !== activeProgramId ? p : {
+        ...p, blocks: p.blocks.map(b => b.id !== blockId ? b : { ...b, name })
+      }
+    ));
+  }
+
+  function setBlockDuration(blockId, duration) {
+    setPrograms(all => all.map(p =>
+      p.id !== activeProgramId ? p : {
+        ...p, blocks: p.blocks.map(b => b.id !== blockId ? b : { ...b, duration: Math.max(1, Number(duration) || 1) })
+      }
+    ));
   }
 
   // ── Week / session mutations ─────────────────────────────────────────────────
@@ -1588,6 +1665,55 @@ export default function WorkoutDashboard() {
               {activeProgramName} <span style={{ color:C.accent, fontSize:"0.55rem", marginLeft:4 }}>▼</span>
             </button>
             <div className={`save-dot ${saveStatus}`} />
+
+            {/* Block tabs */}
+            {(activeProgram?.blocks?.length ?? 0) > 0 && (
+              <div style={{ display:"flex", alignItems:"center", gap:2,
+                background:"var(--sets-bg)", borderRadius:9, padding:2 }}>
+                {activeProgram.blocks.map(b => (
+                  <button key={b.id}
+                    onClick={() => setActiveBlock(b.id)}
+                    onDoubleClick={() => setRenamingBlock(b.id)}
+                    style={{
+                      padding:"3px 10px", borderRadius:7, border:"none",
+                      fontFamily:"inherit", fontSize:"0.72rem", fontWeight:600,
+                      cursor:"pointer", transition:"all 0.12s", whiteSpace:"nowrap",
+                      background: b.id === activeProgram.activeBlockId ? "var(--surface)" : "transparent",
+                      color: b.id === activeProgram.activeBlockId ? "var(--text)" : "var(--text-muted)",
+                      boxShadow: b.id === activeProgram.activeBlockId ? "0 1px 3px rgba(0,0,0,0.1)" : "none",
+                    }}>
+                    {renamingBlock === b.id ? (
+                      <input
+                        autoFocus
+                        defaultValue={b.name}
+                        style={{ background:"transparent", border:"none", outline:"none",
+                          fontFamily:"inherit", fontSize:"0.72rem", fontWeight:600,
+                          color:"var(--text)", width: Math.max(60, b.name.length * 8) }}
+                        onBlur={e => { renameBlock(b.id, e.target.value || b.name); setRenamingBlock(null); }}
+                        onKeyDown={e => {
+                          if (e.key === "Enter") { renameBlock(b.id, e.target.value || b.name); setRenamingBlock(null); }
+                          if (e.key === "Escape") setRenamingBlock(null);
+                        }}
+                        onClick={e => e.stopPropagation()}
+                      />
+                    ) : (
+                      <span title={`${b.duration} sem. · Double-clic pour renommer`}>{b.name}</span>
+                    )}
+                  </button>
+                ))}
+                <button
+                  onClick={addBlock}
+                  title="Ajouter un bloc"
+                  style={{ padding:"3px 8px", borderRadius:7, border:"none",
+                    background:"transparent", color:"var(--text-muted)", cursor:"pointer",
+                    fontFamily:"inherit", fontSize:"0.9rem", fontWeight:600,
+                    transition:"color 0.12s" }}
+                  onMouseEnter={e => e.currentTarget.style.color="var(--accent)"}
+                  onMouseLeave={e => e.currentTarget.style.color="var(--text-muted)"}>
+                  +
+                </button>
+              </div>
+            )}
           </div>
 
           {sessions.length > 0 && (
@@ -1644,6 +1770,9 @@ export default function WorkoutDashboard() {
           )}
 
           <div style={{ display:"flex", alignItems:"center", gap:6 }}>
+            {(activeProgram?.blocks?.length ?? 0) > 1 && (
+              <button className="hdr-ghost" onClick={() => setModal({ type:"manageBlocks" })} title="Gérer les blocs">⚙ Blocs</button>
+            )}
             <button className="hdr-ghost" onClick={() => setModal({ type:"library" })}>Bibliothèque</button>
             <button className="hdr-ghost" onClick={() => fileInputRef.current?.click()}>↑ Importer</button>
             <button className="hdr-ghost" onClick={exportPdf} title="Exporter en PDF">↓ PDF</button>
@@ -2414,7 +2543,8 @@ export default function WorkoutDashboard() {
               <div style={{ flex:1, overflowY:"auto", padding:"10px 12px", display:"flex", flexDirection:"column", gap:6 }}>
                 {programs.map(p => {
                   const active = p.id === activeProgramId;
-                  const sess   = (p.week ?? []).filter(Boolean);
+                  const firstBlock = p.blocks?.[0];
+                  const sess   = (firstBlock?.week ?? []).filter(Boolean);
                   return (
                     <div key={p.id} onClick={() => { setActiveProgramId(p.id); closeModal(); }} style={{
                       display:"flex", alignItems:"center", gap:10, padding:"11px 14px",
@@ -2432,7 +2562,7 @@ export default function WorkoutDashboard() {
                       <div style={{ flex:1, minWidth:0 }}>
                         <div style={{ fontSize:"0.85rem", fontWeight:600, color: active ? C.accentDark : C.text }}>{p.name}</div>
                         <div style={{ fontSize:"0.66rem", color:C.textFaint, marginTop:1 }}>
-                          {sess.length} séance{sess.length !== 1 ? "s" : ""} · {sess.reduce((n,d) => n + d.exercises.length, 0)} exercices
+                          {(p.blocks?.length ?? 1)} bloc{(p.blocks?.length ?? 1) > 1 ? "s" : ""} · {sess.length} séance{sess.length !== 1 ? "s" : ""}/sem.
                         </div>
                       </div>
                       <div style={{ display:"flex", gap:3 }} onClick={e => e.stopPropagation()}>
@@ -2772,6 +2902,57 @@ export default function WorkoutDashboard() {
                     Aucune autre séance dans ce programme.
                   </div>
                 )}
+              </div>
+            </div>
+          )}
+
+
+          {/* Manage Blocks */}
+          {modal.type === "manageBlocks" && (
+            <div className="modal" style={{ width:440 }} onClick={e => e.stopPropagation()}>
+              <div className="modal-handle" />
+              <div className="modal-header">
+                <span className="modal-title">Gérer les blocs — {activeProgram?.name}</span>
+                <button className="modal-close" onClick={closeModal}>✕</button>
+              </div>
+              <div style={{ padding:"10px 12px", display:"flex", flexDirection:"column", gap:6 }}>
+                {(activeProgram?.blocks ?? []).map((b, i) => (
+                  <div key={b.id} style={{
+                    display:"flex", alignItems:"center", gap:8, padding:"10px 12px",
+                    background: b.id === activeProgram.activeBlockId ? "var(--accent-bg)" : "var(--surface)",
+                    border:`1.5px solid ${b.id === activeProgram.activeBlockId ? "var(--accent)" : "var(--border)"}`,
+                    borderRadius:10, cursor:"pointer",
+                  }} onClick={() => { setActiveBlock(b.id); closeModal(); }}>
+                    <div style={{ width:22, height:22, borderRadius:"50%", flexShrink:0,
+                      background: b.id === activeProgram.activeBlockId ? "var(--accent)" : "transparent",
+                      border:`2px solid ${b.id === activeProgram.activeBlockId ? "var(--accent)" : "var(--text-ghost)"}`,
+                      display:"flex", alignItems:"center", justifyContent:"center",
+                      fontSize:"0.6rem", fontWeight:700, color:"#fff" }}>
+                      {b.id === activeProgram.activeBlockId ? "✓" : ""}
+                    </div>
+                    <div style={{ flex:1, minWidth:0 }}>
+                      <div style={{ fontSize:"0.85rem", fontWeight:700, color:"var(--text)" }}>{b.name}</div>
+                      <div style={{ fontSize:"0.65rem", color:"var(--text-muted)", marginTop:1 }}>
+                        {b.duration} semaine{b.duration > 1 ? "s" : ""} · {(b.week ?? []).filter(Boolean).length} séance{(b.week ?? []).filter(Boolean).length > 1 ? "s" : ""}/sem.
+                      </div>
+                    </div>
+                    <div style={{ display:"flex", gap:4, alignItems:"center" }} onClick={e => e.stopPropagation()}>
+                      <input type="number" min={1} max={52} value={b.duration}
+                        onChange={e => setBlockDuration(b.id, e.target.value)}
+                        title="Durée en semaines"
+                        style={{ width:40, textAlign:"center", background:"var(--input-bg)",
+                          border:"1px solid var(--input-border)", borderRadius:6, padding:"3px 4px",
+                          fontFamily:"inherit", fontSize:"0.72rem", fontWeight:600, color:"var(--text)",
+                          outline:"none" }} />
+                      <span style={{ fontSize:"0.6rem", color:"var(--text-muted)" }}>sem.</span>
+                      <button className="btn-icon-sm" title="Dupliquer" onClick={() => duplicateBlock(b.id)}>📋</button>
+                      <button className="btn-icon-sm del" title="Supprimer" onClick={() => deleteBlock(b.id)}>🗑️</button>
+                    </div>
+                  </div>
+                ))}
+                <button className="btn-full-accent" style={{ marginTop:4 }} onClick={() => { addBlock(); closeModal(); }}>
+                  + Nouveau bloc
+                </button>
               </div>
             </div>
           )}
