@@ -1091,14 +1091,8 @@ export default function WorkoutDashboard() {
   // ── Import / Export ───────────────────────────────────────────────────────────
 // PDF export function to be inserted before exportBackup
   function exportPdf() {
-    const prog     = activeProgram;
-    const days     = activeBlock?.week ?? [];
-    const sessions = days.filter(Boolean);
-    const vol      = computeWeeklyVolume(sessions, db);
-    const { push: pushSets, pull: pullSets } = computePushPullSets(sessions, db);
-    const total    = pushSets + pullSets;
-    const pushPct  = total > 0 ? Math.round(pushSets / total * 100) : 50;
-    const pullPct  = 100 - pushPct;
+    const prog      = activeProgram;
+    const blocks    = prog.blocks ?? [];
     const dayLabels = ["Lun","Mar","Mer","Jeu","Ven","Sam","Dim"];
     const tierColors = {
       "S+":["#92400E","#FEF3C7"], "S":["#78350F","#FDE68A"],
@@ -1107,96 +1101,104 @@ export default function WorkoutDashboard() {
       "C":["#6B7280","#F3F4F6"], "D":["#9CA3AF","#F9FAFB"],
       "F":["#DC2626","#FEF2F2"], "F-":["#991B1B","#FEE2E2"],
     };
-
-    let sessionsHtml = "";
-    days.forEach((slot, i) => {
-      if (!slot) return;
-      let exHtml = "";
-      slot.exercises.forEach((ex, j) => {
-        const d  = db[ex.name] ?? {};
-        const tc = tierColors[d.tier];
-        const tierBadge = tc
-          ? '<span style="font-size:10px;font-weight:700;padding:1px 5px;border-radius:10px;color:' + tc[0] + ';background:' + tc[1] + '">' + d.tier + '</span>'
-          : "";
-        const primary = (d.primary ?? []).map(m =>
-          '<span style="font-size:10px;font-weight:600;padding:1px 6px;border-radius:10px;color:' + (MUSCLE_COLOR[m]||"#666") + ';background:' + (MUSCLE_COLOR[m]||"#666") + '18">' + m + '</span>'
-        ).join("");
-        const repsLabel = ex.reps ? ('<span style="font-size:10px;font-weight:600;color:#777;background:#F0F0F0;border-radius:8px;padding:1px 7px;white-space:nowrap">' + ex.reps + '</span>') : '';
-        const restLabel = ex.rest ? ('<span style="font-size:10px;font-weight:600;color:#555;background:#F0F0F0;border-radius:8px;padding:1px 7px;white-space:nowrap">⏱ ' + ex.rest + 's</span>') : '';
-        const noteHtml  = ex.note ? ('<div style="font-size:11px;color:#666;margin-top:4px;line-height:1.5;white-space:pre-wrap;border-left:2px solid #E0E0E0;padding-left:7px">' + ex.note + '</div>') : '';
-        exHtml += '<div style="padding:7px 14px;border-bottom:1px solid #F4F4F5;display:flex;align-items:flex-start;gap:8px">'
-          + '<span style="font-size:11px;font-weight:600;color:#AEAEB2;width:16px;flex-shrink:0;padding-top:1px">' + (j+1) + '</span>'
-          + '<div style="flex:1;min-width:0">'
-          +   '<div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">'
-          +     '<span style="font-size:12px;font-weight:600;color:#111;flex:1;min-width:0">' + ex.name + '</span>'
-          +     tierBadge
-          +     '<span style="font-size:11px;font-weight:700;color:#111;background:#F4F4F5;border-radius:10px;padding:2px 8px;flex-shrink:0;white-space:nowrap">' + ex.sets + ' sér.</span>'
-          +     repsLabel
-          +     restLabel
-          +   '</div>'
-          + (primary ? '<div style="display:flex;gap:4px;flex-wrap:wrap;margin-top:4px">' + primary + '</div>' : '')
-          + noteHtml
-          + '</div>'
-          + '</div>';
-      });
-      sessionsHtml += '<div style="border:1px solid #E2E2E5;border-radius:10px;overflow:hidden;break-inside:avoid">'
-        + '<div style="background:#F9F9FB;padding:10px 14px 9px;border-bottom:1px solid #E2E2E5">'
-        +   '<div style="font-size:10px;font-weight:700;color:#E8500A;letter-spacing:0.8px;text-transform:uppercase">' + dayLabels[i] + '</div>'
-        +   '<div style="font-size:14px;font-weight:700;color:#111;letter-spacing:-0.2px;margin-top:2px">' + slot.name + '</div>'
-        + '</div>'
-        + exHtml
-        + '</div>';
-    });
-
-    let volHtml = "";
-    ALL_MUSCLES.forEach(m => {
-      const sets = vol[m] ?? 0;
-      if (!sets) return;
-      const pct   = Math.min(100, (sets / 18) * 100);
-      const color = sets > 12 ? "#DC2626" : sets > 5 ? "#16A34A" : "#777";
-      volHtml += '<div style="display:flex;align-items:center;gap:8px">'
-        + '<div style="width:8px;height:8px;border-radius:50%;background:' + (MUSCLE_COLOR[m]||"#888") + ';flex-shrink:0"></div>'
-        + '<span style="font-size:12px;color:#333;flex:1">' + m + '</span>'
-        + '<div style="width:80px;height:5px;background:#F0F0F0;border-radius:3px;overflow:hidden">'
-        +   '<div style="height:5px;border-radius:3px;background:' + (MUSCLE_COLOR[m]||"#888") + ';width:' + pct + '%"></div>'
-        + '</div>'
-        + '<span style="font-size:11px;font-weight:700;color:#111;width:22px;text-align:right">' + (Number.isInteger(sets) ? sets : sets.toFixed(1)) + '</span>'
-        + '</div>';
-    });
-
     const date = new Date().toLocaleDateString("fr-FR", { day:"numeric", month:"long", year:"numeric" });
-    const totalSets = Object.values(vol).reduce((a,b)=>a+b,0);
+
+    function renderBlock(block) {
+      const days     = block.week ?? [];
+      const sessions = days.filter(Boolean);
+      const vol      = computeWeeklyVolume(sessions, db);
+      const { push: pushSets, pull: pullSets } = computePushPullSets(sessions, db);
+      const total    = pushSets + pullSets;
+      const pushPct  = total > 0 ? Math.round(pushSets / total * 100) : 50;
+      const pullPct  = 100 - pushPct;
+      const totalSets = Object.values(vol).reduce((a,b)=>a+b,0);
+
+      let sessionsHtml = "";
+      days.forEach((slot, i) => {
+        if (!slot) return;
+        let exHtml = "";
+        slot.exercises.forEach((ex, j) => {
+          const d  = db[ex.name] ?? {};
+          const tc = tierColors[d.tier];
+          const tierBadge = tc ? '<span style="font-size:10px;font-weight:700;padding:1px 5px;border-radius:10px;color:' + tc[0] + ';background:' + tc[1] + '">' + d.tier + '</span>' : "";
+          const primary   = (d.primary ?? []).map(m => '<span style="font-size:10px;font-weight:600;padding:1px 6px;border-radius:10px;color:' + (MUSCLE_COLOR[m]||"#666") + ';background:' + (MUSCLE_COLOR[m]||"#666") + '18">' + m + '</span>').join("");
+          const repsLabel = ex.reps ? '<span style="font-size:10px;font-weight:600;color:#777;background:#F0F0F0;border-radius:8px;padding:1px 7px;white-space:nowrap">' + ex.reps + '</span>' : '';
+          const restLabel = ex.rest ? '<span style="font-size:10px;font-weight:600;color:#555;background:#F0F0F0;border-radius:8px;padding:1px 7px;white-space:nowrap">⏱ ' + ex.rest + 's</span>' : '';
+          const noteHtml  = ex.note ? '<div style="font-size:11px;color:#666;margin-top:4px;line-height:1.5;white-space:pre-wrap;border-left:2px solid #E0E0E0;padding-left:7px">' + ex.note + '</div>' : '';
+          exHtml += '<div style="padding:7px 14px;border-bottom:1px solid #F4F4F5;display:flex;align-items:flex-start;gap:8px">'
+            + '<span style="font-size:11px;font-weight:600;color:#AEAEB2;width:16px;flex-shrink:0;padding-top:1px">' + (j+1) + '</span>'
+            + '<div style="flex:1;min-width:0">'
+            + '<div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">'
+            + '<span style="font-size:12px;font-weight:600;color:#111;flex:1;min-width:0">' + ex.name + '</span>'
+            + tierBadge
+            + '<span style="font-size:11px;font-weight:700;color:#111;background:#F4F4F5;border-radius:10px;padding:2px 8px;flex-shrink:0;white-space:nowrap">' + ex.sets + ' sér.</span>'
+            + repsLabel + restLabel
+            + '</div>'
+            + (primary ? '<div style="display:flex;gap:4px;flex-wrap:wrap;margin-top:4px">' + primary + '</div>' : '')
+            + noteHtml + '</div></div>';
+        });
+        sessionsHtml += '<div style="border:1px solid #E2E2E5;border-radius:10px;overflow:hidden;break-inside:avoid">'
+          + '<div style="background:#F9F9FB;padding:10px 14px 9px;border-bottom:1px solid #E2E2E5">'
+          + '<div style="font-size:10px;font-weight:700;color:#E8500A;letter-spacing:0.8px;text-transform:uppercase">' + dayLabels[i] + '</div>'
+          + '<div style="font-size:14px;font-weight:700;color:#111;letter-spacing:-0.2px;margin-top:2px">' + slot.name + '</div>'
+          + '</div>' + exHtml + '</div>';
+      });
+
+      let volHtml = "";
+      ALL_MUSCLES.forEach(m => {
+        const sets = vol[m] ?? 0; if (!sets) return;
+        const pct = Math.min(100, (sets / 18) * 100);
+        volHtml += '<div style="display:flex;align-items:center;gap:8px">'
+          + '<div style="width:8px;height:8px;border-radius:50%;background:' + (MUSCLE_COLOR[m]||"#888") + ';flex-shrink:0"></div>'
+          + '<span style="font-size:12px;color:#333;flex:1">' + m + '</span>'
+          + '<div style="width:80px;height:5px;background:#F0F0F0;border-radius:3px;overflow:hidden"><div style="height:5px;border-radius:3px;background:' + (MUSCLE_COLOR[m]||"#888") + ';width:' + pct + '%"></div></div>'
+          + '<span style="font-size:11px;font-weight:700;color:#111;width:22px;text-align:right">' + (Number.isInteger(sets) ? sets : sets.toFixed(1)) + '</span></div>';
+      });
+
+      const chips = [
+        sessions.length + ' séance' + (sessions.length > 1 ? 's' : '') + '/sem.',
+        sessions.reduce((n,s)=>n+s.exercises.length,0) + ' exercices',
+        totalSets.toFixed(0) + ' séries/sem.',
+        'Push ' + pushSets + ' · Pull ' + pullSets,
+      ].map(s => '<span style="background:#F4F4F5;border-radius:20px;padding:4px 12px;font-size:12px;font-weight:600;color:#444">' + s + '</span>').join("");
+
+      return '<div class="block-section">'
+        + '<div style="display:flex;align-items:baseline;gap:12px;margin-bottom:6px">'
+        + '<h2 style="font-size:18px;font-weight:800;letter-spacing:-0.4px;color:#111">' + block.name + '</h2>'
+        + '<span style="font-size:12px;color:#999;font-weight:500">' + block.duration + ' semaine' + (block.duration > 1 ? 's' : '') + '</span>'
+        + '</div>'
+        + (block.description ? '<p style="font-size:13px;color:#555;margin-bottom:10px;line-height:1.5">' + block.description + '</p>' : '')
+        + '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px">' + chips + '</div>'
+        + '<div class="grid">' + sessionsHtml + '</div>'
+        + '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px;margin-bottom:8px">' + volHtml + '</div>'
+        + (total > 0
+          ? '<div style="margin-bottom:4px">'
+            + '<div style="display:flex;height:8px;border-radius:10px;overflow:hidden;gap:2px;margin-bottom:4px">'
+            + '<div style="width:' + pushPct + '%;background:#E8500A;border-radius:10px 0 0 10px"></div>'
+            + '<div style="flex:1;background:#3B82F6;border-radius:0 10px 10px 0"></div></div>'
+            + '<div style="display:flex;justify-content:space-between">'
+            + '<span style="font-size:11px;font-weight:600;color:#E8500A">Push ' + pushSets + ' sér. (' + pushPct + '%)</span>'
+            + '<span style="font-size:11px;font-weight:600;color:#3B82F6">Pull ' + pullSets + ' sér. (' + pullPct + '%)</span>'
+            + '</div></div>'
+          : '')
+        + '</div>';
+    }
+
+    const blocksHtml = blocks.map((b, i) =>
+      (i > 0 ? '<hr style="border:none;border-top:2px solid #E8E8E8;margin:32px 0">' : '')
+      + renderBlock(b)
+    ).join("");
 
     const html = '<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8"><title>' + prog.name + '</title>'
       + '<style>*{box-sizing:border-box;margin:0;padding:0}'
       + 'body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:#111;background:#fff;padding:32px;font-size:13px}'
-      + '.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px;margin-bottom:28px}'
-      + '.vol-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px}'
-      + '@media print{body{padding:16px}@page{margin:10mm;size:A4 landscape}.grid{grid-template-columns:repeat(3,1fr)}}'
+      + '.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px;margin-bottom:16px}'
+      + '.block-section{margin-bottom:8px}'
+      + '@media print{body{padding:16px}@page{margin:10mm;size:A4 landscape}.grid{grid-template-columns:repeat(3,1fr)}.block-section{page-break-after:always}}'
       + '</style></head><body>'
-      + '<h1 style="font-size:22px;font-weight:800;letter-spacing:-0.5px;margin-bottom:4px">' + prog.name + '</h1>'
-      + '<p style="font-size:13px;color:#777;margin-bottom:20px">Généré avec Workout · ' + date + '</p>'
-      + '<div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:24px">'
-      + ['<span>' + sessions.length + ' séance' + (sessions.length > 1 ? 's' : '') + '/sem.</span>',
-         '<span>' + sessions.reduce((n,s)=>n+s.exercises.length,0) + ' exercices</span>',
-         '<span>' + totalSets.toFixed(0) + ' séries/sem.</span>',
-         '<span>Push ' + pushSets + ' · Pull ' + pullSets + '</span>',
-        ].map(s => '<span style="background:#F4F4F5;border-radius:20px;padding:4px 12px;font-size:12px;font-weight:600;color:#444">' + s + '</span>').join("")
-      + '</div>'
-      + '<div class="grid">' + sessionsHtml + '</div>'
-      + '<h2 style="font-size:14px;font-weight:700;margin-bottom:10px;letter-spacing:-0.2px">Volume hebdomadaire</h2>'
-      + '<div class="vol-grid" style="margin-bottom:24px">' + volHtml + '</div>'
-      + (total > 0
-        ? '<h2 style="font-size:14px;font-weight:700;margin-bottom:8px;letter-spacing:-0.2px">Push / Pull</h2>'
-          + '<div style="display:flex;height:10px;border-radius:10px;overflow:hidden;gap:2px;margin-bottom:6px">'
-          +   '<div style="width:' + pushPct + '%;background:#E8500A;border-radius:10px 0 0 10px"></div>'
-          +   '<div style="flex:1;background:#3B82F6;border-radius:0 10px 10px 0"></div>'
-          + '</div>'
-          + '<div style="display:flex;justify-content:space-between">'
-          +   '<span style="font-size:11px;font-weight:600;color:#E8500A">Push ' + pushSets + ' sér. (' + pushPct + '%)</span>'
-          +   '<span style="font-size:11px;font-weight:600;color:#3B82F6">Pull ' + pullSets + ' sér. (' + pullPct + '%)</span>'
-          + '</div>'
-        : '')
+      + '<h1 style="font-size:24px;font-weight:800;letter-spacing:-0.5px;margin-bottom:4px">' + prog.name + '</h1>'
+      + '<p style="font-size:13px;color:#777;margin-bottom:24px">Généré avec Workout · ' + date + ' · ' + blocks.length + ' bloc' + (blocks.length > 1 ? 's' : '') + '</p>'
+      + blocksHtml
       + '</body></html>';
 
     const win = window.open("", "_blank", "width=900,height=700");
@@ -1368,6 +1370,14 @@ export default function WorkoutDashboard() {
     setPrograms(all => all.map(p =>
       p.id !== activeProgramId ? p : {
         ...p, blocks: p.blocks.map(b => b.id !== blockId ? b : { ...b, name })
+      }
+    ));
+  }
+
+  function setBlockDescription(blockId, description) {
+    setPrograms(all => all.map(p =>
+      p.id !== activeProgramId ? p : {
+        ...p, blocks: p.blocks.map(b => b.id !== blockId ? b : { ...b, description })
       }
     ));
   }
