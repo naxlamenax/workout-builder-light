@@ -1510,6 +1510,27 @@ export default function WorkoutDashboard() {
     });
   }
 
+  function copySessionToBlock(session, targetProgId, targetBlockId) {
+    const copy = {
+      ...JSON.parse(JSON.stringify(session)),
+      id: uid(),
+      exercises: session.exercises.map(e => ({ ...e, id: uid(), supersetWith: null })),
+    };
+    setPrograms(all => all.map(p => {
+      if (p.id !== targetProgId) return p;
+      const blocks = p.blocks.map(b => {
+        if (b.id !== targetBlockId) return b;
+        // Find first empty day slot
+        const week = [...b.week];
+        const emptyIdx = week.findIndex(s => s === null);
+        if (emptyIdx < 0) return b; // no room — silently skip (modal should filter)
+        week[emptyIdx] = copy;
+        return { ...b, week };
+      });
+      return { ...p, blocks };
+    }));
+  }
+
   function duplicateSession(dayId) {
     const srcIdx = week.findIndex(s => s?.id === dayId);
     if (srcIdx < 0) return;
@@ -1702,6 +1723,17 @@ export default function WorkoutDashboard() {
                     ) : (
                       <span title={`${b.duration} sem. · Double-clic pour renommer`}>{b.name}</span>
                     )}
+                    {b.id === activeProgram.activeBlockId && !renamingBlock && (
+                      <span
+                        title="Dupliquer ce bloc"
+                        onClick={e => { e.stopPropagation(); duplicateBlock(b.id); }}
+                        style={{ fontSize:"0.7rem", marginLeft:2, opacity:0.5, cursor:"pointer",
+                          transition:"opacity 0.1s" }}
+                        onMouseEnter={e => e.currentTarget.style.opacity=1}
+                        onMouseLeave={e => e.currentTarget.style.opacity=0.5}>
+                        ⧉
+                      </span>
+                    )}
                   </button>
                 ))}
                 <button
@@ -1719,56 +1751,15 @@ export default function WorkoutDashboard() {
             )}
           </div>
 
-          {sessions.length > 0 && (
-            <div style={{ display:"flex", alignItems:"center", gap:12, flex:1, justifyContent:"center", minWidth:0 }}>
-
-              <div style={{ display:"flex", alignItems:"baseline", gap:4, flexShrink:0 }}>
-                <span style={{ fontSize:"1.7rem", fontWeight:800, color:scoreData.color, lineHeight:1, letterSpacing:"-1.5px" }}>
-                  {scoreData.grade}
-                </span>
-                <span style={{ fontSize:"0.65rem", color:"var(--text-muted)", fontWeight:600 }}>{scoreData.score}/100</span>
+          {sessions.length > 0 && summary && (
+            <div style={{ display:"flex", alignItems:"center", justifyContent:"center", flex:1, minWidth:0 }}>
+              <div className="summary-chip summary-chip-main">
+                <span className="summary-chip-label">{summary.split}</span>
+                <span className="summary-chip-sep">·</span>
+                <span>{summary.sessions} séance{summary.sessions > 1 ? "s" : ""}</span>
+                <span className="summary-chip-sep">·</span>
+                <span>{summary.restDays}j repos</span>
               </div>
-
-              <div style={{ width:1, height:28, background:C.border, flexShrink:0 }} />
-
-              {summary && (
-                <div style={{ display:"flex", alignItems:"center", gap:8, flexWrap:"wrap", minWidth:0 }}>
-                  <div className="summary-chip summary-chip-main">
-                    <span className="summary-chip-label">{summary.split}</span>
-                    <span className="summary-chip-sep">·</span>
-                    <span>{summary.sessions} séance{summary.sessions > 1 ? "s" : ""}</span>
-                    <span className="summary-chip-sep">·</span>
-                    <span>{summary.restDays}j repos</span>
-                  </div>
-
-                  {summary.totalSets > 0 && (
-                    <div className="summary-chip">
-                      <span className="summary-chip-icon">📊</span>
-                      <span>{summary.totalSets} sér/sem</span>
-                    </div>
-                  )}
-
-                  {summary.pushSets + summary.pullSets > 0 && (
-                    <div className="summary-chip">
-                      <span className="summary-chip-icon">⚖️</span>
-                      <span>{summary.pushSets}P / {summary.pullSets}T</span>
-                    </div>
-                  )}
-
-                  {summary.freq2.length > 0 && (
-                    <div className="summary-chip">
-                      <span className="summary-chip-icon">🔁</span>
-                      <span>2x : {summary.freq2.slice(0,3).join(", ")}{summary.freq2.length > 3 ? "…" : ""}</span>
-                    </div>
-                  )}
-
-                  {summary.absent.length > 0 && (
-                    <div className="summary-chip summary-chip-warn">
-                      <span>⚠ {summary.absent.join(", ")}</span>
-                    </div>
-                  )}
-                </div>
-              )}
             </div>
           )}
 
@@ -1904,8 +1895,8 @@ export default function WorkoutDashboard() {
                         <span key={m} title={m} style={{ width:6, height:6, borderRadius:"50%",
                           background:MUSCLE_COLOR[m], display:"inline-block", boxShadow:"0 0 0 1px rgba(255,255,255,0.6)" }} />
                       ))}
-                              <button className="col-icon-btn" title="Dupliquer la séance"
-                        onClick={e => { e.stopPropagation(); duplicateSession(session.id); }}>⧉</button>
+                              <button className="col-icon-btn" title="Copier la séance vers…"
+                        onClick={e => { e.stopPropagation(); setModal({ type:"copySession", session }); }}>⧉</button>
                       <button className="col-icon-btn" title="Couleur"
                         onClick={e => { e.stopPropagation(); setColorPickerId(colorPickerId === session.id ? null : session.id); }}
                         style={{ fontSize:"0.75rem", opacity: session.color ? 1 : 0.4 }}>🎨</button>
@@ -2974,6 +2965,65 @@ export default function WorkoutDashboard() {
               </div>
             </div>
           )}
+
+
+          {/* Copy session to another block / program */}
+          {modal.type === "copySession" && (() => {
+            const src = modal.session;
+            // Build list of all (prog, block) destinations with at least 1 empty day
+            const destinations = [];
+            programs.forEach(prog => {
+              (prog.blocks ?? []).forEach(block => {
+                const hasRoom = block.week.some(s => s === null);
+                const isCurrent = prog.id === activeProgramId && block.id === activeProgram?.activeBlockId;
+                if (hasRoom) destinations.push({ prog, block, isCurrent });
+              });
+            });
+            return (
+              <div className="modal" style={{ width:400 }} onClick={e => e.stopPropagation()}>
+                <div className="modal-handle" />
+                <div className="modal-header">
+                  <span className="modal-title">Copier "{src.name}" vers…</span>
+                  <button className="modal-close" onClick={closeModal}>✕</button>
+                </div>
+                <div style={{ padding:"8px 12px 12px", display:"flex", flexDirection:"column", gap:5 }}>
+                  {destinations.length === 0 && (
+                    <div style={{ fontSize:"0.78rem", color:"var(--text-muted)", padding:"8px 0", fontStyle:"italic" }}>
+                      Aucun emplacement disponible (tous les jours sont occupés).
+                    </div>
+                  )}
+                  {destinations.map(({ prog, block, isCurrent }) => (
+                    <button key={prog.id + block.id}
+                      onClick={() => { copySessionToBlock(src, prog.id, block.id); closeModal(); }}
+                      style={{ display:"flex", alignItems:"center", gap:10, padding:"10px 12px",
+                        background:"var(--surface)", border:"1px solid var(--border)",
+                        borderRadius:10, cursor:"pointer", fontFamily:"inherit", textAlign:"left",
+                        transition:"all 0.12s", opacity: isCurrent ? 0.5 : 1 }}
+                      disabled={isCurrent}
+                      title={isCurrent ? "Bloc actuel" : ""}
+                      onMouseEnter={e => { if (!isCurrent) { e.currentTarget.style.borderColor="var(--accent)"; e.currentTarget.style.background="var(--accent-bg)"; }}}
+                      onMouseLeave={e => { e.currentTarget.style.borderColor="var(--border)"; e.currentTarget.style.background="var(--surface)"; }}>
+                      <div style={{ flex:1, minWidth:0 }}>
+                        <div style={{ fontSize:"0.82rem", fontWeight:700, color:"var(--text)" }}>
+                          {prog.name}
+                          {(prog.blocks?.length ?? 1) > 1 && (
+                            <span style={{ fontSize:"0.7rem", fontWeight:500, color:"var(--text-muted)", marginLeft:6 }}>
+                              › {block.name}
+                            </span>
+                          )}
+                        </div>
+                        <div style={{ fontSize:"0.62rem", color:"var(--text-muted)", marginTop:2 }}>
+                          {block.week.filter(Boolean).length} séance{block.week.filter(Boolean).length !== 1 ? "s" : ""} · {block.week.filter(s => !s).length} jour{block.week.filter(s => !s).length !== 1 ? "s" : ""} libre{block.week.filter(s => !s).length !== 1 ? "s" : ""}
+                          {isCurrent ? " · Bloc actuel" : ""}
+                        </div>
+                      </div>
+                      <span style={{ fontSize:"0.8rem", color:"var(--text-ghost)" }}>→</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            );
+          })()}
 
           {/* Import */}
           {modal.type === "import" && (
