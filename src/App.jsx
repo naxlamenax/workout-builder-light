@@ -1192,29 +1192,23 @@ export default function WorkoutDashboard() {
       + renderBlock(b)
     ).join("");
 
-    // Cover page stats
+    // Cover page stats — sessions from first block (representative week), not sum
     const totalWeeks    = blocks.reduce((n, b) => n + (b.duration || 0), 0);
-    const totalSessions = blocks.reduce((n, b) => n + (b.week ?? []).filter(Boolean).length, 0);
-    const totalExs      = blocks.reduce((n, b) => n + (b.week ?? []).filter(Boolean).reduce((m, s) => m + s.exercises.length, 0), 0);
-    const totalVol      = blocks.reduce((n, b) => {
-      const v = computeWeeklyVolume((b.week ?? []).filter(Boolean), db);
-      return n + Object.values(v).reduce((a, c) => a + c, 0);
-    }, 0);
+    const firstBlock    = blocks[0] ?? { week: [] };
+    const firstSessions = (firstBlock.week ?? []).filter(Boolean);
 
     // Cover table rows — one per block
     const coverRows = blocks.map((b, i) => {
       const bSessions = (b.week ?? []).filter(Boolean);
-      const bExs      = bSessions.reduce((n, s) => n + s.exercises.length, 0);
-      const bVol      = computeWeeklyVolume(bSessions, db);
-      const bTotalVol = Object.values(bVol).reduce((a, c) => a + c, 0);
+      // Raw sets = sum of exercise.sets (not weighted muscle volume)
+      const bRawSets  = bSessions.reduce((n, s) => n + s.exercises.reduce((m, e) => m + (e.sets || 0), 0), 0);
       const rowBg     = i % 2 === 0 ? '#F9F9FB' : '#FFFFFF';
       return '<tr style="background:' + rowBg + '">'
         + '<td style="padding:10px 14px;font-weight:700;font-size:13px;color:#111;white-space:nowrap">' + (i+1) + '. ' + b.name + '</td>'
         + '<td style="padding:10px 14px;font-size:12px;color:#555;font-weight:600;white-space:nowrap;text-align:center">' + b.duration + ' sem.</td>'
-        + '<td style="padding:10px 14px;font-size:12px;color:#666;max-width:260px">' + (b.description || '—') + '</td>'
+        + '<td style="padding:10px 14px;font-size:12px;color:#666;max-width:260px">' + (b.description || '—').split('\n').join('<br>') + '</td>'
         + '<td style="padding:10px 14px;font-size:12px;color:#555;text-align:center;font-weight:600">' + bSessions.length + '/sem.</td>'
-        + '<td style="padding:10px 14px;font-size:12px;color:#555;text-align:center;font-weight:600">' + bExs + '</td>'
-        + '<td style="padding:10px 14px;font-size:12px;color:#555;text-align:center;font-weight:600">' + bTotalVol.toFixed(0) + ' sér/sem.</td>'
+        + '<td style="padding:10px 14px;font-size:12px;color:#555;text-align:center;font-weight:600">' + bRawSets + ' sér/sem.</td>'
         + '</tr>';
     }).join("");
 
@@ -1234,9 +1228,7 @@ export default function WorkoutDashboard() {
       +   '<div style="display:flex;gap:32px;margin-bottom:28px">'
       +     ['<div><div style="font-size:28px;font-weight:800;color:#111;letter-spacing:-1px">' + totalWeeks + '</div><div style="font-size:11px;color:#999;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;margin-top:2px">Semaines</div></div>',
              '<div><div style="font-size:28px;font-weight:800;color:#111;letter-spacing:-1px">' + blocks.length + '</div><div style="font-size:11px;color:#999;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;margin-top:2px">Blocs</div></div>',
-             '<div><div style="font-size:28px;font-weight:800;color:#111;letter-spacing:-1px">' + totalSessions + '</div><div style="font-size:11px;color:#999;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;margin-top:2px">Séances/sem.</div></div>',
-             '<div><div style="font-size:28px;font-weight:800;color:#111;letter-spacing:-1px">' + totalExs + '</div><div style="font-size:11px;color:#999;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;margin-top:2px">Exercices/bloc</div></div>',
-             '<div><div style="font-size:28px;font-weight:800;color:#111;letter-spacing:-1px">' + totalVol.toFixed(0) + '</div><div style="font-size:11px;color:#999;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;margin-top:2px">Séries/sem.</div></div>',
+             '<div><div style="font-size:28px;font-weight:800;color:#111;letter-spacing:-1px">' + firstSessions.length + '</div><div style="font-size:11px;color:#999;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;margin-top:2px">Séances/sem.</div></div>',
             ].join('<div style="width:1px;background:#E8E8EA;align-self:stretch"></div>')
       +   '</div>'
       +   '<table style="width:100%;border-collapse:collapse;border-radius:10px;overflow:hidden;border:1px solid #E8E8EA">'
@@ -1245,7 +1237,6 @@ export default function WorkoutDashboard() {
       +       '<th style="padding:10px 14px;font-size:11px;font-weight:700;color:#666;text-align:center;letter-spacing:0.5px;text-transform:uppercase">Durée</th>'
       +       '<th style="padding:10px 14px;font-size:11px;font-weight:700;color:#666;text-align:left;letter-spacing:0.5px;text-transform:uppercase">Objectif</th>'
       +       '<th style="padding:10px 14px;font-size:11px;font-weight:700;color:#666;text-align:center;letter-spacing:0.5px;text-transform:uppercase">Séances</th>'
-      +       '<th style="padding:10px 14px;font-size:11px;font-weight:700;color:#666;text-align:center;letter-spacing:0.5px;text-transform:uppercase">Exercices</th>'
       +       '<th style="padding:10px 14px;font-size:11px;font-weight:700;color:#666;text-align:center;letter-spacing:0.5px;text-transform:uppercase">Volume</th>'
       +     '</tr></thead>'
       +     '<tbody>' + coverRows + '</tbody>'
