@@ -946,6 +946,7 @@ export default function WorkoutDashboard() {
   const [renamingBlock,  setRenamingBlock]  = useState(null); // blockId
 
   const [progFormName,   setProgFormName]   = useState("");
+  const [progFormDesc,   setProgFormDesc]   = useState("");
   const [progFormError,  setProgFormError]  = useState("");
   const [editingProgId,  setEditingProgId]  = useState(null);
 
@@ -1222,6 +1223,7 @@ export default function WorkoutDashboard() {
       + '<div style="background:#0F0F11;color:#fff;padding:48px 52px 44px;display:flex;flex-direction:column;justify-content:flex-end;min-height:220px">'
       +   '<div style="font-size:11px;font-weight:700;color:#E8500A;letter-spacing:2px;text-transform:uppercase;margin-bottom:12px">Programme d&#39;entra&#238;nement</div>'
       +   '<h1 style="font-size:38px;font-weight:800;letter-spacing:-1px;line-height:1.1;margin-bottom:12px">' + prog.name + '</h1>'
+      +   (prog.description ? '<p style="font-size:15px;color:#AEAEB2;margin-bottom:16px;line-height:1.5;max-width:600px">' + prog.description + '</p>' : '')
       +   '<div style="font-size:13px;color:#888">'
       +     blocks.length + ' bloc' + (blocks.length > 1 ? 's' : '') + ' · '
       +     totalWeeks + ' semaines · Généré le ' + date
@@ -1383,16 +1385,18 @@ export default function WorkoutDashboard() {
   }
 
   // ── Program mutations ──────────────────────────────────────────────────────────
-  function openNewProg()  { setProgFormName(""); setProgFormError(""); setEditingProgId(null); setModal({ type:"progForm" }); }
+  function openNewProg()  { setProgFormName(""); setProgFormDesc(""); setProgFormError(""); setEditingProgId(null); setModal({ type:"progForm" }); }
   function openRenameProg(id) {
-    setProgFormName(programs.find(p => p.id === id)?.name ?? "");
+    const p = programs.find(p => p.id === id);
+    setProgFormName(p?.name ?? "");
+    setProgFormDesc(p?.description ?? "");
     setProgFormError(""); setEditingProgId(id); setModal({ type:"progForm" });
   }
   function saveProgForm() {
     const name = progFormName.trim();
     if (!name) { setProgFormError("Donne un nom à ce programme."); return; }
-    if (editingProgId) { setPrograms(all => all.map(p => p.id === editingProgId ? {...p, name} : p)); }
-    else { const np = makeProgram(name); setPrograms(all => [...all, np]); setActiveProgramId(np.id); }
+    if (editingProgId) { setPrograms(all => all.map(p => p.id === editingProgId ? {...p, name, description: progFormDesc.trim() || undefined} : p)); }
+    else { const np = { ...makeProgram(name), description: progFormDesc.trim() || undefined }; setPrograms(all => [...all, np]); setActiveProgramId(np.id); }
     closeModal();
   }
   function duplicateProg(id) {
@@ -2660,6 +2664,9 @@ export default function WorkoutDashboard() {
                       </div>
                       <div style={{ flex:1, minWidth:0 }}>
                         <div style={{ fontSize:"0.85rem", fontWeight:600, color: active ? C.accentDark : C.text }}>{p.name}</div>
+                        {p.description && (
+                          <div style={{ fontSize:"0.68rem", color:"var(--text-muted)", marginTop:1, lineHeight:1.4 }}>{p.description}</div>
+                        )}
                         <div style={{ fontSize:"0.66rem", color:C.textFaint, marginTop:1 }}>
                           {(p.blocks?.length ?? 1)} bloc{(p.blocks?.length ?? 1) > 1 ? "s" : ""} · {sess.length} séance{sess.length !== 1 ? "s" : ""}/sem.
                         </div>
@@ -2775,6 +2782,15 @@ export default function WorkoutDashboard() {
                     onChange={e => setProgFormName(e.target.value)}
                     placeholder="Ex : PPL Hypertrophie, Full Body..."
                     onKeyDown={e => e.key === "Enter" && saveProgForm()} />
+                </div>
+                <div>
+                  <label className="form-label">Description <span style={{ fontWeight:400, textTransform:"none", letterSpacing:0 }}>(optionnelle)</span></label>
+                  <textarea className="form-input"
+                    rows={2}
+                    value={progFormDesc}
+                    onChange={e => setProgFormDesc(e.target.value)}
+                    placeholder="Objectif, contexte, notes générales…"
+                    style={{ resize:"vertical", lineHeight:1.5 }} />
                 </div>
                 {progFormError && <div style={{ fontSize:"0.73rem", color:C.red, fontWeight:600 }}>{progFormError}</div>}
                 <div style={{ display:"flex", justifyContent:"flex-end", gap:8 }}>
