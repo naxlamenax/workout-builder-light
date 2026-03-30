@@ -2961,6 +2961,14 @@ export default function WorkoutDashboard() {
                       <div style={{ fontSize:"0.65rem", color:"var(--text-muted)", marginTop:1 }}>
                         {b.duration} semaine{b.duration > 1 ? "s" : ""} · {(b.week ?? []).filter(Boolean).length} séance{(b.week ?? []).filter(Boolean).length > 1 ? "s" : ""}/sem.
                       </div>
+                      <input
+                        className="form-input"
+                        placeholder="Description (objectif, intensité…)"
+                        value={b.description ?? ""}
+                        onChange={e => setBlockDescription(b.id, e.target.value)}
+                        onClick={e => e.stopPropagation()}
+                        style={{ marginTop:6, fontSize:"0.72rem", padding:"5px 9px", minHeight:"auto" }}
+                      />
                     </div>
                     <div style={{ display:"flex", gap:4, alignItems:"center" }} onClick={e => e.stopPropagation()}>
                       <input type="number" min={1} max={52} value={b.duration}
