@@ -1999,6 +1999,13 @@ export default function WorkoutDashboard() {
                                     borderRadius:20, background:"transparent", color:"var(--text-muted)",
                                     whiteSpace:"nowrap", border:"1px dashed var(--border)" }}>{m} ½</span>
                                 ))}
+                                {ex.reps && (
+                                  <span style={{ fontSize:"0.62rem", fontWeight:600, padding:"2px 7px",
+                                    borderRadius:20, background:"var(--sets-bg)", color:"var(--text-muted)",
+                                    whiteSpace:"nowrap", flexShrink:0 }}>
+                                    {ex.reps}
+                                  </span>
+                                )}
                               </div>
 
                               <div style={{ display:"flex", alignItems:"center", gap:4, flexShrink:0 }}>
