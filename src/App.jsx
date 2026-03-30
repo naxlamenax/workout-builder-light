@@ -1187,20 +1187,91 @@ export default function WorkoutDashboard() {
     }
 
     const blocksHtml = blocks.map((b, i) =>
-      (i > 0 ? '<hr style="border:none;border-top:2px solid #E8E8E8;margin:32px 0">' : '')
+      (i > 0 ? '' : '')
       + renderBlock(b)
     ).join("");
 
+    // Cover page stats
+    const totalWeeks    = blocks.reduce((n, b) => n + (b.duration || 0), 0);
+    const totalSessions = blocks.reduce((n, b) => n + (b.week ?? []).filter(Boolean).length, 0);
+    const totalExs      = blocks.reduce((n, b) => n + (b.week ?? []).filter(Boolean).reduce((m, s) => m + s.exercises.length, 0), 0);
+    const totalVol      = blocks.reduce((n, b) => {
+      const v = computeWeeklyVolume((b.week ?? []).filter(Boolean), db);
+      return n + Object.values(v).reduce((a, c) => a + c, 0);
+    }, 0);
+
+    // Cover table rows — one per block
+    const coverRows = blocks.map((b, i) => {
+      const bSessions = (b.week ?? []).filter(Boolean);
+      const bExs      = bSessions.reduce((n, s) => n + s.exercises.length, 0);
+      const bVol      = computeWeeklyVolume(bSessions, db);
+      const bTotalVol = Object.values(bVol).reduce((a, c) => a + c, 0);
+      const rowBg     = i % 2 === 0 ? '#F9F9FB' : '#FFFFFF';
+      return '<tr style="background:' + rowBg + '">'
+        + '<td style="padding:10px 14px;font-weight:700;font-size:13px;color:#111;white-space:nowrap">' + (i+1) + '. ' + b.name + '</td>'
+        + '<td style="padding:10px 14px;font-size:12px;color:#555;font-weight:600;white-space:nowrap;text-align:center">' + b.duration + ' sem.</td>'
+        + '<td style="padding:10px 14px;font-size:12px;color:#666;max-width:260px">' + (b.description || '—') + '</td>'
+        + '<td style="padding:10px 14px;font-size:12px;color:#555;text-align:center;font-weight:600">' + bSessions.length + '/sem.</td>'
+        + '<td style="padding:10px 14px;font-size:12px;color:#555;text-align:center;font-weight:600">' + bExs + '</td>'
+        + '<td style="padding:10px 14px;font-size:12px;color:#555;text-align:center;font-weight:600">' + bTotalVol.toFixed(0) + ' sér/sem.</td>'
+        + '</tr>';
+    }).join("");
+
+    const coverPage = '<div class="cover-page">'
+      // Top band — dark
+      + '<div style="background:#0F0F11;color:#fff;padding:48px 52px 44px;display:flex;flex-direction:column;justify-content:flex-end;min-height:220px">'
+      +   '<div style="font-size:11px;font-weight:700;color:#E8500A;letter-spacing:2px;text-transform:uppercase;margin-bottom:12px">Programme d&#39;entra&#238;nement</div>'
+      +   '<h1 style="font-size:38px;font-weight:800;letter-spacing:-1px;line-height:1.1;margin-bottom:12px">' + prog.name + '</h1>'
+      +   '<div style="font-size:13px;color:#888">'
+      +     blocks.length + ' bloc' + (blocks.length > 1 ? 's' : '') + ' · '
+      +     totalWeeks + ' semaines · Généré le ' + date
+      +   '</div>'
+      + '</div>'
+      // Bottom — white, summary table
+      + '<div style="background:#fff;padding:36px 52px">'
+      +   '<div style="display:flex;gap:32px;margin-bottom:28px">'
+      +     ['<div><div style="font-size:28px;font-weight:800;color:#111;letter-spacing:-1px">' + totalWeeks + '</div><div style="font-size:11px;color:#999;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;margin-top:2px">Semaines</div></div>',
+             '<div><div style="font-size:28px;font-weight:800;color:#111;letter-spacing:-1px">' + blocks.length + '</div><div style="font-size:11px;color:#999;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;margin-top:2px">Blocs</div></div>',
+             '<div><div style="font-size:28px;font-weight:800;color:#111;letter-spacing:-1px">' + totalSessions + '</div><div style="font-size:11px;color:#999;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;margin-top:2px">Séances/sem.</div></div>',
+             '<div><div style="font-size:28px;font-weight:800;color:#111;letter-spacing:-1px">' + totalExs + '</div><div style="font-size:11px;color:#999;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;margin-top:2px">Exercices/bloc</div></div>',
+             '<div><div style="font-size:28px;font-weight:800;color:#111;letter-spacing:-1px">' + totalVol.toFixed(0) + '</div><div style="font-size:11px;color:#999;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;margin-top:2px">Séries/sem.</div></div>',
+            ].join('<div style="width:1px;background:#E8E8EA;align-self:stretch"></div>')
+      +   '</div>'
+      +   '<table style="width:100%;border-collapse:collapse;border-radius:10px;overflow:hidden;border:1px solid #E8E8EA">'
+      +     '<thead><tr style="background:#F4F4F5">'
+      +       '<th style="padding:10px 14px;font-size:11px;font-weight:700;color:#666;text-align:left;letter-spacing:0.5px;text-transform:uppercase">Bloc</th>'
+      +       '<th style="padding:10px 14px;font-size:11px;font-weight:700;color:#666;text-align:center;letter-spacing:0.5px;text-transform:uppercase">Durée</th>'
+      +       '<th style="padding:10px 14px;font-size:11px;font-weight:700;color:#666;text-align:left;letter-spacing:0.5px;text-transform:uppercase">Objectif</th>'
+      +       '<th style="padding:10px 14px;font-size:11px;font-weight:700;color:#666;text-align:center;letter-spacing:0.5px;text-transform:uppercase">Séances</th>'
+      +       '<th style="padding:10px 14px;font-size:11px;font-weight:700;color:#666;text-align:center;letter-spacing:0.5px;text-transform:uppercase">Exercices</th>'
+      +       '<th style="padding:10px 14px;font-size:11px;font-weight:700;color:#666;text-align:center;letter-spacing:0.5px;text-transform:uppercase">Volume</th>'
+      +     '</tr></thead>'
+      +     '<tbody>' + coverRows + '</tbody>'
+      +   '</table>'
+      +   '<div style="margin-top:20px;font-size:11px;color:#AEAEB2;text-align:right">Workout &#8212; G&#233;n&#233;rateur de programmes d&#39;entra&#238;nement</div>'
+      + '</div>'
+      + '</div>';
+
     const html = '<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8"><title>' + prog.name + '</title>'
       + '<style>*{box-sizing:border-box;margin:0;padding:0}'
-      + 'body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:#111;background:#fff;padding:32px;font-size:13px}'
+      + 'body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:#111;background:#fff;font-size:13px}'
+      + '.cover-page{min-height:100vh;display:flex;flex-direction:column}'
+      + '.content-body{padding:32px}'
       + '.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px;margin-bottom:16px}'
       + '.block-section{margin-bottom:8px}.block-header{break-after:avoid;break-inside:avoid}'
-      + '@media print{body{padding:16px}@page{margin:10mm;size:A4 landscape}.grid{grid-template-columns:repeat(3,1fr)}.block-section+.block-section{break-before:page}}'
+      + '@media print{'
+      +   'body{padding:0}'
+      +   '@page{margin:0;size:A4 landscape}'
+      +   '.cover-page{page-break-after:always;height:100vh}'
+      +   '.grid{grid-template-columns:repeat(3,1fr)}'
+      +   '.block-section+.block-section{break-before:page}'
+      +   '.content-body{padding:16px}'
+      + '}'
       + '</style></head><body>'
-      + '<h1 style="font-size:24px;font-weight:800;letter-spacing:-0.5px;margin-bottom:4px">' + prog.name + '</h1>'
-      + '<p style="font-size:13px;color:#777;margin-bottom:24px">Généré avec Workout · ' + date + ' · ' + blocks.length + ' bloc' + (blocks.length > 1 ? 's' : '') + '</p>'
+      + coverPage
+      + '<div class="content-body">'
       + blocksHtml
+      + '</div>'
       + '</body></html>';
 
     const win = window.open("", "_blank", "width=900,height=700");
