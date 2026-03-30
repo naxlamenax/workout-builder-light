@@ -1163,12 +1163,14 @@ export default function WorkoutDashboard() {
       ].map(s => '<span style="background:#F4F4F5;border-radius:20px;padding:4px 12px;font-size:12px;font-weight:600;color:#444">' + s + '</span>').join("");
 
       return '<div class="block-section">'
+        + '<div class="block-header" style="margin-bottom:16px">'
         + '<div style="display:flex;align-items:baseline;gap:12px;margin-bottom:6px">'
         + '<h2 style="font-size:18px;font-weight:800;letter-spacing:-0.4px;color:#111">' + block.name + '</h2>'
         + '<span style="font-size:12px;color:#999;font-weight:500">' + block.duration + ' semaine' + (block.duration > 1 ? 's' : '') + '</span>'
         + '</div>'
         + (block.description ? '<p style="font-size:13px;color:#555;margin-bottom:10px;line-height:1.5">' + block.description + '</p>' : '')
-        + '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px">' + chips + '</div>'
+        + '<div style="display:flex;gap:8px;flex-wrap:wrap">' + chips + '</div>'
+        + '</div>'
         + '<div class="grid">' + sessionsHtml + '</div>'
         + '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px;margin-bottom:8px">' + volHtml + '</div>'
         + (total > 0
@@ -1193,8 +1195,8 @@ export default function WorkoutDashboard() {
       + '<style>*{box-sizing:border-box;margin:0;padding:0}'
       + 'body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:#111;background:#fff;padding:32px;font-size:13px}'
       + '.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px;margin-bottom:16px}'
-      + '.block-section{margin-bottom:8px}'
-      + '@media print{body{padding:16px}@page{margin:10mm;size:A4 landscape}.grid{grid-template-columns:repeat(3,1fr)}.block-section{page-break-after:always}}'
+      + '.block-section{margin-bottom:8px}.block-header{break-after:avoid;break-inside:avoid}'
+      + '@media print{body{padding:16px}@page{margin:10mm;size:A4 landscape}.grid{grid-template-columns:repeat(3,1fr)}.block-section+.block-section{break-before:page}}'
       + '</style></head><body>'
       + '<h1 style="font-size:24px;font-weight:800;letter-spacing:-0.5px;margin-bottom:4px">' + prog.name + '</h1>'
       + '<p style="font-size:13px;color:#777;margin-bottom:24px">Généré avec Workout · ' + date + ' · ' + blocks.length + ' bloc' + (blocks.length > 1 ? 's' : '') + '</p>'
@@ -2957,7 +2959,13 @@ export default function WorkoutDashboard() {
                       {b.id === activeProgram.activeBlockId ? "✓" : ""}
                     </div>
                     <div style={{ flex:1, minWidth:0 }}>
-                      <div style={{ fontSize:"0.85rem", fontWeight:700, color:"var(--text)" }}>{b.name}</div>
+                      <input
+                        className="form-input"
+                        value={b.name}
+                        onChange={e => renameBlock(b.id, e.target.value)}
+                        onClick={e => e.stopPropagation()}
+                        style={{ fontSize:"0.85rem", fontWeight:700, padding:"4px 8px", minHeight:"auto" }}
+                      />
                       <div style={{ fontSize:"0.65rem", color:"var(--text-muted)", marginTop:1 }}>
                         {b.duration} semaine{b.duration > 1 ? "s" : ""} · {(b.week ?? []).filter(Boolean).length} séance{(b.week ?? []).filter(Boolean).length > 1 ? "s" : ""}/sem.
                       </div>
