@@ -453,7 +453,7 @@ function createProgramFromTemplate(template) {
       exercises: slot.exercises.map(e => ({ id: uid(), name: e.name, sets: e.sets })),
     };
   });
-  return { id: uid(), name: template.name, week };
+  return { id: uid(), name: template.name, week, priorities: Object.fromEntries(ALL_MUSCLES.map(m => [m, "balanced"])) };
 }
 
 // ─── DEMO WEEK ────────────────────────────────────────────────────────────────
@@ -853,7 +853,7 @@ const PRIO_OPTS = [
 ];
 
 const emptyExForm = () => ({ name:"", tier:"A", primary:[], secondary:[], movement:"neutral" });
-const makeProgram = name => ({ id:uid(), name, week: Array(7).fill(null) });
+const makeProgram = name => ({ id:uid(), name, week: Array(7).fill(null), priorities: Object.fromEntries(ALL_MUSCLES.map(m => [m, "balanced"])) });
 
 // ─── MIGRATION: old days[] format → new week[] format ────────────────────────
 function migrateToWeek(oldDays) {
@@ -931,11 +931,14 @@ export default function WorkoutDashboard() {
   const [exDescCache,    setExDescCache]    = useState({});
   const [exDescLoading,  setExDescLoading]  = useState(false);
 
-  const [priorities, setPriorities] = useState(
-    Object.fromEntries(ALL_MUSCLES.map(m => [m, "balanced"]))
-  );
-  const setMusclePrio = (m, v) => setPriorities(p => ({...p, [m]:v}));
-  const resetPrios    = ()     => setPriorities(Object.fromEntries(ALL_MUSCLES.map(m => [m,"balanced"])));
+  // priorities live on the active program — helpers update it there
+  const priorities = activeProgram?.priorities ?? Object.fromEntries(ALL_MUSCLES.map(m => [m, "balanced"]));
+  const setMusclePrio = (m, v) => setPrograms(all => all.map(p =>
+    p.id !== activeProgramId ? p : { ...p, priorities: { ...(p.priorities ?? {}), [m]: v } }
+  ));
+  const resetPrios = () => setPrograms(all => all.map(p =>
+    p.id !== activeProgramId ? p : { ...p, priorities: Object.fromEntries(ALL_MUSCLES.map(m => [m, "balanced"])) }
+  ));
   const hasCustomPrios = Object.values(priorities).some(v => v !== "balanced");
 
   // ── Derived state (computed every render) ────────────────────────────────────
@@ -986,7 +989,6 @@ export default function WorkoutDashboard() {
   const fileInputRef    = useRef(null);
   const saveTimer       = useRef(null);
   const dbTimer         = useRef(null);
-  const prioTimer       = useRef(null);
   const statusTimer     = useRef(null);
 
   // ── Persistence effects ──────────────────────────────────────────────────────
@@ -1001,6 +1003,7 @@ export default function WorkoutDashboard() {
           // Migrate pre-week[] format (legacy backups)
           ...p,
           week: p.week ?? migrateToWeek(p.days ?? []),
+          priorities: p.priorities ?? Object.fromEntries(ALL_MUSCLES.map(m => [m, "balanced"])),
         }));
         setPrograms(migrated);
         setActiveProgramId(s.activeProgramId ?? migrated[0].id);
@@ -1017,7 +1020,6 @@ export default function WorkoutDashboard() {
         return merged;
       });
     } catch (_) {}
-    try { const s = JSON.parse(localStorage.getItem("workout-priorities") || "null"); if (s) setPriorities(p => ({...p,...s})); } catch (_) {}
   }, []);
 
   useEffect(() => {
@@ -1051,12 +1053,6 @@ export default function WorkoutDashboard() {
   const zoomIn    = () => setZoom(z => ZOOM_STEPS[Math.min(ZOOM_STEPS.indexOf(z) + 1, ZOOM_STEPS.length - 1)]);
   const zoomOut   = () => setZoom(z => ZOOM_STEPS[Math.max(ZOOM_STEPS.indexOf(z) - 1, 0)]);
   const zoomReset = () => setZoom(1);
-
-  useEffect(() => {
-    clearTimeout(prioTimer.current);
-    prioTimer.current = setTimeout(() => { try { localStorage.setItem("workout-priorities", JSON.stringify(priorities)); } catch(_) {} }, 600);
-    return () => clearTimeout(prioTimer.current);
-  }, [priorities]);
 
   useEffect(() => {
     if (modal?.type === "addEx" || modal?.type === "replaceEx") {
@@ -1200,7 +1196,7 @@ export default function WorkoutDashboard() {
     try {
       const data = JSON.parse(importText);
       if (data.programs) {
-        const migrated = data.programs.map(p => ({ ...p, week: p.week ?? migrateToWeek(p.days ?? []) }));
+        const migrated = data.programs.map(p => ({ ...p, week: p.week ?? migrateToWeek(p.days ?? []), priorities: p.priorities ?? Object.fromEntries(ALL_MUSCLES.map(m => [m, "balanced"])) }));
         setPrograms(migrated);
         setActiveProgramId(data.activeProgramId ?? migrated[0].id);
       } else if (data.days) {
@@ -1410,6 +1406,12 @@ export default function WorkoutDashboard() {
       return u;
     });
     closeModal();
+  }
+
+  function updateExField(dayId, exId, field, value) {
+    updateDayExercises(dayId, exs =>
+      exs.map(e => e.id !== exId ? e : { ...e, [field]: value })
+    );
   }
 
   // ── AI description generation ───────────────────────────────────────────────
@@ -1777,7 +1779,7 @@ export default function WorkoutDashboard() {
                           <div style={{ flex:1, minWidth:0, display:"flex", flexDirection:"column", gap:5 }}>
 
                             <div style={{ display:"flex", alignItems:"center", gap:5, minWidth:0 }}>
-                              <span className="ex-name" onClick={() => setModal({ type:"exDetail", name:ex.name })}>
+                              <span className="ex-name" onClick={() => setModal({ type:"exDetail", name:ex.name, dayId:session.id, exId:ex.id })}>
                                 {ex.name}
                               </span>
                               <div style={{ display:"flex", alignItems:"center", gap:4, flexShrink:0, marginLeft:"auto" }}>
@@ -2220,9 +2222,13 @@ export default function WorkoutDashboard() {
 
           {/* Exercise Detail */}
           {modal.type === "exDetail" && (() => {
-            const name = modal.name;
-            const d    = db[name];
-            const desc = d?.desc || exDescCache[name];
+            const name  = modal.name;
+            const d     = db[name];
+            const desc  = d?.desc || exDescCache[name];
+            // If opened from a session exercise, we can save reps/notes back
+            const exInProgram = modal.dayId && modal.exId
+              ? week.find(s => s?.id === modal.dayId)?.exercises.find(e => e.id === modal.exId)
+              : null;
             return (
               <div className="modal" style={{ width:500 }} onClick={e => e.stopPropagation()}>
                 <div className="modal-handle" />
@@ -2293,6 +2299,35 @@ export default function WorkoutDashboard() {
                           : "✨ Générer la description"
                         }
                       </button>
+                    </div>
+                  )}
+                  {/* Reps + Note — only when opened from a session exercise */}
+                  {exInProgram && (
+                    <div style={{ display:"flex", flexDirection:"column", gap:10,
+                      borderTop:"1px solid var(--border-light)", paddingTop:12 }}>
+                      <div style={{ display:"flex", alignItems:"center", gap:12 }}>
+                        <div style={{ flex:1 }}>
+                          <label className="form-label" style={{ marginBottom:4 }}>Répétitions cibles</label>
+                          <input
+                            className="form-input"
+                            type="text"
+                            placeholder="Ex : 8–12, 5×5, AMRAP…"
+                            value={exInProgram.reps ?? ""}
+                            onChange={e => updateExField(modal.dayId, modal.exId, "reps", e.target.value)}
+                          />
+                        </div>
+                      </div>
+                      <div>
+                        <label className="form-label" style={{ marginBottom:4 }}>Notes personnelles</label>
+                        <textarea
+                          className="form-input"
+                          placeholder="Technique, sensation, charge habituelle…"
+                          rows={3}
+                          value={exInProgram.note ?? ""}
+                          onChange={e => updateExField(modal.dayId, modal.exId, "note", e.target.value)}
+                          style={{ resize:"vertical", lineHeight:1.5 }}
+                        />
+                      </div>
                     </div>
                   )}
                 </div>
