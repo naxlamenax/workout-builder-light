@@ -1156,10 +1156,11 @@ export default function WorkoutDashboard() {
           + '<span style="font-size:11px;font-weight:700;color:#111;width:22px;text-align:right">' + (Number.isInteger(sets) ? sets : sets.toFixed(1)) + '</span></div>';
       });
 
+      const rawSets = sessions.reduce((n,s) => n + s.exercises.reduce((m,e) => m + (e.sets||0), 0), 0);
       const chips = [
         sessions.length + ' séance' + (sessions.length > 1 ? 's' : '') + '/sem.',
         sessions.reduce((n,s)=>n+s.exercises.length,0) + ' exercices',
-        totalSets.toFixed(0) + ' séries/sem.',
+        rawSets + ' séries/sem.',
         'Push ' + pushSets + ' · Pull ' + pullSets,
       ].map(s => '<span style="background:#F4F4F5;border-radius:20px;padding:4px 12px;font-size:12px;font-weight:600;color:#444">' + s + '</span>').join("");
 
