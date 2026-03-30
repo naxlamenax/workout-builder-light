@@ -1173,6 +1173,7 @@ export default function WorkoutDashboard() {
         + '<div style="display:flex;gap:8px;flex-wrap:wrap">' + chips + '</div>'
         + '</div>'
         + '<div class="grid">' + sessionsHtml + '</div>'
+        + '<div style="height:16px"></div>'
         + '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px;margin-bottom:8px">' + volHtml + '</div>'
         + (total > 0
           ? '<div style="margin-bottom:4px">'
@@ -1254,7 +1255,7 @@ export default function WorkoutDashboard() {
       + '.block-section{margin-bottom:8px}.block-header{break-after:avoid;break-inside:avoid}'
       + '@media print{'
       +   'body{padding:0}'
-      +   '@page{margin:16mm 10mm 10mm 10mm;size:A4 landscape}'
+      +   '@page{margin:8mm 10mm 10mm 10mm;size:A4 landscape}'
       +   '.cover-page{page-break-after:always;height:100vh}'
       +   '.grid{grid-template-columns:repeat(3,1fr)}'
       +   '.block-section+.block-section{break-before:page}'
