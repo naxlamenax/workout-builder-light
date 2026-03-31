@@ -2066,42 +2066,44 @@ export default function WorkoutDashboard() {
 
                           <span className="ex-idx">{exIdx + 1}</span>
 
-                          <div style={{ flex:1, minWidth:0, display:"flex", flexDirection:"column", gap:3 }}>
+                          <div style={{ flex:1, minWidth:0, display:"flex", alignItems:"center", gap:8 }}>
 
-                            {/* Line 1 — name + tier + sets + reps */}
-                            <div style={{ display:"flex", alignItems:"center", gap:6, minWidth:0 }}>
-                              <span className="ex-name" onClick={() => setModal({ type:"exDetail", name:ex.name, dayId:session.id, exId:ex.id })}>
-                                {ex.name}
-                              </span>
-                              {exData?.tier && (
-                                <TierBadge tier={exData.tier} />
-                              )}
-                              <div style={{ display:"flex", alignItems:"center", gap:4, flexShrink:0, marginLeft:"auto" }}>
-                                {ex.reps && (
-                                  <span style={{ fontSize:"0.68rem", fontWeight:700, color:"var(--text-sub)",
-                                    whiteSpace:"nowrap" }}>{ex.reps}</span>
-                                )}
+                            {/* Left — name + tier + muscles */}
+                            <div style={{ flex:1, minWidth:0, display:"flex", flexDirection:"column", gap:3 }}>
+                              <div style={{ display:"flex", alignItems:"center", gap:5, minWidth:0 }}>
+                                <span className="ex-name" onClick={() => setModal({ type:"exDetail", name:ex.name, dayId:session.id, exId:ex.id })}>
+                                  {ex.name}
+                                </span>
+                                {exData?.tier && <TierBadge tier={exData.tier} />}
                               </div>
-                            </div>
-
-                            {/* Line 2 — muscles + rest (small, secondary info) */}
-                            <div style={{ display:"flex", alignItems:"center", gap:6, minWidth:0 }}>
-                              <div style={{ display:"flex", gap:3, flex:1, minWidth:0, flexWrap:"wrap" }}>
+                              <div style={{ display:"flex", gap:3, flexWrap:"wrap" }}>
                                 {exData?.primary.map(m => (
-                                  <span key={m} style={{ fontSize:"0.65rem", fontWeight:600, padding:"1px 7px",
+                                  <span key={m} style={{ fontSize:"0.62rem", fontWeight:600, padding:"1px 6px",
                                     borderRadius:20, background:MUSCLE_COLOR[m]+"15", color:MUSCLE_COLOR[m],
                                     whiteSpace:"nowrap" }}>{m}</span>
                                 ))}
                                 {exData?.secondary.map(m => (
-                                  <span key={m} style={{ fontSize:"0.6rem", fontWeight:500, padding:"1px 6px",
+                                  <span key={m} style={{ fontSize:"0.58rem", fontWeight:500, padding:"1px 5px",
                                     borderRadius:20, background:"transparent", color:"var(--text-faint)",
                                     whiteSpace:"nowrap", border:"1px dashed var(--border)" }}>{m} ½</span>
                                 ))}
+                              </div>
+                            </div>
+
+                            {/* Right — reps + rest stacked, then sets badge + actions */}
+                            {(ex.reps || ex.rest) && (
+                              <div style={{ display:"flex", flexDirection:"column", alignItems:"flex-end",
+                                gap:2, flexShrink:0 }}>
+                                {ex.reps && (
+                                  <span style={{ fontSize:"0.75rem", fontWeight:700, color:"var(--text)",
+                                    whiteSpace:"nowrap", lineHeight:1 }}>{ex.reps}</span>
+                                )}
                                 {ex.rest && (
-                                  <span style={{ fontSize:"0.6rem", fontWeight:500, color:"var(--text-faint)",
-                                    whiteSpace:"nowrap", flexShrink:0 }}>⏱ {ex.rest}s</span>
+                                  <span style={{ fontSize:"0.65rem", fontWeight:500, color:"var(--text-muted)",
+                                    whiteSpace:"nowrap", lineHeight:1 }}>⏱ {ex.rest}s</span>
                                 )}
                               </div>
+                            )}
 
                               <div style={{ display:"flex", alignItems:"center", gap:4, flexShrink:0 }}>
                                 <div style={{ position:"relative" }}>
@@ -2156,8 +2158,6 @@ export default function WorkoutDashboard() {
                                   </button>
                                 )}
                               </div>
-                            </div>
-
                           </div>
                         </div>
                         </div>
