@@ -2126,7 +2126,6 @@ export default function WorkoutDashboard() {
                                 )}
                               </div>
                               <div style={{ display:"flex", alignItems:"center", gap:5, flexShrink:0 }}>
-                                {exData?.tier && <TierBadge tier={exData.tier} />}
                                 <div style={{ position:"relative" }}>
                                   <button className="ex-btn ex-menu-btn"
                                     onClick={e => { e.stopPropagation(); setExMenu(exMenu?.dayId === session.id && exMenu?.exId === ex.id ? null : { dayId:session.id, exId:ex.id }); }}>
@@ -2162,6 +2161,7 @@ export default function WorkoutDashboard() {
                                 </div>
                                 <button className="ex-btn del" title="Supprimer"
                                   onClick={() => deleteEx(session.id, ex.id)}>✕</button>
+                                {exData?.tier && <TierBadge tier={exData.tier} />}
                               </div>
                             </div>
 
@@ -3461,7 +3461,7 @@ const CSS = `
 
   .session-col {
     flex-shrink:0;
-    width:370px;
+    width:462px;
     background:var(--surface);
     border-radius:14px;
     border:1px solid var(--border);
