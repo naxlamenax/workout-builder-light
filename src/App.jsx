@@ -2103,8 +2103,8 @@ export default function WorkoutDashboard() {
                               </div>
                             </div>
 
-                            {((exData?.primary?.length ?? 0) + (exData?.secondary?.length ?? 0)) > 0 && (
-                              <div style={{ display:"flex", gap:3, flexWrap:"wrap" }}>
+                            <div style={{ display:"flex", alignItems:"center", gap:6, minWidth:0 }}>
+                              <div style={{ display:"flex", gap:3, flexWrap:"wrap", flex:1, minWidth:0 }}>
                                 {exData?.primary.map(m => (
                                   <span key={m} style={{ fontSize:"0.62rem", fontWeight:600, padding:"1px 6px",
                                     borderRadius:20, background:MUSCLE_COLOR[m]+"15", color:MUSCLE_COLOR[m],
@@ -2121,17 +2121,54 @@ export default function WorkoutDashboard() {
                                     style={{ background:"none", border:"none", cursor:"pointer",
                                       fontSize:"0.62rem", color:"var(--text-faint)", fontFamily:"inherit",
                                       padding:"0 2px", lineHeight:1, flexShrink:0,
-                                      display:"flex", alignItems:"center", gap:2 }}>
+                                      display:"flex", alignItems:"center" }}>
                                     {expandedNotes.has(session.id + ":" + ex.id) ? "▲" : "▼"}
                                   </button>
                                 )}
                               </div>
-                            )}
+                              <div style={{ display:"flex", alignItems:"center", gap:3, flexShrink:0 }}>
+                                <div style={{ position:"relative" }}>
+                                  <button className="ex-btn ex-menu-btn"
+                                    onClick={e => { e.stopPropagation(); setExMenu(exMenu?.dayId === session.id && exMenu?.exId === ex.id ? null : { dayId:session.id, exId:ex.id }); }}>
+                                    ···
+                                  </button>
+                                  {exMenu?.dayId === session.id && exMenu?.exId === ex.id && (
+                                    <div className="ex-menu-popover" onClick={e => e.stopPropagation()}>
+                                      <button className="ex-menu-item" onClick={() => {
+                                        setModal({ type:"replaceEx", dayId:session.id, exId:ex.id }); setPickerSearch(""); setExMenu(null);
+                                      }}>⇄ Remplacer</button>
+                                      <button className="ex-menu-item" onClick={() => {
+                                        updateDayExercises(session.id, exs => [...exs, { id:uid(), name:ex.name, sets:ex.sets }]); setExMenu(null);
+                                      }}>⊕ Dupliquer ici</button>
+                                      <button className="ex-menu-item" onClick={() => {
+                                        setModal({ type:"copyEx", ex, srcDayId:session.id }); setExMenu(null);
+                                      }}>⧉ Copier vers…</button>
+                                      <div className="ex-menu-sep" />
+                                      {isInSuperset ? (
+                                        <button className="ex-menu-item" style={{ color:SUPERSET_COLOR }} onClick={() => {
+                                          unlinkSuperset(session.id, ex.id); setExMenu(null);
+                                        }}>⊘ Défaire le superset</button>
+                                      ) : (
+                                        <button className="ex-menu-item" style={{ color:SUPERSET_COLOR }} onClick={() => {
+                                          setModal({ type:"linkSuperset", dayId:session.id, exId:ex.id, exName:ex.name }); setExMenu(null);
+                                        }}>⇌ Lier en superset</button>
+                                      )}
+                                      <div className="ex-menu-sep" />
+                                      <button className="ex-menu-item ex-menu-del" onClick={() => {
+                                        deleteEx(session.id, ex.id); setExMenu(null);
+                                      }}>✕ Supprimer</button>
+                                    </div>
+                                  )}
+                                </div>
+                                <button className="ex-btn del" title="Supprimer"
+                                  onClick={() => deleteEx(session.id, ex.id)}>✕</button>
+                              </div>
+                            </div>
 
                             {/* Note — masquée par défaut, toggle au clic */}
                             {ex.note && expandedNotes.has(session.id + ":" + ex.id) && (
-                              <div style={{ fontSize:"0.72rem", color:"var(--text-muted)", lineHeight:1.5,
-                                whiteSpace:"pre-wrap", borderLeft:"2px solid var(--border-light)",
+                              <div style={{ fontSize:"0.72rem", color:"var(--text-sub)", lineHeight:1.5,
+                                whiteSpace:"pre-wrap", borderLeft:"2px solid var(--border)",
                                 paddingLeft:8 }}>
                                 {ex.note}
                               </div>
@@ -2139,44 +2176,7 @@ export default function WorkoutDashboard() {
 
                           </div>
 
-                          {/* Actions — ··· menu + ✕ delete, always right */}
-                          <div style={{ display:"flex", alignItems:"center", gap:4, flexShrink:0, alignSelf:"flex-start", paddingTop:2 }}>
-                            <div style={{ position:"relative" }}>
-                              <button className="ex-btn ex-menu-btn"
-                                onClick={e => { e.stopPropagation(); setExMenu(exMenu?.dayId === session.id && exMenu?.exId === ex.id ? null : { dayId:session.id, exId:ex.id }); }}>
-                                ···
-                              </button>
-                              {exMenu?.dayId === session.id && exMenu?.exId === ex.id && (
-                                <div className="ex-menu-popover" onClick={e => e.stopPropagation()}>
-                                  <button className="ex-menu-item" onClick={() => {
-                                    setModal({ type:"replaceEx", dayId:session.id, exId:ex.id }); setPickerSearch(""); setExMenu(null);
-                                  }}>⇄ Remplacer</button>
-                                  <button className="ex-menu-item" onClick={() => {
-                                    updateDayExercises(session.id, exs => [...exs, { id:uid(), name:ex.name, sets:ex.sets }]); setExMenu(null);
-                                  }}>⊕ Dupliquer ici</button>
-                                  <button className="ex-menu-item" onClick={() => {
-                                    setModal({ type:"copyEx", ex, srcDayId:session.id }); setExMenu(null);
-                                  }}>⧉ Copier vers…</button>
-                                  <div className="ex-menu-sep" />
-                                  {isInSuperset ? (
-                                    <button className="ex-menu-item" style={{ color:SUPERSET_COLOR }} onClick={() => {
-                                      unlinkSuperset(session.id, ex.id); setExMenu(null);
-                                    }}>⊘ Défaire le superset</button>
-                                  ) : (
-                                    <button className="ex-menu-item" style={{ color:SUPERSET_COLOR }} onClick={() => {
-                                      setModal({ type:"linkSuperset", dayId:session.id, exId:ex.id, exName:ex.name }); setExMenu(null);
-                                    }}>⇌ Lier en superset</button>
-                                  )}
-                                  <div className="ex-menu-sep" />
-                                  <button className="ex-menu-item ex-menu-del" onClick={() => {
-                                    deleteEx(session.id, ex.id); setExMenu(null);
-                                  }}>✕ Supprimer</button>
-                                </div>
-                              )}
-                            </div>
-                            <button className="ex-btn del" title="Supprimer"
-                              onClick={() => deleteEx(session.id, ex.id)}>✕</button>
-                          </div>
+
                         </div>
                         </div>
                       );
