@@ -2066,17 +2066,45 @@ export default function WorkoutDashboard() {
 
                           <span className="ex-idx">{exIdx + 1}</span>
 
-                          <div style={{ flex:1, minWidth:0, display:"flex", flexDirection:"column", gap:4 }}>
+                          <div style={{ flex:1, minWidth:0, display:"flex", flexDirection:"column", gap:3 }}>
 
-                            {/* Line 1 — nom + tier + séries + reps + récup (même layout que PDF) */}
-                            <div style={{ display:"flex", alignItems:"center", gap:5, flexWrap:"wrap", minWidth:0 }}>
+                            {/* Ligne 1 — nom (gauche) · tier + séries + reps + récup (droite) */}
+                            <div style={{ display:"flex", alignItems:"center", gap:6, minWidth:0 }}>
                               <span className="ex-name" onClick={() => setModal({ type:"exDetail", name:ex.name, dayId:session.id, exId:ex.id })}>
                                 {ex.name}
                               </span>
-                              {exData?.tier && <TierBadge tier={exData.tier} />}
+                              <div style={{ display:"flex", alignItems:"center", gap:5, marginLeft:"auto", flexShrink:0 }}>
+                                {exData?.tier && <TierBadge tier={exData.tier} />}
+                                {editingSets?.dayId === session.id && editingSets?.exId === ex.id ? (
+                                  <div style={{ display:"flex", alignItems:"center", gap:3 }}>
+                                    <button className="sets-btn" onClick={() => setSets(session.id, ex.id, ex.sets-1)}>−</button>
+                                    <input className="sets-input" type="number" min={MIN_SETS} max={MAX_SETS}
+                                      value={ex.sets} autoFocus
+                                      onChange={e => setSets(session.id, ex.id, e.target.value)}
+                                      onWheel={e => { e.preventDefault(); setSets(session.id, ex.id, ex.sets + (e.deltaY < 0 ? 1 : -1)); }}
+                                      onBlur={() => setEditingSets(null)}
+                                      onKeyDown={e => { if (e.key === "Enter" || e.key === "Escape") setEditingSets(null); }} />
+                                    <button className="sets-btn" onClick={() => setSets(session.id, ex.id, ex.sets+1)}>+</button>
+                                  </div>
+                                ) : (
+                                  <button className="sets-badge" onClick={() => setEditingSets({ dayId:session.id, exId:ex.id })}>
+                                    {ex.sets}<span style={{ fontWeight:500, opacity:0.6, fontSize:"0.7em", marginLeft:"1px", color:"var(--text-muted)" }}>sér</span>
+                                  </button>
+                                )}
+                                {ex.reps && (
+                                  <span style={{ fontSize:"0.72rem", fontWeight:700, padding:"2px 7px",
+                                    borderRadius:8, background:"var(--sets-bg)", color:"var(--text-sub)",
+                                    whiteSpace:"nowrap" }}>{ex.reps}</span>
+                                )}
+                                {ex.rest && (
+                                  <span style={{ fontSize:"0.72rem", fontWeight:600, padding:"2px 7px",
+                                    borderRadius:8, background:"var(--sets-bg)", color:"var(--text-muted)",
+                                    whiteSpace:"nowrap" }}>⏱ {ex.rest}s</span>
+                                )}
+                              </div>
                             </div>
 
-                            {/* Line 2 — muscles */}
+                            {/* Ligne 2 — muscles */}
                             {((exData?.primary?.length ?? 0) + (exData?.secondary?.length ?? 0)) > 0 && (
                               <div style={{ display:"flex", gap:3, flexWrap:"wrap" }}>
                                 {exData?.primary.map(m => (
@@ -2092,7 +2120,7 @@ export default function WorkoutDashboard() {
                               </div>
                             )}
 
-                            {/* Note — toujours visible si renseignée */}
+                            {/* Ligne 3 — note personnelle */}
                             {ex.note && (
                               <div style={{ fontSize:"0.72rem", color:"var(--text-muted)", lineHeight:1.5,
                                 whiteSpace:"pre-wrap", borderLeft:"2px solid var(--border-light)",
@@ -2137,33 +2165,6 @@ export default function WorkoutDashboard() {
                                 </div>
                                 <button className="ex-btn del" title="Supprimer"
                                   onClick={() => deleteEx(session.id, ex.id)}>✕</button>
-                                  {/* Reps + rest badges — same style as PDF */}
-                                  {ex.reps && (
-                                    <span style={{ fontSize:"0.7rem", fontWeight:700, padding:"2px 7px",
-                                      borderRadius:8, background:"var(--sets-bg)", color:"var(--text-sub)",
-                                      whiteSpace:"nowrap", flexShrink:0 }}>{ex.reps}</span>
-                                  )}
-                                  {ex.rest && (
-                                    <span style={{ fontSize:"0.7rem", fontWeight:600, padding:"2px 7px",
-                                      borderRadius:8, background:"var(--sets-bg)", color:"var(--text-muted)",
-                                      whiteSpace:"nowrap", flexShrink:0 }}>⏱ {ex.rest}s</span>
-                                  )}
-                                  {editingSets?.dayId === session.id && editingSets?.exId === ex.id ? (
-                                  <div style={{ display:"flex", alignItems:"center", gap:3 }}>
-                                    <button className="sets-btn" onClick={() => setSets(session.id, ex.id, ex.sets-1)}>−</button>
-                                    <input className="sets-input" type="number" min={MIN_SETS} max={MAX_SETS}
-                                      value={ex.sets} autoFocus
-                                      onChange={e => setSets(session.id, ex.id, e.target.value)}
-                                      onWheel={e => { e.preventDefault(); setSets(session.id, ex.id, ex.sets + (e.deltaY < 0 ? 1 : -1)); }}
-                                      onBlur={() => setEditingSets(null)}
-                                      onKeyDown={e => { if (e.key === "Enter" || e.key === "Escape") setEditingSets(null); }} />
-                                    <button className="sets-btn" onClick={() => setSets(session.id, ex.id, ex.sets+1)}>+</button>
-                                  </div>
-                                ) : (
-                                  <button className="sets-badge" onClick={() => setEditingSets({ dayId:session.id, exId:ex.id })}>
-                                    {ex.sets}<span style={{ fontWeight:500, opacity:0.6, fontSize:"0.7em", marginLeft:"1px", color:"var(--text-muted)" }}>sér</span>
-                                  </button>
-                                )}
                               </div>
                           </div>
                         </div>
