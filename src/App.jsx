@@ -3629,13 +3629,12 @@ const CSS = `
     font-size:0.86rem;
     font-weight:600;
     color:var(--text);
-    white-space:nowrap;
-    overflow:hidden;
-    text-overflow:ellipsis;
+    white-space:normal;
     flex:1;
     min-width:0;
     cursor:pointer;
     letter-spacing:-0.2px;
+    line-height:1.3;
     transition:color 0.1s;
   }
   .ex-name:hover { color:var(--accent); }
