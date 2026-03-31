@@ -507,7 +507,7 @@ const sortByTier = (names, db) => [...names].sort((a,b) =>
 function computeWeeklyVolume(days, db) {
   const vol = Object.fromEntries(ALL_MUSCLES.map(m => [m, 0]));
   days.forEach(day => day.exercises.forEach(ex => {
-    const d = db[ex.name]; if (!d) return;
+    const d = exerciseDb[ex.name]; if (!d) return;
     d.primary.forEach(m   => { if (m in vol) vol[m] += ex.sets; });
     d.secondary.forEach(m => { if (m in vol) vol[m] += ex.sets * SECONDARY_WEIGHT; });
   }));
@@ -530,7 +530,7 @@ const MAJOR_MUSCLES = ["Pectoraux","Dos","Épaules","Quadriceps","Ischio-jambier
 function computePushPullSets(days, db) {
   let push = 0, pull = 0;
   days.forEach(day => day.exercises.forEach(ex => {
-    const d = db[ex.name];
+    const d = exerciseDb[ex.name];
     const mv = d?.movement ?? "neutral";
     if (mv === "push") push += ex.sets;
     if (mv === "pull") pull += ex.sets;
@@ -539,7 +539,7 @@ function computePushPullSets(days, db) {
 }
 
 // Returns { muscle, dayA, dayB, dayALabel, dayBLabel } for each back-to-back conflict
-function detectBackToBack(week, db) {
+function detectBackToBack(week, exerciseDb) {
   const conflicts = [];
   for (let i = 0; i < 6; i++) {
     const dayA = week[i];
@@ -548,8 +548,8 @@ function detectBackToBack(week, db) {
 
     const musclesA = new Set();
     const musclesB = new Set();
-    dayA.exercises.forEach(ex => { const d = db[ex.name]; if (d) d.primary.forEach(m => musclesA.add(m)); });
-    dayB.exercises.forEach(ex => { const d = db[ex.name]; if (d) d.primary.forEach(m => musclesB.add(m)); });
+    dayA.exercises.forEach(ex => { const d = exerciseDb[ex.name]; if (d) d.primary.forEach(m => musclesA.add(m)); });
+    dayB.exercises.forEach(ex => { const d = exerciseDb[ex.name]; if (d) d.primary.forEach(m => musclesB.add(m)); });
 
     const overlap = [...musclesA].filter(m => musclesB.has(m));
     if (overlap.length > 0) {
@@ -610,7 +610,7 @@ function computeProgramScore(weeklyVol, priorities, backToBack, days, db) {
   return { score, grade, color, issues };
 }
 
-function computeScoreBullets(weeklyVol, priorities, sessions, db, backToBack) {
+function computeScoreBullets(weeklyVol, priorities, sessions, exerciseDb, backToBack) {
   const totalSets = Object.values(weeklyVol).reduce((a,b) => a+b, 0);
   if (!totalSets) return null;
 
@@ -623,7 +623,7 @@ function computeScoreBullets(weeklyVol, priorities, sessions, db, backToBack) {
   else if (allMajorsCovered) parts.push("✓ Tous les groupes majeurs travaillés");
 
   // Push/pull
-  const { push: ps, pull: pl } = computePushPullSets(sessions, db);
+  const { push: ps, pull: pl } = computePushPullSets(sessions, exerciseDb);
   if (ps + pl > 0) {
     const ratio = pl / Math.max(ps, 1);
     if (ratio >= 0.9 && ratio <= 1.3) parts.push("✓ Équilibre push/pull optimal");
@@ -656,7 +656,7 @@ function detectSplit(sessions) {
   return `Programme ${sessions.length}j`;
 }
 
-function computeWeeklySummary(week, weeklyVol, priorities, db) {
+function computeWeeklySummary(week, weeklyVol, priorities, exerciseDb) {
   const sessions = week.filter(Boolean);
   if (!sessions.length) return null;
 
@@ -669,7 +669,7 @@ function computeWeeklySummary(week, weeklyVol, priorities, db) {
     if (!day) return;
     const seen = new Set();
     day.exercises.forEach(ex => {
-      const d = db[ex.name]; if (!d) return;
+      const d = exerciseDb[ex.name]; if (!d) return;
       d.primary.forEach(m => { if (!seen.has(m)) { seen.add(m); freq[m]++; } });
     });
   });
@@ -677,7 +677,7 @@ function computeWeeklySummary(week, weeklyVol, priorities, db) {
   const freq2  = ALL_MUSCLES.filter(m => freq[m] >= 2);
   const absent = MAJOR_MUSCLES.filter(m => !weeklyVol[m] || weeklyVol[m] === 0);
   const prios  = ALL_MUSCLES.filter(m => priorities[m] === "priority");
-  const { push: pushSets, pull: pullSets } = computePushPullSets(sessions, db);
+  const { push: pushSets, pull: pullSets } = computePushPullSets(sessions, exerciseDb);
 
   return { split, sessions: sessions.length, restDays, totalSets, freq2, absent, prios, pushSets, pullSets };
 }
@@ -707,7 +707,7 @@ function heaviestSessionByMovement(movement, sessions, db) {
   return best;
 }
 
-function computeSuggestions(weeklyVol, priorities, sessions, db, backToBack) {
+function computeSuggestions(weeklyVol, priorities, sessions, exerciseDb, backToBack) {
   if (!sessions.length) return [];
   const inProgram = sessions.flatMap(s => s.exercises.map(e => e.name));
   const suggestions = [];
@@ -780,7 +780,7 @@ function computeSuggestions(weeklyVol, priorities, sessions, db, backToBack) {
   });
 
   // ── 4. Push/pull imbalance ─────────────────────────────────────────────────
-  const { push: pushSets, pull: pullSets } = computePushPullSets(sessions, db);
+  const { push: pushSets, pull: pullSets } = computePushPullSets(sessions, exerciseDb);
   if (pushSets + pullSets > 0) {
     const ratio = pullSets / Math.max(pushSets, 1);
     if (ratio < 0.7) {
@@ -879,6 +879,7 @@ function migrateToWeek(oldDays) {
 // ─── CONSTANTS ───────────────────────────────────────────────────────────────
 
 const ZOOM_STEPS        = [0.6, 0.7, 0.8, 0.9, 1, 1.1, 1.2];
+const DEMO_BLOCK        = makeBlock("Bloc 1", 4, DEMO_WEEK);
 const SUPERSET_COLOR    = "#7C3AED";
 const SECONDARY_WEIGHT  = 0.5; // secondary muscles count half toward weekly volume
 
@@ -886,8 +887,7 @@ const SECONDARY_WEIGHT  = 0.5; // secondary muscles count half toward weekly vol
 
 export default function WorkoutDashboard() {
 
-  const demoBlock = makeBlock("Bloc 1", 4, DEMO_WEEK);
-  const [programs,        setPrograms]        = useState([{ id:"p1", name:"Mon Programme", blocks:[demoBlock], activeBlockId:demoBlock.id, priorities: Object.fromEntries(ALL_MUSCLES.map(m=>[m,"balanced"])) }]);
+  const [programs,        setPrograms]        = useState([{ id:"p1", name:"Mon Programme", blocks:[DEMO_BLOCK], activeBlockId:DEMO_BLOCK.id, priorities: Object.fromEntries(ALL_MUSCLES.map(m=>[m,"balanced"])) }]);
   const [activeProgramId, setActiveProgramId] = useState("p1");
   const [showOnboarding,  setShowOnboarding]  = useState(false);
 
@@ -919,7 +919,7 @@ export default function WorkoutDashboard() {
     ));
   }
 
-  const [db, setDb] = useState(EXERCISE_DB);
+  const [exerciseDb, setExerciseDb] = useState(EXERCISE_DB);
 
   // ── UI state ─────────────────────────────────────────────────────────────────
   const [modal,          setModal]          = useState(null);
@@ -971,18 +971,18 @@ export default function WorkoutDashboard() {
   ));
   const hasCustomPrios = Object.values(priorities).some(v => v !== "balanced");
 
-  // ── Derived state (computed every render) ────────────────────────────────────
-  const weeklyVol  = computeWeeklyVolume(sessions, db);
-  const backToBack = detectBackToBack(week, db);
-  const scoreData  = computeProgramScore(weeklyVol, priorities, backToBack, sessions, db);
-  const summary    = computeWeeklySummary(week, weeklyVol, priorities, db);
-  const suggestions = computeSuggestions(weeklyVol, priorities, sessions, db, backToBack);
-  const scoreSummaryLines = computeScoreBullets(weeklyVol, priorities, sessions, db, backToBack);
+  // ── Derived analysis ────────────────────────────────────────────────────────
+  const weeklyVol  = computeWeeklyVolume(sessions, exerciseDb);
+  const backToBack = detectBackToBack(week, exerciseDb);
+  const scoreData  = computeProgramScore(weeklyVol, priorities, backToBack, sessions, exerciseDb);
+  const summary    = computeWeeklySummary(week, weeklyVol, priorities, exerciseDb);
+  const suggestions = computeSuggestions(weeklyVol, priorities, sessions, exerciseDb, backToBack);
+  const scoreSummaryLines = computeScoreBullets(weeklyVol, priorities, sessions, exerciseDb, backToBack);
 
-  // ── Picker filtered lists ─────────────────────────────────────────────────────
+  // ── Filtered exercise lists ─────────────────────────────────────────────────
   const pickerList = sortByTier(
-    Object.keys(db).filter(n => {
-      const d = db[n];
+    Object.keys(exerciseDb).filter(n => {
+      const d = exerciseDb[n];
       return n.toLowerCase().includes(pickerSearch.toLowerCase())
         && (pickerMuscle === "Tous" || d?.primary.includes(pickerMuscle) || d?.secondary.includes(pickerMuscle))
         && (pickerTier   === "Tous" || d?.tier === pickerTier);
@@ -990,14 +990,14 @@ export default function WorkoutDashboard() {
     db
   );
 
-  const needMuscles = ALL_MUSCLES.filter(m => {
+  const musclesNeedingVolume = ALL_MUSCLES.filter(m => {
     const s = classifyVolume(weeklyVol[m]??0);
     return priorities[m] === "priority" ? s === "neutral" || s === "maintain" : s === "neutral";
   }).slice(0, 3);
 
   const smartPicker = !pickerSearch
     ? sortByTier(
-        needMuscles.flatMap(m => Object.entries(db)
+        musclesNeedingVolume.flatMap(m => Object.entries(exerciseDb)
           .filter(([n,d]) => d.primary.includes(m)).map(([n]) => n)
         ).filter((n,i,a) => a.indexOf(n) === i).slice(0, 5),
         db
@@ -1006,7 +1006,7 @@ export default function WorkoutDashboard() {
 
   const libraryList = sortByTier(
     Object.keys(db).filter(name => {
-      const d = db[name];
+      const d = exerciseDb[name];
       return name.toLowerCase().includes(libSearch.toLowerCase())
         && (libMuscle === "Tous" || d.primary.includes(libMuscle) || d.secondary.includes(libMuscle))
         && (libTier   === "Tous" || d.tier === libTier);
@@ -1041,9 +1041,9 @@ export default function WorkoutDashboard() {
     } catch (_) {}
     try {
       const s = JSON.parse(localStorage.getItem("workout-db") || "null");
-      if (s) setDb(() => {
-        // Per-exercise merge: localStorage custom fields override, but desc/tier from EXERCISE_DB fills in missing ones
+      if (s) setExerciseDb(() => {
         const merged = { ...EXERCISE_DB };
+        // Merge saved exercise fields — localStorage overrides, but EXERCISE_DB fills gaps
         Object.entries(s).forEach(([name, saved]) => {
           merged[name] = { ...merged[name], ...saved, desc: saved.desc || merged[name]?.desc };
         });
@@ -1068,9 +1068,9 @@ export default function WorkoutDashboard() {
 
   useEffect(() => {
     clearTimeout(dbTimer.current);
-    dbTimer.current = setTimeout(() => { try { localStorage.setItem("workout-db", JSON.stringify(db)); } catch(_) {} }, 800);
+    dbTimer.current = setTimeout(() => { try { localStorage.setItem("workout-db", JSON.stringify(exerciseDb)); } catch(_) {} }, 800);
     return () => clearTimeout(dbTimer.current);
-  }, [db]);
+  }, [exerciseDb]);
 
   useEffect(() => {
     localStorage.setItem("workout-dark", darkMode ? "1" : "0");
@@ -1094,7 +1094,6 @@ export default function WorkoutDashboard() {
   const closeModal = () => setModal(null);
 
   // ── Import / Export ───────────────────────────────────────────────────────────
-// PDF export function to be inserted before exportBackup
   function exportPdf(opts) {
     const prog      = activeProgram;
     const blocks    = prog.blocks ?? [];
@@ -1111,8 +1110,8 @@ export default function WorkoutDashboard() {
     function renderBlock(block) {
       const days     = block.week ?? [];
       const sessions = days.filter(Boolean);
-      const vol      = computeWeeklyVolume(sessions, db);
-      const { push: pushSets, pull: pullSets } = computePushPullSets(sessions, db);
+      const vol      = computeWeeklyVolume(sessions, exerciseDb);
+      const { push: pushSets, pull: pullSets } = computePushPullSets(sessions, exerciseDb);
       const total    = pushSets + pullSets;
       const pushPct  = total > 0 ? Math.round(pushSets / total * 100) : 50;
       const pullPct  = 100 - pushPct;
@@ -1123,7 +1122,7 @@ export default function WorkoutDashboard() {
         if (!slot) return;
         let exHtml = "";
         slot.exercises.forEach((ex, j) => {
-          const d  = db[ex.name] ?? {};
+          const d  = exerciseDb[ex.name] ?? {};
           const tc = tierColors[d.tier];
           const tierBadge = (opts.tier && tc) ? '<span style="font-size:10px;font-weight:700;padding:1px 5px;border-radius:10px;color:' + tc[0] + ';background:' + tc[1] + '">' + d.tier + '</span>' : "";
           const primary   = opts.muscles ? (d.primary ?? []).map(m => '<span style="font-size:10px;font-weight:600;padding:1px 6px;border-radius:10px;color:' + (MUSCLE_COLOR[m]||"#666") + ';background:' + (MUSCLE_COLOR[m]||"#666") + '18">' + m + '</span>').join("") : "";
@@ -1299,7 +1298,7 @@ export default function WorkoutDashboard() {
     const prog    = activeProgram;
     const days    = activeBlock?.week ?? [];
     const vol     = computeWeeklyVolume(days.filter(Boolean), db);
-    const { push: pushSets, pull: pullSets } = computePushPullSets(days.filter(Boolean), db);
+    const { push: pushSets, pull: pullSets } = computePushPullSets(days.filter(Boolean), exerciseDb);
     const dayLabels = ["Lun","Mar","Mer","Jeu","Ven","Sam","Dim"];
 
     // Dynamically load SheetJS from CDN
@@ -1314,7 +1313,7 @@ export default function WorkoutDashboard() {
         if (!slot) return;
         const rows = [["#", "Exercice", "Séries", "Reps cibles", "Récup. (sec)", "Tier", "Muscles principaux", "Muscles secondaires", "Push/Pull", "Notes"]];
         slot.exercises.forEach((ex, j) => {
-          const d = db[ex.name] ?? {};
+          const d = exerciseDb[ex.name] ?? {};
           rows.push([
             j + 1,
             ex.name,
@@ -1391,7 +1390,7 @@ export default function WorkoutDashboard() {
         const np = { id:uid(), name:"Importé", week: migrateToWeek(data.days) };
         setPrograms(prev => [...prev, np]);
       } else throw new Error("Format non reconnu");
-      if (data.db) setDb(data.db);
+      if (data.exerciseDb) setExerciseDb(data.db);
       setImportText(""); closeModal();
     } catch (err) { setImportError("Fichier invalide : " + err.message); }
   }
@@ -1659,18 +1658,18 @@ export default function WorkoutDashboard() {
   function openEditExInLib(n) { setExForm({ name:n, movement:"neutral", ...db[n] }); setEditingExName(n); setExFormError(""); setModal({ type:"editExInLib" }); }
   function deleteExFromLib(n) {
     if (!window.confirm(`Supprimer « ${n} » de la bibliothèque ?`)) return;
-    setDb(d => { const u = {...d}; delete u[n]; return u; });
+    setExerciseDb(prev => { const updated = {...prev}; delete updated[n]; return updated; });
   }
   function saveExForm() {
     const name = exForm.name.trim();
     if (!name)                           { setExFormError("Le nom est obligatoire."); return; }
     if (!exForm.primary.length)          { setExFormError("Sélectionne au moins un muscle principal."); return; }
-    if (!editingExName && db[name])      { setExFormError("Un exercice avec ce nom existe déjà."); return; }
-    setDb(d => {
-      const u = {...d};
-      if (editingExName && editingExName !== name) delete u[editingExName];
-      u[name] = { tier:exForm.tier, primary:exForm.primary, secondary:exForm.secondary, movement:exForm.movement ?? "neutral" };
-      return u;
+    if (!editingExName && exerciseDb[name])      { setExFormError("Un exercice avec ce nom existe déjà."); return; }
+    setExerciseDb(prev => {
+      const updated = {...prev};
+      if (editingExName && editingExName !== name) delete updated[editingExName];
+      updated[name] = { tier:exForm.tier, primary:exForm.primary, secondary:exForm.secondary, movement:exForm.movement ?? "neutral" };
+      return updated;
     });
     closeModal();
   }
@@ -1685,7 +1684,7 @@ export default function WorkoutDashboard() {
   async function generateExDesc(name) {
     if (exDescCache[name] || exDescLoading) return;
     setExDescLoading(true);
-    const d = db[name];
+    const d = exerciseDb[name];
     try {
       const res = await fetch("https://api.anthropic.com/v1/messages", {
         method:"POST", headers:{"Content-Type":"application/json"},
@@ -1698,10 +1697,6 @@ export default function WorkoutDashboard() {
       setExDescCache(c => ({...c, [name]: json.content?.[0]?.text ?? "Indisponible."}));
     } catch { setExDescCache(c => ({...c, [name]: "Erreur de connexion."})); }
     setExDescLoading(false);
-  }
-
-  function applySuggestion(action) {
-    if (action) addEx(action.dayId, action.exName);
   }
 
   // ─────────────────────────────────────────────────────────────────────────────
@@ -1732,7 +1727,7 @@ export default function WorkoutDashboard() {
     return (
       <div style={{ marginBottom:8 }}>
         <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:3 }}>
-          <span style={{ fontSize:"0.7rem", fontWeight:500, color:C.textSub, display:"flex", alignItems:"center", gap:4 }}>
+          <span style={{ fontSize:"0.7rem", fontWeight:500, color:"var(--text-sub)", display:"flex", alignItems:"center", gap:4 }}>
             <span style={{ fontSize:"0.8rem" }}>{MUSCLE_EMOJI[muscle]}</span>
             {muscle}
             {isFreq2 && (
@@ -1740,7 +1735,7 @@ export default function WorkoutDashboard() {
                 background:"var(--accent-bg)", color:"var(--accent)", border:"1px solid var(--border)",
                 letterSpacing:"0.2px" }}>×2</span>
             )}
-            {isConflict && <span style={{ fontSize:"0.58rem", color:C.orange, fontWeight:700 }}>⚡J-J</span>}
+            {isConflict && <span style={{ fontSize:"0.58rem", color:"var(--color-orange, #EA580C)", fontWeight:700 }}>⚡J-J</span>}
           </span>
           <div style={{ display:"flex", alignItems:"center", gap:5 }}>
             {status !== "neutral" && (
@@ -1749,7 +1744,7 @@ export default function WorkoutDashboard() {
                 {VOL_LABEL[status]}
               </span>
             )}
-            <span style={{ fontSize:"0.7rem", fontWeight:700, color:C.text, minWidth:18, textAlign:"right" }}>
+            <span style={{ fontSize:"0.7rem", fontWeight:700, color:"var(--text)", minWidth:18, textAlign:"right" }}>
               {Number.isInteger(sets) ? sets : sets.toFixed(1)}
             </span>
           </div>
@@ -1777,15 +1772,14 @@ export default function WorkoutDashboard() {
       <style>{CSS}</style>
       <div className={`app${darkMode ? " dark" : ""}`}>
 
-        {/* ── TOPBAR ─────────────────────────────────────────────────── */}
         <header className="topbar">
           <div style={{ display:"flex", alignItems:"center", gap:10 }}>
-            <span style={{ fontWeight:800, fontSize:"1.05rem", letterSpacing:"-0.5px", color:C.text }}>
-              Work<span style={{ color:C.accent }}>out</span>
+            <span style={{ fontWeight:800, fontSize:"1.05rem", letterSpacing:"-0.5px", color:"var(--text)" }}>
+              Work<span style={{ color:"var(--accent)" }}>out</span>
             </span>
             <div style={{ width:1, height:18, background:C.border }} />
             <button className="prog-btn" onClick={() => setModal({ type:"progList" })}>
-              {activeProgramName} <span style={{ color:C.accent, fontSize:"0.55rem", marginLeft:4 }}>▼</span>
+              {activeProgramName} <span style={{ color:"var(--accent)", fontSize:"0.55rem", marginLeft:4 }}>▼</span>
             </button>
             <div className={`save-dot ${saveStatus}`} />
 
@@ -1888,10 +1882,8 @@ export default function WorkoutDashboard() {
           </div>
         </header>
 
-        {/* ── MAIN ───────────────────────────────────────────────────── */}
         <div className="main" onClick={() => { setColorPickerId(null); setExMenu(null); }}>
 
-          {/* ── WEEK BOARD ──────────────────────────────────────────── */}
           <div className="week-board" style={{ overflow:"auto" }}>
             <div style={{
               display:"flex", alignItems:"flex-start", gap:10,
@@ -1930,7 +1922,7 @@ export default function WorkoutDashboard() {
               }
 
               // Session column
-              const dayVol     = computeWeeklyVolume([session], db);
+              const dayVol     = computeWeeklyVolume([session], exerciseDb);
               const activeMuscles = ALL_MUSCLES.filter(m => dayVol[m] > 0);
               const sessionIsBackToBack = idx > 0 && week[idx-1] !== null && backToBack.some(b =>
                 b.dayALabel === DAY_LABELS[idx-1] && b.dayBLabel === DAY_LABELS[idx]
@@ -1968,7 +1960,6 @@ export default function WorkoutDashboard() {
                   )}
 
                   <div className="col-header" style={{ position:"relative" }}>
-                    {/* Session drag handle */}
                     <span className="session-drag-handle"
                       draggable
                       onDragStart={e => { e.stopPropagation(); setSessionDragSrc(idx); }}
@@ -1976,7 +1967,7 @@ export default function WorkoutDashboard() {
                       title="Déplacer la séance">
                       ⠿
                     </span>
-                    <span style={{ fontSize:"0.6rem", fontWeight:700, color:C.accent, letterSpacing:"1px" }}>
+                    <span style={{ fontSize:"0.6rem", fontWeight:700, color:"var(--accent)", letterSpacing:"1px" }}>
                       {DAY_LABELS[idx]}
                     </span>
                     {renamingDay === session.id ? (
@@ -2004,7 +1995,7 @@ export default function WorkoutDashboard() {
 
                     {colorPickerId === session.id && (
                       <div style={{ position:"absolute", top:"100%", right:0, zIndex:50,
-                        background:C.surface, border:`1.5px solid ${C.border}`, borderRadius:10,
+                        background:"var(--surface)", border:`1.5px solid ${C.border}`, borderRadius:10,
                         padding:8, display:"flex", gap:5, flexWrap:"wrap", width:160,
                         boxShadow:"0 4px 16px rgba(0,0,0,0.12)" }}
                         onClick={e => e.stopPropagation()}>
@@ -2031,7 +2022,7 @@ export default function WorkoutDashboard() {
 
                   <div className="ex-list">
                     {session.exercises.map((ex, exIdx) => {
-                      const exData = db[ex.name];
+                      const exData = exerciseDb[ex.name];
                       const isDropTarget = dragOver?.dayId === session.id && dragOver?.exIdx === exIdx;
                       // Superset detection
                       const isSsLeader   = !!ex.supersetWith;
@@ -2040,8 +2031,7 @@ export default function WorkoutDashboard() {
                       return (
                         <div key={ex.id} className={`ex-wrapper${isInSuperset ? " ss-row" : ""}`}
                           style={ isInSuperset ? { borderLeft:`3px solid ${SUPERSET_COLOR}` } : {} }>
-                          {/* SS connector badge between top and bottom */}
-                          {isSsFollower && (
+                                  {isSsFollower && (
                             <div style={{ display:"flex", alignItems:"center", gap:6, padding:"2px 10px 2px 8px",
                               background:`${SUPERSET_COLOR}10`, borderBottom:`1px solid ${SUPERSET_COLOR}20` }}>
                               <div style={{ width:2, height:10, background:SUPERSET_COLOR, borderRadius:1, opacity:0.4 }} />
@@ -2068,7 +2058,6 @@ export default function WorkoutDashboard() {
 
                           <div style={{ flex:1, minWidth:0, display:"flex", flexDirection:"column", gap:3 }}>
 
-                            {/* Ligne 1 — nom (gauche) · tier + séries + reps + récup (droite) */}
                             <div style={{ display:"flex", alignItems:"center", gap:6, minWidth:0 }}>
                               <span className="ex-name" onClick={() => setModal({ type:"exDetail", name:ex.name, dayId:session.id, exId:ex.id })}>
                                 {ex.name}
@@ -2104,7 +2093,6 @@ export default function WorkoutDashboard() {
                               </div>
                             </div>
 
-                            {/* Ligne 2 — muscles */}
                             {((exData?.primary?.length ?? 0) + (exData?.secondary?.length ?? 0)) > 0 && (
                               <div style={{ display:"flex", gap:3, flexWrap:"wrap" }}>
                                 {exData?.primary.map(m => (
@@ -2120,7 +2108,6 @@ export default function WorkoutDashboard() {
                               </div>
                             )}
 
-                            {/* Ligne 3 — note personnelle */}
                             {ex.note && (
                               <div style={{ fontSize:"0.72rem", color:"var(--text-muted)", lineHeight:1.5,
                                 whiteSpace:"pre-wrap", borderLeft:"2px solid var(--border-light)",
@@ -2173,7 +2160,7 @@ export default function WorkoutDashboard() {
                     })}
 
                     {dragOver?.dayId === session.id && dragOver?.insertIdx >= session.exercises.length && (
-                      <div style={{ height:3, background:C.accent, borderRadius:2, margin:"0 10px 2px", opacity:0.8 }} />
+                      <div style={{ height:3, background:"var(--accent)", borderRadius:2, margin:"0 10px 2px", opacity:0.8 }} />
                     )}
                     <button className="add-ex-btn"
                       onClick={() => { setModal({ type:"addEx", dayId:session.id }); setPickerSearch(""); }}>
@@ -2186,10 +2173,8 @@ export default function WorkoutDashboard() {
             </div>
           </div>
 
-          {/* ── ANALYSIS PANEL ──────────────────────────────────────── */}
           <aside className="analysis-panel">
 
-            {/* Score */}
             <div className="panel-block">
               <div className="panel-label">NOTE</div>
               <div style={{ display:"flex", alignItems:"baseline", gap:8, marginTop:6 }}>
@@ -2233,7 +2218,6 @@ export default function WorkoutDashboard() {
             </div>
 
 
-            {/* Push / Pull bar */}
             {sessions.length > 0 && summary && summary.pushSets + summary.pullSets > 0 && (() => {
               const total   = summary.pushSets + summary.pullSets;
               const pushPct = Math.round((summary.pushSets / total) * 100);
@@ -2266,7 +2250,6 @@ export default function WorkoutDashboard() {
               );
             })()}
 
-            {/* Suggestions */}
             {suggestions.length > 0 && (
               <div className="panel-block">
                 <div className="panel-label">SUGGESTIONS</div>
@@ -2291,7 +2274,7 @@ export default function WorkoutDashboard() {
                       )}
                       {suggestion.action && (
                         <div style={{ paddingLeft:22, marginTop:6 }}>
-                          <button onClick={() => applySuggestion(suggestion.action)} style={{
+                          <button onClick={() => suggestion.action && addEx(suggestion.action.dayId, suggestion.action.exName)} style={{
                             fontSize:"0.65rem", fontWeight:700, padding:"4px 10px",
                             background:"var(--accent)", color:"#fff", border:"none", borderRadius:20,
                             cursor:"pointer", fontFamily:"inherit", letterSpacing:"-0.1px",
@@ -2304,7 +2287,6 @@ export default function WorkoutDashboard() {
               </div>
             )}
 
-            {/* Volume */}
             <div className="panel-block">
               <div className="panel-label">VOLUME HEBDO</div>
               <div style={{ marginTop:8 }}>
@@ -2319,17 +2301,16 @@ export default function WorkoutDashboard() {
                 ].map(({ c, l }) => (
                   <div key={l} style={{ display:"flex", alignItems:"center", gap:5 }}>
                     <div style={{ width:6, height:6, borderRadius:"50%", background:c, flexShrink:0 }} />
-                    <span style={{ fontSize:"0.6rem", color:C.textFaint }}>{l}</span>
+                    <span style={{ fontSize:"0.6rem", color:"var(--text-faint)" }}>{l}</span>
                   </div>
                 ))}
                 <div style={{ display:"flex", alignItems:"center", gap:5, marginTop:2 }}>
-                  <span style={{ fontSize:"0.6rem", color:C.orange, fontWeight:600 }}>⚡J-J</span>
-                  <span style={{ fontSize:"0.6rem", color:C.textFaint }}>Muscle travaillé 2 jours consécutifs</span>
+                  <span style={{ fontSize:"0.6rem", color:"var(--color-orange, #EA580C)", fontWeight:600 }}>⚡J-J</span>
+                  <span style={{ fontSize:"0.6rem", color:"var(--text-faint)" }}>Muscle travaillé 2 jours consécutifs</span>
                 </div>
               </div>
             </div>
 
-            {/* Priorities */}
             <div className="panel-block">
               <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:6 }}>
                 <div className="panel-label">PRIORITÉS</div>
@@ -2346,7 +2327,6 @@ export default function WorkoutDashboard() {
                 </div>
               </div>
 
-              {/* Collapsed view — show only active priorities */}
               {!priosExpanded && (
                 <div style={{ display:"flex", flexDirection:"column", gap:5 }}>
                   {(() => {
@@ -2389,7 +2369,6 @@ export default function WorkoutDashboard() {
                 </div>
               )}
 
-              {/* Expanded view — full editor */}
               {priosExpanded && (
                 <div style={{ display:"flex", flexDirection:"column", gap:4 }}>
                   {hasCustomPrios && (
@@ -2432,7 +2411,6 @@ export default function WorkoutDashboard() {
         </div>
       </div>
 
-      {/* ── MODALS ──────────────────────────────────────────────────────── */}
       {modal && (
         <div className="overlay" onClick={closeModal}>
 
@@ -2468,23 +2446,23 @@ export default function WorkoutDashboard() {
                 {!pickerSearch && smartPicker.length > 0 && (
                   <>
                     <div style={{ padding:"8px 14px 4px", fontSize:"0.58rem", fontWeight:700,
-                      textTransform:"uppercase", letterSpacing:"0.8px", color:C.accent }}>
+                      textTransform:"uppercase", letterSpacing:"0.8px", color:"var(--accent)" }}>
                       ✨ Recommandés pour votre programme
                     </div>
                     {smartPicker.map(name => {
-                      const exData = db[name];
+                      const exData = exerciseDb[name];
                       const alreadyAdded = alreadyIn.has(name);
                       return (
-                        <div key={`s-${name}`} className="picker-row" style={{ background:C.accentBg }}
+                        <div key={`s-${name}`} className="picker-row" style={{ background:"var(--accent-bg)" }}
                           onClick={() => isReplace ? replaceEx(modal.dayId, modal.exId, name) : addEx(modal.dayId, name)}>
                           <TierBadge tier={exData?.tier} />
                           <div style={{ flex:1, minWidth:0 }}>
-                            <div style={{ fontSize:"0.83rem", fontWeight:600, color:C.text }}>{name}</div>
-                            <div style={{ fontSize:"0.65rem", color:C.textMuted, marginTop:1 }}>
+                            <div style={{ fontSize:"0.83rem", fontWeight:600, color:"var(--text)" }}>{name}</div>
+                            <div style={{ fontSize:"0.65rem", color:"var(--text-muted)", marginTop:1 }}>
                               {exData.primary.join(", ")}{exData.secondary.length ? ` · ${exData.secondary.join(", ")} ½` : ""}
                             </div>
                           </div>
-                          {alreadyAdded && <span style={{ fontSize:"0.6rem", color:C.green, fontWeight:700, flexShrink:0 }}>✓</span>}
+                          {alreadyAdded && <span style={{ fontSize:"0.6rem", color:"var(--color-green, #16A34A)", fontWeight:700, flexShrink:0 }}>✓</span>}
                         </div>
                       );
                     })}
@@ -2492,21 +2470,21 @@ export default function WorkoutDashboard() {
                   </>
                 )}
                 {pickerList.length === 0
-                  ? <div style={{ padding:24, textAlign:"center", color:C.textFaint, fontSize:"0.85rem" }}>Aucun résultat</div>
+                  ? <div style={{ padding:24, textAlign:"center", color:"var(--text-faint)", fontSize:"0.85rem" }}>Aucun résultat</div>
                   : pickerList.map(name => {
-                    const exData = db[name];
+                    const exData = exerciseDb[name];
                     const alreadyAdded = alreadyIn.has(name);
                     return (
                       <div key={name} className="picker-row"
                         onClick={() => isReplace ? replaceEx(modal.dayId, modal.exId, name) : addEx(modal.dayId, name)}>
                         <TierBadge tier={exData?.tier} />
                         <div style={{ flex:1, minWidth:0 }}>
-                          <div style={{ fontSize:"0.83rem", fontWeight:600, color:C.text }}>{name}</div>
-                          <div style={{ fontSize:"0.65rem", color:C.textMuted, marginTop:1 }}>
+                          <div style={{ fontSize:"0.83rem", fontWeight:600, color:"var(--text)" }}>{name}</div>
+                          <div style={{ fontSize:"0.65rem", color:"var(--text-muted)", marginTop:1 }}>
                             {exData.primary.join(", ")}{exData.secondary.length ? ` · ${exData.secondary.join(", ")} ½` : ""}
                           </div>
                         </div>
-                        {alreadyAdded && <span style={{ fontSize:"0.6rem", color:C.green, fontWeight:700, flexShrink:0 }}>✓</span>}
+                        {alreadyAdded && <span style={{ fontSize:"0.6rem", color:"var(--color-green, #16A34A)", fontWeight:700, flexShrink:0 }}>✓</span>}
                       </div>
                     );
                   })
@@ -2524,7 +2502,7 @@ export default function WorkoutDashboard() {
           {/* Exercise Detail */}
           {modal.type === "exDetail" && (() => {
             const name  = modal.name;
-            const d     = db[name];
+            const d     = exerciseDb[name];
             const desc  = d?.desc || exDescCache[name];
             // If opened from a session exercise, we can save reps/notes back
             const exInProgram = modal.dayId && modal.exId
@@ -2557,7 +2535,7 @@ export default function WorkoutDashboard() {
                     ))}
                     {d?.secondary.map(m => (
                       <span key={m} style={{ fontSize:"0.66rem", fontWeight:500, padding:"2px 7px",
-                        borderRadius:6, background:C.bg, color:C.textMuted, border:`1px solid ${C.borderLight}` }}>
+                        borderRadius:6, background:"var(--bg)", color:"var(--text-muted)", border:`1px solid ${C.borderLight}` }}>
                         {m} ½
                       </span>
                     ))}
@@ -2575,7 +2553,7 @@ export default function WorkoutDashboard() {
                   )}
 
                   {desc ? (
-                    <div style={{ fontSize:"0.84rem", color:C.textSub, lineHeight:1.8, whiteSpace:"pre-wrap" }}>
+                    <div style={{ fontSize:"0.84rem", color:"var(--text-sub)", lineHeight:1.8, whiteSpace:"pre-wrap" }}>
                       {desc}
                     </div>
                   ) : (
@@ -2602,7 +2580,6 @@ export default function WorkoutDashboard() {
                       </button>
                     </div>
                   )}
-                  {/* Reps + Note — only when opened from a session exercise */}
                   {exInProgram && (
                     <div style={{ display:"flex", flexDirection:"column", gap:10,
                       borderTop:"1px solid var(--border-light)", paddingTop:12 }}>
@@ -2683,7 +2660,7 @@ export default function WorkoutDashboard() {
                         {p.description && (
                           <div style={{ fontSize:"0.68rem", color:"var(--text-muted)", marginTop:1, lineHeight:1.4, whiteSpace:"pre-wrap" }}>{p.description}</div>
                         )}
-                        <div style={{ fontSize:"0.66rem", color:C.textFaint, marginTop:1 }}>
+                        <div style={{ fontSize:"0.66rem", color:"var(--text-faint)", marginTop:1 }}>
                           {(p.blocks?.length ?? 1)} bloc{(p.blocks?.length ?? 1) > 1 ? "s" : ""} · {sess.length} séance{sess.length !== 1 ? "s" : ""}/sem.
                         </div>
                       </div>
@@ -2694,7 +2671,7 @@ export default function WorkoutDashboard() {
                           { icon:"🗑️", title:"Supprimer", fn:() => deleteProg(p.id) },
                         ].map(btn => (
                           <button key={btn.title} title={btn.title} onClick={btn.fn} style={{
-                            background:C.bg, border:`1px solid ${C.border}`, borderRadius:6,
+                            background:"var(--bg)", border:`1px solid ${C.border}`, borderRadius:6,
                             padding:"3px 6px", cursor:"pointer", fontSize:"0.8rem",
                             minWidth:28, minHeight:28, display:"flex", alignItems:"center", justifyContent:"center",
                           }}>{btn.icon}</button>
@@ -2765,7 +2742,7 @@ export default function WorkoutDashboard() {
                     <div style={{ padding:"6px 14px 12px", display:"flex", gap:4, flexWrap:"wrap" }}>
                       {tpl.week.map((slot, i) => slot ? (
                         <div key={i} style={{ fontSize:"0.6rem", fontWeight:600, padding:"3px 8px",
-                          borderRadius:20, background:C.accentBg, color:C.accentDark,
+                          borderRadius:20, background:"var(--accent-bg)", color:"var(--accent-dark)",
                           display:"flex", alignItems:"center", gap:4 }}>
                           <span style={{ opacity:0.6 }}>{DAY_LABELS[i]}</span>
                           <span>{slot.name}</span>
@@ -2808,7 +2785,7 @@ export default function WorkoutDashboard() {
                     placeholder="Objectif, contexte, notes générales…"
                     style={{ resize:"vertical", lineHeight:1.5 }} />
                 </div>
-                {progFormError && <div style={{ fontSize:"0.73rem", color:C.red, fontWeight:600 }}>{progFormError}</div>}
+                {progFormError && <div style={{ fontSize:"0.73rem", color:"var(--color-red, #DC2626)", fontWeight:600 }}>{progFormError}</div>}
                 <div style={{ display:"flex", justifyContent:"flex-end", gap:8 }}>
                   <button className="btn-cancel" onClick={closeModal}>Annuler</button>
                   <button className="btn-save" onClick={saveProgForm}>{editingProgId ? "Renommer" : "Créer"}</button>
@@ -2822,7 +2799,7 @@ export default function WorkoutDashboard() {
             <div className="modal" style={{ width:640 }} onClick={e => e.stopPropagation()}>
               <div className="modal-handle" />
               <div className="modal-header">
-                <span className="modal-title">Bibliothèque · {Object.keys(db).length} exercices</span>
+                <span className="modal-title">Bibliothèque · {Object.keys(exerciseDb).length} exercices</span>
                 <button className="modal-close" onClick={closeModal}>✕</button>
               </div>
               <div style={{ padding:"10px 14px 6px", flexShrink:0, display:"flex", gap:8, flexWrap:"wrap" }}>
@@ -2842,22 +2819,22 @@ export default function WorkoutDashboard() {
               </div>
               <div style={{ overflowY:"auto", flex:1 }}>
                 {libraryList.length === 0 && (
-                  <div style={{ padding:28, textAlign:"center", color:C.textFaint, fontSize:"0.85rem" }}>Aucun exercice.</div>
+                  <div style={{ padding:28, textAlign:"center", color:"var(--text-faint)", fontSize:"0.85rem" }}>Aucun exercice.</div>
                 )}
                 {libraryList.map(name => {
-                  const d = db[name];
+                  const d = exerciseDb[name];
                   return (
                     <div key={name} className="lib-row" onClick={() => setModal({ type:"exDetail", name })}>
                       <TierBadge tier={d.tier} />
                       <div style={{ flex:1, minWidth:0 }}>
-                        <div style={{ fontSize:"0.83rem", fontWeight:600, color:C.text }}>{name}</div>
+                        <div style={{ fontSize:"0.83rem", fontWeight:600, color:"var(--text)" }}>{name}</div>
                         <div style={{ display:"flex", gap:4, marginTop:2, flexWrap:"wrap" }}>
                           {d.primary.map(m => (
                             <span key={m} style={{ fontSize:"0.6rem", fontWeight:600, padding:"1px 5px",
                               borderRadius:3, background:MUSCLE_COLOR[m]+"18", color:MUSCLE_COLOR[m] }}>{m}</span>
                           ))}
                           {d.secondary.map(m => (
-                            <span key={m} style={{ fontSize:"0.58rem", color:C.textFaint }}>{m} ½</span>
+                            <span key={m} style={{ fontSize:"0.58rem", color:"var(--text-faint)" }}>{m} ½</span>
                           ))}
                         </div>
                       </div>
@@ -2953,7 +2930,7 @@ export default function WorkoutDashboard() {
                     })}
                   </div>
                 </div>
-                {exFormError && <div style={{ fontSize:"0.73rem", color:C.red, fontWeight:600 }}>{exFormError}</div>}
+                {exFormError && <div style={{ fontSize:"0.73rem", color:"var(--color-red, #DC2626)", fontWeight:600 }}>{exFormError}</div>}
                 <div style={{ display:"flex", justifyContent:"flex-end", gap:8 }}>
                   <button className="btn-cancel" onClick={closeModal}>Annuler</button>
                   <button className="btn-save" onClick={saveExForm}>Sauvegarder</button>
@@ -2991,11 +2968,11 @@ export default function WorkoutDashboard() {
                         transition:"all 0.12s" }}
                       onMouseEnter={e => { e.currentTarget.style.borderColor=SUPERSET_COLOR; e.currentTarget.style.background="rgba(124,58,237,0.08)"; }}
                       onMouseLeave={e => { e.currentTarget.style.borderColor="var(--border)"; e.currentTarget.style.background="var(--surface)"; }}>
-                      <TierBadge tier={db[target.name]?.tier} />
+                      <TierBadge tier={exerciseDb[target.name]?.tier} />
                       <div style={{ flex:1, minWidth:0 }}>
                         <div style={{ fontSize:"0.84rem", fontWeight:600, color:"var(--text)" }}>{target.name}</div>
                         <div style={{ fontSize:"0.65rem", color:"var(--text-muted)", marginTop:1 }}>
-                          {db[target.name]?.primary.join(", ")}
+                          {exerciseDb[target.name]?.primary.join(", ")}
                         </div>
                       </div>
                       <span style={{ fontSize:"0.65rem", color:"#7C3AED", fontWeight:700 }}>⇌</span>
@@ -3015,21 +2992,21 @@ export default function WorkoutDashboard() {
                 <button className="modal-close" onClick={closeModal}>✕</button>
               </div>
               <div style={{ padding:"10px 12px", display:"flex", flexDirection:"column", gap:6 }}>
-                <div style={{ fontSize:"0.75rem", color:C.textMuted, marginBottom:4 }}>
+                <div style={{ fontSize:"0.75rem", color:"var(--text-muted)", marginBottom:4 }}>
                   Copier <strong>{modal.ex?.name}</strong> dans :
                 </div>
                 {sessions.filter(s => s.id !== modal.srcDayId).map(s => (
                   <button key={s.id} onClick={() => { duplicateExToDay(modal.ex, s.id); closeModal(); }}
-                    style={{ padding:"10px 14px", background:C.surface, border:`1.5px solid ${C.borderLight}`,
+                    style={{ padding:"10px 14px", background:"var(--surface)", border:`1.5px solid ${C.borderLight}`,
                       borderRadius:9, cursor:"pointer", fontFamily:"inherit", fontSize:"0.84rem",
-                      fontWeight:600, color:C.text, textAlign:"left", transition:"all 0.1s" }}
+                      fontWeight:600, color:"var(--text)", textAlign:"left", transition:"all 0.1s" }}
                     onMouseEnter={e => { e.currentTarget.style.borderColor=C.accent; e.currentTarget.style.background=C.accentBg; }}
                     onMouseLeave={e => { e.currentTarget.style.borderColor=C.borderLight; e.currentTarget.style.background=C.surface; }}>
                     {s.name}
                   </button>
                 ))}
                 {sessions.filter(s => s.id !== modal.srcDayId).length === 0 && (
-                  <div style={{ fontSize:"0.78rem", color:C.textFaint, padding:"8px 0" }}>
+                  <div style={{ fontSize:"0.78rem", color:"var(--text-faint)", padding:"8px 0" }}>
                     Aucune autre séance dans ce programme.
                   </div>
                 )}
@@ -3217,14 +3194,14 @@ export default function WorkoutDashboard() {
                 <button className="modal-close" onClick={closeModal}>✕</button>
               </div>
               <div className="modal-form">
-                <div style={{ fontSize:"0.82rem", color:C.textMuted }}>
+                <div style={{ fontSize:"0.82rem", color:"var(--text-muted)" }}>
                   Remplace le programme actuel et la bibliothèque avec le fichier importé.
                 </div>
-                <textarea style={{ background:C.surface, border:`1.5px solid ${C.textGhost}`, borderRadius:8,
-                  color:C.text, fontFamily:"monospace", fontSize:"0.72rem", padding:10,
+                <textarea style={{ background:"var(--surface)", border:`1.5px solid ${C.textGhost}`, borderRadius:8,
+                  color:"var(--text)", fontFamily:"monospace", fontSize:"0.72rem", padding:10,
                   height:110, resize:"vertical", outline:"none", width:"100%" }}
                   value={importText} onChange={e => setImportText(e.target.value)} spellCheck={false} />
-                {importError && <div style={{ fontSize:"0.73rem", color:C.red, fontWeight:600 }}>{importError}</div>}
+                {importError && <div style={{ fontSize:"0.73rem", color:"var(--color-red, #DC2626)", fontWeight:600 }}>{importError}</div>}
                 <button className="btn-full-accent" onClick={confirmImport}>Confirmer l'import</button>
               </div>
             </div>
@@ -3268,6 +3245,9 @@ const CSS = `
     --shadow-md: 0 2px 8px rgba(0,0,0,0.08), 0 8px 24px rgba(0,0,0,0.04);
     --row-alt: rgba(0,0,0,0.016);
     --ex-separator: #E2E2E5;
+    --color-green: #16A34A;
+    --color-orange: #EA580C;
+    --color-red: #DC2626;
   }
 
   .dark {
@@ -3294,6 +3274,9 @@ const CSS = `
     --shadow-md: 0 2px 8px rgba(0,0,0,0.5), 0 8px 24px rgba(0,0,0,0.35);
     --row-alt: rgba(255,255,255,0.025);
     --ex-separator: #252528;
+    --color-green: #22C55E;
+    --color-orange: #FB923C;
+    --color-red: #EF4444;
   }
 
   html, body {
