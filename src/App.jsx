@@ -2073,7 +2073,6 @@ export default function WorkoutDashboard() {
                                 {ex.name}
                               </span>
                               <div style={{ display:"flex", alignItems:"center", gap:5, marginLeft:"auto", flexShrink:0 }}>
-                                {exData?.tier && <TierBadge tier={exData.tier} />}
                                 {editingSets?.dayId === session.id && editingSets?.exId === ex.id ? (
                                   <div style={{ display:"flex", alignItems:"center", gap:3 }}>
                                     <button className="sets-btn" onClick={() => setSets(session.id, ex.id, ex.sets-1)}>−</button>
@@ -2126,7 +2125,8 @@ export default function WorkoutDashboard() {
                                   </button>
                                 )}
                               </div>
-                              <div style={{ display:"flex", alignItems:"center", gap:3, flexShrink:0 }}>
+                              <div style={{ display:"flex", alignItems:"center", gap:5, flexShrink:0 }}>
+                                {exData?.tier && <TierBadge tier={exData.tier} />}
                                 <div style={{ position:"relative" }}>
                                   <button className="ex-btn ex-menu-btn"
                                     onClick={e => { e.stopPropagation(); setExMenu(exMenu?.dayId === session.id && exMenu?.exId === ex.id ? null : { dayId:session.id, exId:ex.id }); }}>
