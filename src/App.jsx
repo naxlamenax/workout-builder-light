@@ -209,20 +209,20 @@ const EXERCISE_DB = {
 const ALL_MUSCLES = [
   "Pectoraux","Dos","Épaules","Biceps","Triceps",
   "Quadriceps","Ischio-jambiers","Fessiers","Mollets",
-  "Trapèzes","Abdominaux","Avant-bras",
+  "Trapèzes","Abdominaux","Avant-bras","Cardio",
 ];
 
 const MUSCLE_COLOR = {
   "Pectoraux":"#FF4444","Dos":"#3B82F6","Épaules":"#F59E0B","Biceps":"#22C55E",
   "Triceps":"#A855F7","Quadriceps":"#EC4899","Ischio-jambiers":"#FB923C",
   "Fessiers":"#06B6D4","Mollets":"#84CC16","Trapèzes":"#8B5CF6",
-  "Abdominaux":"#14B8A6","Avant-bras":"#D946EF",
+  "Abdominaux":"#14B8A6","Avant-bras":"#D946EF","Cardio":"#EF4444",
 };
 
 const MUSCLE_EMOJI = {
   "Pectoraux":"💪","Dos":"🔷","Épaules":"⚡","Biceps":"💚",
   "Triceps":"💜","Quadriceps":"🦵","Ischio-jambiers":"🔶",
-  "Fessiers":"🔵","Mollets":"🟢","Trapèzes":"🔮","Abdominaux":"⬜","Avant-bras":"🦾",
+  "Fessiers":"🔵","Mollets":"🟢","Trapèzes":"🔮","Abdominaux":"⬜","Avant-bras":"🦾","Cardio":"❤️",
 };
 
 
@@ -944,6 +944,10 @@ export default function WorkoutDashboard() {
   const [exMenu,         setExMenu]         = useState(null);  // {dayId, exId, x, y} — open context menu
   const [priosExpanded,  setPriosExpanded]  = useState(false);
   const [renamingBlock,  setRenamingBlock]  = useState(null); // blockId
+  const [pdfOptions,     setPdfOptions]     = useState({
+    tier: true, muscles: true, reps: true, rest: true,
+    notes: true, volume: true, pushpull: true,
+  });
 
   const [progFormName,   setProgFormName]   = useState("");
   const [progFormDesc,   setProgFormDesc]   = useState("");
@@ -1091,7 +1095,7 @@ export default function WorkoutDashboard() {
 
   // ── Import / Export ───────────────────────────────────────────────────────────
 // PDF export function to be inserted before exportBackup
-  function exportPdf() {
+  function exportPdf(opts) {
     const prog      = activeProgram;
     const blocks    = prog.blocks ?? [];
     const dayLabels = ["Lun","Mar","Mer","Jeu","Ven","Sam","Dim"];
@@ -1121,11 +1125,11 @@ export default function WorkoutDashboard() {
         slot.exercises.forEach((ex, j) => {
           const d  = db[ex.name] ?? {};
           const tc = tierColors[d.tier];
-          const tierBadge = tc ? '<span style="font-size:10px;font-weight:700;padding:1px 5px;border-radius:10px;color:' + tc[0] + ';background:' + tc[1] + '">' + d.tier + '</span>' : "";
-          const primary   = (d.primary ?? []).map(m => '<span style="font-size:10px;font-weight:600;padding:1px 6px;border-radius:10px;color:' + (MUSCLE_COLOR[m]||"#666") + ';background:' + (MUSCLE_COLOR[m]||"#666") + '18">' + m + '</span>').join("");
-          const repsLabel = ex.reps ? '<span style="font-size:10px;font-weight:600;color:#777;background:#F0F0F0;border-radius:8px;padding:1px 7px;white-space:nowrap">' + ex.reps + '</span>' : '';
-          const restLabel = ex.rest ? '<span style="font-size:10px;font-weight:600;color:#555;background:#F0F0F0;border-radius:8px;padding:1px 7px;white-space:nowrap">⏱ ' + ex.rest + 's</span>' : '';
-          const noteHtml  = ex.note ? '<div style="font-size:11px;color:#666;margin-top:4px;line-height:1.5;white-space:pre-wrap;border-left:2px solid #E0E0E0;padding-left:7px">' + ex.note + '</div>' : '';
+          const tierBadge = (opts.tier && tc) ? '<span style="font-size:10px;font-weight:700;padding:1px 5px;border-radius:10px;color:' + tc[0] + ';background:' + tc[1] + '">' + d.tier + '</span>' : "";
+          const primary   = opts.muscles ? (d.primary ?? []).map(m => '<span style="font-size:10px;font-weight:600;padding:1px 6px;border-radius:10px;color:' + (MUSCLE_COLOR[m]||"#666") + ';background:' + (MUSCLE_COLOR[m]||"#666") + '18">' + m + '</span>').join("") : "";
+          const repsLabel = (opts.reps && ex.reps) ? '<span style="font-size:10px;font-weight:600;color:#777;background:#F0F0F0;border-radius:8px;padding:1px 7px;white-space:nowrap">' + ex.reps + '</span>' : '';
+          const restLabel = (opts.rest && ex.rest) ? '<span style="font-size:10px;font-weight:600;color:#555;background:#F0F0F0;border-radius:8px;padding:1px 7px;white-space:nowrap">⏱ ' + ex.rest + 's</span>' : '';
+          const noteHtml  = (opts.notes && ex.note) ? '<div style="font-size:11px;color:#666;margin-top:4px;line-height:1.5;white-space:pre-wrap;border-left:2px solid #E0E0E0;padding-left:7px">' + ex.note + '</div>' : '';
           exHtml += '<div style="padding:7px 14px;border-bottom:1px solid #F4F4F5;display:flex;align-items:flex-start;gap:8px">'
             + '<span style="font-size:11px;font-weight:600;color:#AEAEB2;width:16px;flex-shrink:0;padding-top:1px">' + (j+1) + '</span>'
             + '<div style="flex:1;min-width:0">'
@@ -1174,9 +1178,8 @@ export default function WorkoutDashboard() {
         + '<div style="display:flex;gap:8px;flex-wrap:wrap">' + chips + '</div>'
         + '</div>'
         + '<div class="grid">' + sessionsHtml + '</div>'
-        + '<div style="height:16px"></div>'
-        + '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px;margin-bottom:8px">' + volHtml + '</div>'
-        + (total > 0
+        + (opts.volume && volHtml ? '<div style="height:16px"></div><div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px;margin-bottom:8px">' + volHtml + '</div>' : '')
+        + (opts.pushpull && total > 0
           ? '<div style="margin-bottom:4px">'
             + '<div style="display:flex;height:8px;border-radius:10px;overflow:hidden;gap:2px;margin-bottom:4px">'
             + '<div style="width:' + pushPct + '%;background:#E8500A;border-radius:10px 0 0 10px"></div>'
@@ -1849,7 +1852,7 @@ export default function WorkoutDashboard() {
             )}
             <button className="hdr-ghost" onClick={() => setModal({ type:"library" })}>Bibliothèque</button>
             <button className="hdr-ghost" onClick={() => fileInputRef.current?.click()}>↑ Importer</button>
-            <button className="hdr-ghost" onClick={exportPdf} title="Exporter en PDF">↓ PDF</button>
+            <button className="hdr-ghost" onClick={() => setModal({ type:"pdfOptions" })} title="Exporter en PDF">↓ PDF</button>
             <button className="hdr-ghost" onClick={exportXlsx} title="Exporter en Excel">↓ XLS</button>
             <button className="hdr-solid" onClick={exportBackup}>↓ JSON</button>
             {/* Zoom controls */}
@@ -3137,6 +3140,53 @@ export default function WorkoutDashboard() {
               </div>
             );
           })()}
+
+
+          {/* PDF Export Options */}
+          {modal.type === "pdfOptions" && (
+            <div className="modal" style={{ width:380 }} onClick={e => e.stopPropagation()}>
+              <div className="modal-handle" />
+              <div className="modal-header">
+                <span className="modal-title">Options d'export PDF</span>
+                <button className="modal-close" onClick={closeModal}>✕</button>
+              </div>
+              <div style={{ padding:"14px 16px", display:"flex", flexDirection:"column", gap:8 }}>
+                <div style={{ fontSize:"0.62rem", fontWeight:700, color:"var(--text-muted)",
+                  textTransform:"uppercase", letterSpacing:"0.8px", marginBottom:4 }}>
+                  Afficher dans le PDF
+                </div>
+                {[
+                  { key:"tier",     label:"Note Nippard (tier)" },
+                  { key:"muscles",  label:"Muscles travaillés" },
+                  { key:"reps",     label:"Répétitions cibles" },
+                  { key:"rest",     label:"Temps de récupération" },
+                  { key:"notes",    label:"Notes personnelles" },
+                  { key:"volume",   label:"Volume par muscle" },
+                  { key:"pushpull", label:"Ratio Push / Pull" },
+                ].map(({ key, label }) => (
+                  <label key={key} style={{ display:"flex", alignItems:"center", gap:10,
+                    padding:"8px 10px", borderRadius:8, cursor:"pointer",
+                    background: pdfOptions[key] ? "var(--accent-bg)" : "var(--surface)",
+                    border: `1px solid ${pdfOptions[key] ? "var(--accent)" : "var(--border)"}`,
+                    transition:"all 0.12s" }}>
+                    <input
+                      type="checkbox"
+                      checked={pdfOptions[key]}
+                      onChange={e => setPdfOptions(o => ({ ...o, [key]: e.target.checked }))}
+                      style={{ width:14, height:14, accentColor:"var(--accent)", flexShrink:0 }}
+                    />
+                    <span style={{ fontSize:"0.82rem", fontWeight:500, color:"var(--text)" }}>{label}</span>
+                  </label>
+                ))}
+                <div style={{ display:"flex", gap:8, marginTop:8 }}>
+                  <button className="btn-cancel" style={{ flex:1 }} onClick={closeModal}>Annuler</button>
+                  <button className="btn-save" style={{ flex:2 }} onClick={() => { closeModal(); exportPdf(pdfOptions); }}>
+                    Générer le PDF
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* Import */}
           {modal.type === "import" && (
