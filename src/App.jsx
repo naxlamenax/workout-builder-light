@@ -944,6 +944,7 @@ export default function WorkoutDashboard() {
   const [exMenu,         setExMenu]         = useState(null);  // {dayId, exId, x, y} — open context menu
   const [priosExpanded,  setPriosExpanded]  = useState(false);
   const [renamingBlock,  setRenamingBlock]  = useState(null); // blockId
+  const [expandedNotes,  setExpandedNotes]  = useState(new Set()); // "dayId:exId"
   const [pdfOptions,     setPdfOptions]     = useState({
     tier: true, muscles: true, reps: true, rest: true,
     notes: true, volume: true, pushpull: true,
@@ -1477,6 +1478,15 @@ export default function WorkoutDashboard() {
         ...p, blocks: p.blocks.map(b => b.id !== blockId ? b : { ...b, duration: Math.max(1, Number(duration) || 1) })
       }
     ));
+  }
+
+  function toggleNote(dayId, exId) {
+    const key = dayId + ":" + exId;
+    setExpandedNotes(prev => {
+      const next = new Set(prev);
+      next.has(key) ? next.delete(key) : next.add(key);
+      return next;
+    });
   }
 
   // ── Week / session mutations ─────────────────────────────────────────────────
@@ -2066,17 +2076,19 @@ export default function WorkoutDashboard() {
 
                           <span className="ex-idx">{exIdx + 1}</span>
 
-                          <div style={{ flex:1, minWidth:0, display:"flex", alignItems:"center", gap:8 }}>
+                          <div style={{ flex:1, minWidth:0, display:"flex", flexDirection:"column", gap:4 }}>
 
-                            {/* Left — name + tier + muscles */}
-                            <div style={{ flex:1, minWidth:0, display:"flex", flexDirection:"column", gap:3 }}>
-                              <div style={{ display:"flex", alignItems:"center", gap:5, minWidth:0 }}>
-                                <span className="ex-name" onClick={() => setModal({ type:"exDetail", name:ex.name, dayId:session.id, exId:ex.id })}>
-                                  {ex.name}
-                                </span>
-                                {exData?.tier && <TierBadge tier={exData.tier} />}
-                              </div>
-                              <div style={{ display:"flex", gap:3, flexWrap:"wrap" }}>
+                            {/* Line 1 — nom + tier + séries + reps + récup (même layout que PDF) */}
+                            <div style={{ display:"flex", alignItems:"center", gap:5, flexWrap:"wrap", minWidth:0 }}>
+                              <span className="ex-name" onClick={() => setModal({ type:"exDetail", name:ex.name, dayId:session.id, exId:ex.id })}>
+                                {ex.name}
+                              </span>
+                              {exData?.tier && <TierBadge tier={exData.tier} />}
+                            </div>
+
+                            {/* Line 2 — muscles + note toggle */}
+                            {((exData?.primary?.length ?? 0) + (exData?.secondary?.length ?? 0)) > 0 && (
+                              <div style={{ display:"flex", gap:3, flexWrap:"wrap", alignItems:"center" }}>
                                 {exData?.primary.map(m => (
                                   <span key={m} style={{ fontSize:"0.62rem", fontWeight:600, padding:"1px 6px",
                                     borderRadius:20, background:MUSCLE_COLOR[m]+"15", color:MUSCLE_COLOR[m],
@@ -2087,21 +2099,29 @@ export default function WorkoutDashboard() {
                                     borderRadius:20, background:"transparent", color:"var(--text-faint)",
                                     whiteSpace:"nowrap", border:"1px dashed var(--border)" }}>{m} ½</span>
                                 ))}
+                                {ex.note && (
+                                  <button
+                                    onClick={e => { e.stopPropagation(); toggleNote(session.id, ex.id); }}
+                                    title={expandedNotes.has(session.id + ":" + ex.id) ? "Masquer la note" : "Afficher la note"}
+                                    style={{ background:"none", border:"none", cursor:"pointer", padding:"1px 4px",
+                                      borderRadius:4, color:"var(--text-faint)", fontSize:"0.62rem",
+                                      fontFamily:"inherit", lineHeight:1, transition:"color 0.1s",
+                                      display:"flex", alignItems:"center", gap:2 }}>
+                                    <span style={{ fontSize:"0.65rem" }}>
+                                      {expandedNotes.has(session.id + ":" + ex.id) ? "▲" : "▼"}
+                                    </span>
+                                    <span style={{ fontSize:"0.6rem", fontWeight:600 }}>note</span>
+                                  </button>
+                                )}
                               </div>
-                            </div>
+                            )}
 
-                            {/* Right — reps + rest stacked, then sets badge + actions */}
-                            {(ex.reps || ex.rest) && (
-                              <div style={{ display:"flex", flexDirection:"column", alignItems:"flex-end",
-                                gap:2, flexShrink:0 }}>
-                                {ex.reps && (
-                                  <span style={{ fontSize:"0.75rem", fontWeight:700, color:"var(--text)",
-                                    whiteSpace:"nowrap", lineHeight:1 }}>{ex.reps}</span>
-                                )}
-                                {ex.rest && (
-                                  <span style={{ fontSize:"0.65rem", fontWeight:500, color:"var(--text-muted)",
-                                    whiteSpace:"nowrap", lineHeight:1 }}>⏱ {ex.rest}s</span>
-                                )}
+                            {/* Note expandable */}
+                            {ex.note && expandedNotes.has(session.id + ":" + ex.id) && (
+                              <div style={{ fontSize:"0.72rem", color:"var(--text-muted)", lineHeight:1.5,
+                                whiteSpace:"pre-wrap", borderLeft:"2px solid var(--border)",
+                                paddingLeft:8, marginTop:2 }}>
+                                {ex.note}
                               </div>
                             )}
 
@@ -2141,6 +2161,17 @@ export default function WorkoutDashboard() {
                                 </div>
                                 <button className="ex-btn del" title="Supprimer"
                                   onClick={() => deleteEx(session.id, ex.id)}>✕</button>
+                                  {/* Reps + rest badges — same style as PDF */}
+                                  {ex.reps && (
+                                    <span style={{ fontSize:"0.7rem", fontWeight:700, padding:"2px 7px",
+                                      borderRadius:8, background:"var(--sets-bg)", color:"var(--text-sub)",
+                                      whiteSpace:"nowrap", flexShrink:0 }}>{ex.reps}</span>
+                                  )}
+                                  {ex.rest && (
+                                    <span style={{ fontSize:"0.7rem", fontWeight:600, padding:"2px 7px",
+                                      borderRadius:8, background:"var(--sets-bg)", color:"var(--text-muted)",
+                                      whiteSpace:"nowrap", flexShrink:0 }}>⏱ {ex.rest}s</span>
+                                  )}
                                   {editingSets?.dayId === session.id && editingSets?.exId === ex.id ? (
                                   <div style={{ display:"flex", alignItems:"center", gap:3 }}>
                                     <button className="sets-btn" onClick={() => setSets(session.id, ex.id, ex.sets-1)}>−</button>
