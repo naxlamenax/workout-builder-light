@@ -1130,7 +1130,23 @@ export default function WorkoutDashboard() {
           const repsLabel = (opts.reps && ex.reps) ? '<span style="font-size:10px;font-weight:600;color:#777;background:#F0F0F0;border-radius:8px;padding:1px 7px;white-space:nowrap">' + ex.reps + '</span>' : '';
           const restLabel = (opts.rest && ex.rest) ? '<span style="font-size:10px;font-weight:600;color:#555;background:#F0F0F0;border-radius:8px;padding:1px 7px;white-space:nowrap">⏱ ' + ex.rest + 's</span>' : '';
           const noteHtml  = (opts.notes && ex.note) ? '<div style="font-size:11px;color:#666;margin-top:4px;line-height:1.5;white-space:pre-wrap;border-left:2px solid #E0E0E0;padding-left:7px">' + ex.note + '</div>' : '';
-          exHtml += '<div style="padding:7px 14px;border-bottom:1px solid #F4F4F5;display:flex;align-items:flex-start;gap:8px">'
+
+          // Superset detection
+          const SS = '#7C3AED';
+          const isSsLeader   = !!ex.supersetWith;
+          const isSsFollower = slot.exercises.some(e => e.supersetWith === ex.id);
+          const isInSs       = isSsLeader || isSsFollower;
+          const ssBorderLeft = isInSs ? 'border-left:3px solid ' + SS + ';' : '';
+          // Badge "Superset" shown on follower (second exercise of pair)
+          const ssBadge = isSsFollower
+            ? '<div style="display:flex;align-items:center;gap:5px;padding:2px 14px 2px 11px;background:' + SS + '10;border-bottom:1px solid ' + SS + '20">'
+              + '<div style="width:2px;height:10px;background:' + SS + ';border-radius:1px;opacity:0.5"></div>'
+              + '<span style="font-size:9px;font-weight:800;color:' + SS + ';letter-spacing:0.5px;text-transform:uppercase">Superset</span>'
+              + '</div>'
+            : '';
+
+          exHtml += ssBadge
+            + '<div style="padding:7px 14px;border-bottom:1px solid #F4F4F5;display:flex;align-items:flex-start;gap:8px;' + ssBorderLeft + '">'
             + '<span style="font-size:11px;font-weight:600;color:#AEAEB2;width:16px;flex-shrink:0;padding-top:1px">' + (j+1) + '</span>'
             + '<div style="flex:1;min-width:0">'
             + '<div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">'
@@ -2050,44 +2066,40 @@ export default function WorkoutDashboard() {
 
                           <span className="ex-idx">{exIdx + 1}</span>
 
-                          <div style={{ flex:1, minWidth:0, display:"flex", flexDirection:"column", gap:5 }}>
+                          <div style={{ flex:1, minWidth:0, display:"flex", flexDirection:"column", gap:3 }}>
 
-                            <div style={{ display:"flex", alignItems:"center", gap:5, minWidth:0 }}>
+                            {/* Line 1 — name + tier + sets + reps */}
+                            <div style={{ display:"flex", alignItems:"center", gap:6, minWidth:0 }}>
                               <span className="ex-name" onClick={() => setModal({ type:"exDetail", name:ex.name, dayId:session.id, exId:ex.id })}>
                                 {ex.name}
                               </span>
+                              {exData?.tier && (
+                                <TierBadge tier={exData.tier} />
+                              )}
                               <div style={{ display:"flex", alignItems:"center", gap:4, flexShrink:0, marginLeft:"auto" }}>
-                                <TierBadge tier={exData?.tier} />
-                                {exData?.movement && exData.movement !== "neutral" && (
-                                  <span style={{ fontSize:"0.56rem", fontWeight:800, padding:"2px 6px", borderRadius:20,
-                                    background: exData.movement==="push"?"var(--accent-bg)":"var(--blueBg, #EFF6FF)",
-                                    color: exData.movement==="push"?"var(--accent)":"#1D4ED8",
-                                    border: "1px solid var(--border)",
-                                    flexShrink:0 }}>
-                                    {exData.movement === "push" ? "PSH" : "PLL"}
-                                  </span>
+                                {ex.reps && (
+                                  <span style={{ fontSize:"0.68rem", fontWeight:700, color:"var(--text-sub)",
+                                    whiteSpace:"nowrap" }}>{ex.reps}</span>
                                 )}
                               </div>
                             </div>
 
+                            {/* Line 2 — muscles + rest (small, secondary info) */}
                             <div style={{ display:"flex", alignItems:"center", gap:6, minWidth:0 }}>
                               <div style={{ display:"flex", gap:3, flex:1, minWidth:0, flexWrap:"wrap" }}>
                                 {exData?.primary.map(m => (
-                                  <span key={m} style={{ fontSize:"0.68rem", fontWeight:700, padding:"2px 8px",
-                                    borderRadius:20, background:MUSCLE_COLOR[m]+"18", color:MUSCLE_COLOR[m],
-                                    whiteSpace:"nowrap", border:`1px solid ${MUSCLE_COLOR[m]}25` }}>{m}</span>
+                                  <span key={m} style={{ fontSize:"0.65rem", fontWeight:600, padding:"1px 7px",
+                                    borderRadius:20, background:MUSCLE_COLOR[m]+"15", color:MUSCLE_COLOR[m],
+                                    whiteSpace:"nowrap" }}>{m}</span>
                                 ))}
                                 {exData?.secondary.map(m => (
-                                  <span key={m} style={{ fontSize:"0.62rem", fontWeight:500, padding:"2px 7px",
-                                    borderRadius:20, background:"transparent", color:"var(--text-muted)",
+                                  <span key={m} style={{ fontSize:"0.6rem", fontWeight:500, padding:"1px 6px",
+                                    borderRadius:20, background:"transparent", color:"var(--text-faint)",
                                     whiteSpace:"nowrap", border:"1px dashed var(--border)" }}>{m} ½</span>
                                 ))}
-                                {ex.reps && (
-                                  <span style={{ fontSize:"0.62rem", fontWeight:600, padding:"2px 7px",
-                                    borderRadius:20, background:"var(--sets-bg)", color:"var(--text-muted)",
-                                    whiteSpace:"nowrap", flexShrink:0 }}>
-                                    {ex.reps}
-                                  </span>
+                                {ex.rest && (
+                                  <span style={{ fontSize:"0.6rem", fontWeight:500, color:"var(--text-faint)",
+                                    whiteSpace:"nowrap", flexShrink:0 }}>⏱ {ex.rest}s</span>
                                 )}
                               </div>
 
@@ -3481,7 +3493,7 @@ const CSS = `
   .session-drop-target { border-color:var(--accent) !important; box-shadow:0 0 0 3px rgba(232,80,10,0.12) !important; }
 
   .session-name {
-    font-size:0.88rem;
+    font-size:0.9rem;
     font-weight:700;
     color:var(--text);
     flex:1;
@@ -3565,7 +3577,6 @@ const CSS = `
     transition:background 0.12s;
     position:relative;
   }
-  .ex-row:nth-child(even) { background:var(--row-alt, rgba(0,0,0,0.015)); }
   .ex-row:hover { background:var(--row-hover) !important; }
 
   .drag-handle {
