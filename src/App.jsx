@@ -987,7 +987,7 @@ export default function WorkoutDashboard() {
         && (pickerMuscle === "Tous" || d?.primary.includes(pickerMuscle) || d?.secondary.includes(pickerMuscle))
         && (pickerTier   === "Tous" || d?.tier === pickerTier);
     }),
-    db
+    exerciseDb
   );
 
   const musclesNeedingVolume = ALL_MUSCLES.filter(m => {
@@ -1390,7 +1390,7 @@ export default function WorkoutDashboard() {
         const np = { id:uid(), name:"Importé", week: migrateToWeek(data.days) };
         setPrograms(prev => [...prev, np]);
       } else throw new Error("Format non reconnu");
-      if (data.exerciseDb) setExerciseDb(data.db);
+      if (data.db) setExerciseDb(data.db);
       setImportText(""); closeModal();
     } catch (err) { setImportError("Fichier invalide : " + err.message); }
   }
