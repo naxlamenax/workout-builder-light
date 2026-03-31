@@ -507,7 +507,7 @@ const sortByTier = (names, db) => [...names].sort((a,b) =>
 function computeWeeklyVolume(days, db) {
   const vol = Object.fromEntries(ALL_MUSCLES.map(m => [m, 0]));
   days.forEach(day => day.exercises.forEach(ex => {
-    const d = exerciseDb[ex.name]; if (!d) return;
+    const d = db[ex.name]; if (!d) return;
     d.primary.forEach(m   => { if (m in vol) vol[m] += ex.sets; });
     d.secondary.forEach(m => { if (m in vol) vol[m] += ex.sets * SECONDARY_WEIGHT; });
   }));
@@ -530,7 +530,7 @@ const MAJOR_MUSCLES = ["Pectoraux","Dos","Épaules","Quadriceps","Ischio-jambier
 function computePushPullSets(days, db) {
   let push = 0, pull = 0;
   days.forEach(day => day.exercises.forEach(ex => {
-    const d = exerciseDb[ex.name];
+    const d = db[ex.name];
     const mv = d?.movement ?? "neutral";
     if (mv === "push") push += ex.sets;
     if (mv === "pull") pull += ex.sets;
@@ -539,7 +539,7 @@ function computePushPullSets(days, db) {
 }
 
 // Returns { muscle, dayA, dayB, dayALabel, dayBLabel } for each back-to-back conflict
-function detectBackToBack(week, exerciseDb) {
+function detectBackToBack(week, db) {
   const conflicts = [];
   for (let i = 0; i < 6; i++) {
     const dayA = week[i];
@@ -548,8 +548,8 @@ function detectBackToBack(week, exerciseDb) {
 
     const musclesA = new Set();
     const musclesB = new Set();
-    dayA.exercises.forEach(ex => { const d = exerciseDb[ex.name]; if (d) d.primary.forEach(m => musclesA.add(m)); });
-    dayB.exercises.forEach(ex => { const d = exerciseDb[ex.name]; if (d) d.primary.forEach(m => musclesB.add(m)); });
+    dayA.exercises.forEach(ex => { const d = db[ex.name]; if (d) d.primary.forEach(m => musclesA.add(m)); });
+    dayB.exercises.forEach(ex => { const d = db[ex.name]; if (d) d.primary.forEach(m => musclesB.add(m)); });
 
     const overlap = [...musclesA].filter(m => musclesB.has(m));
     if (overlap.length > 0) {
@@ -610,7 +610,7 @@ function computeProgramScore(weeklyVol, priorities, backToBack, days, db) {
   return { score, grade, color, issues };
 }
 
-function computeScoreBullets(weeklyVol, priorities, sessions, exerciseDb, backToBack) {
+function computeScoreBullets(weeklyVol, priorities, sessions, db, backToBack) {
   const totalSets = Object.values(weeklyVol).reduce((a,b) => a+b, 0);
   if (!totalSets) return null;
 
@@ -623,7 +623,7 @@ function computeScoreBullets(weeklyVol, priorities, sessions, exerciseDb, backTo
   else if (allMajorsCovered) parts.push("✓ Tous les groupes majeurs travaillés");
 
   // Push/pull
-  const { push: ps, pull: pl } = computePushPullSets(sessions, exerciseDb);
+  const { push: ps, pull: pl } = computePushPullSets(sessions, db);
   if (ps + pl > 0) {
     const ratio = pl / Math.max(ps, 1);
     if (ratio >= 0.9 && ratio <= 1.3) parts.push("✓ Équilibre push/pull optimal");
@@ -656,7 +656,7 @@ function detectSplit(sessions) {
   return `Programme ${sessions.length}j`;
 }
 
-function computeWeeklySummary(week, weeklyVol, priorities, exerciseDb) {
+function computeWeeklySummary(week, weeklyVol, priorities, db) {
   const sessions = week.filter(Boolean);
   if (!sessions.length) return null;
 
@@ -669,7 +669,7 @@ function computeWeeklySummary(week, weeklyVol, priorities, exerciseDb) {
     if (!day) return;
     const seen = new Set();
     day.exercises.forEach(ex => {
-      const d = exerciseDb[ex.name]; if (!d) return;
+      const d = db[ex.name]; if (!d) return;
       d.primary.forEach(m => { if (!seen.has(m)) { seen.add(m); freq[m]++; } });
     });
   });
@@ -677,7 +677,7 @@ function computeWeeklySummary(week, weeklyVol, priorities, exerciseDb) {
   const freq2  = ALL_MUSCLES.filter(m => freq[m] >= 2);
   const absent = MAJOR_MUSCLES.filter(m => !weeklyVol[m] || weeklyVol[m] === 0);
   const prios  = ALL_MUSCLES.filter(m => priorities[m] === "priority");
-  const { push: pushSets, pull: pullSets } = computePushPullSets(sessions, exerciseDb);
+  const { push: pushSets, pull: pullSets } = computePushPullSets(sessions, db);
 
   return { split, sessions: sessions.length, restDays, totalSets, freq2, absent, prios, pushSets, pullSets };
 }
@@ -707,7 +707,7 @@ function heaviestSessionByMovement(movement, sessions, db) {
   return best;
 }
 
-function computeSuggestions(weeklyVol, priorities, sessions, exerciseDb, backToBack) {
+function computeSuggestions(weeklyVol, priorities, sessions, db, backToBack) {
   if (!sessions.length) return [];
   const inProgram = sessions.flatMap(s => s.exercises.map(e => e.name));
   const suggestions = [];
@@ -780,7 +780,7 @@ function computeSuggestions(weeklyVol, priorities, sessions, exerciseDb, backToB
   });
 
   // ── 4. Push/pull imbalance ─────────────────────────────────────────────────
-  const { push: pushSets, pull: pullSets } = computePushPullSets(sessions, exerciseDb);
+  const { push: pushSets, pull: pullSets } = computePushPullSets(sessions, db);
   if (pushSets + pullSets > 0) {
     const ratio = pullSets / Math.max(pushSets, 1);
     if (ratio < 0.7) {
@@ -1111,7 +1111,7 @@ export default function WorkoutDashboard() {
       const days     = block.week ?? [];
       const sessions = days.filter(Boolean);
       const vol      = computeWeeklyVolume(sessions, exerciseDb);
-      const { push: pushSets, pull: pullSets } = computePushPullSets(sessions, exerciseDb);
+      const { push: pushSets, pull: pullSets } = computePushPullSets(sessions, db);
       const total    = pushSets + pullSets;
       const pushPct  = total > 0 ? Math.round(pushSets / total * 100) : 50;
       const pullPct  = 100 - pushPct;
