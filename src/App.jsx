@@ -1000,18 +1000,18 @@ export default function WorkoutDashboard() {
         musclesNeedingVolume.flatMap(m => Object.entries(exerciseDb)
           .filter(([n,d]) => d.primary.includes(m)).map(([n]) => n)
         ).filter((n,i,a) => a.indexOf(n) === i).slice(0, 5),
-        db
+        exerciseDb
       )
     : [];
 
   const libraryList = sortByTier(
-    Object.keys(db).filter(name => {
+    Object.keys(exerciseDb).filter(name => {
       const d = exerciseDb[name];
       return name.toLowerCase().includes(libSearch.toLowerCase())
         && (libMuscle === "Tous" || d.primary.includes(libMuscle) || d.secondary.includes(libMuscle))
         && (libTier   === "Tous" || d.tier === libTier);
     }),
-    db
+    exerciseDb
   );
 
   // ── Refs ─────────────────────────────────────────────────────────────────────
@@ -1111,7 +1111,7 @@ export default function WorkoutDashboard() {
       const days     = block.week ?? [];
       const sessions = days.filter(Boolean);
       const vol      = computeWeeklyVolume(sessions, exerciseDb);
-      const { push: pushSets, pull: pullSets } = computePushPullSets(sessions, db);
+      const { push: pushSets, pull: pullSets } = computePushPullSets(sessions, exerciseDb);
       const total    = pushSets + pullSets;
       const pushPct  = total > 0 ? Math.round(pushSets / total * 100) : 50;
       const pullPct  = 100 - pushPct;
@@ -1297,7 +1297,7 @@ export default function WorkoutDashboard() {
   function exportXlsx() {
     const prog    = activeProgram;
     const days    = activeBlock?.week ?? [];
-    const vol     = computeWeeklyVolume(days.filter(Boolean), db);
+    const vol     = computeWeeklyVolume(days.filter(Boolean), exerciseDb);
     const { push: pushSets, pull: pullSets } = computePushPullSets(days.filter(Boolean), exerciseDb);
     const dayLabels = ["Lun","Mar","Mer","Jeu","Ven","Sam","Dim"];
 
@@ -1359,7 +1359,7 @@ export default function WorkoutDashboard() {
   }
 
   function exportBackup() {
-    const json = JSON.stringify({ programs, activeProgramId, db }, null, 2);
+    const json = JSON.stringify({ programs, activeProgramId, db: exerciseDb }, null, 2);
     const a = Object.assign(document.createElement("a"), {
       href: URL.createObjectURL(new Blob([json], { type:"application/json" })),
       download:"workout-backup.json",
@@ -1655,7 +1655,7 @@ export default function WorkoutDashboard() {
 
   // ── Library mutations ─────────────────────────────────────────────────────────
   function openAddExToLib()   { setExForm(emptyExForm()); setEditingExName(null); setExFormError(""); setModal({ type:"editExInLib" }); }
-  function openEditExInLib(n) { setExForm({ name:n, movement:"neutral", ...db[n] }); setEditingExName(n); setExFormError(""); setModal({ type:"editExInLib" }); }
+  function openEditExInLib(n) { setExForm({ name:n, movement:"neutral", ...exerciseDb[n] }); setEditingExName(n); setExFormError(""); setModal({ type:"editExInLib" }); }
   function deleteExFromLib(n) {
     if (!window.confirm(`Supprimer « ${n} » de la bibliothèque ?`)) return;
     setExerciseDb(prev => { const updated = {...prev}; delete updated[n]; return updated; });
