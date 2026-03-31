@@ -944,7 +944,6 @@ export default function WorkoutDashboard() {
   const [exMenu,         setExMenu]         = useState(null);  // {dayId, exId, x, y} — open context menu
   const [priosExpanded,  setPriosExpanded]  = useState(false);
   const [renamingBlock,  setRenamingBlock]  = useState(null); // blockId
-  const [expandedNotes,  setExpandedNotes]  = useState(new Set()); // "dayId:exId"
   const [pdfOptions,     setPdfOptions]     = useState({
     tier: true, muscles: true, reps: true, rest: true,
     notes: true, volume: true, pushpull: true,
@@ -1478,15 +1477,6 @@ export default function WorkoutDashboard() {
         ...p, blocks: p.blocks.map(b => b.id !== blockId ? b : { ...b, duration: Math.max(1, Number(duration) || 1) })
       }
     ));
-  }
-
-  function toggleNote(dayId, exId) {
-    const key = dayId + ":" + exId;
-    setExpandedNotes(prev => {
-      const next = new Set(prev);
-      next.has(key) ? next.delete(key) : next.add(key);
-      return next;
-    });
   }
 
   // ── Week / session mutations ─────────────────────────────────────────────────
@@ -2086,9 +2076,9 @@ export default function WorkoutDashboard() {
                               {exData?.tier && <TierBadge tier={exData.tier} />}
                             </div>
 
-                            {/* Line 2 — muscles + note toggle */}
+                            {/* Line 2 — muscles */}
                             {((exData?.primary?.length ?? 0) + (exData?.secondary?.length ?? 0)) > 0 && (
-                              <div style={{ display:"flex", gap:3, flexWrap:"wrap", alignItems:"center" }}>
+                              <div style={{ display:"flex", gap:3, flexWrap:"wrap" }}>
                                 {exData?.primary.map(m => (
                                   <span key={m} style={{ fontSize:"0.62rem", fontWeight:600, padding:"1px 6px",
                                     borderRadius:20, background:MUSCLE_COLOR[m]+"15", color:MUSCLE_COLOR[m],
@@ -2099,28 +2089,14 @@ export default function WorkoutDashboard() {
                                     borderRadius:20, background:"transparent", color:"var(--text-faint)",
                                     whiteSpace:"nowrap", border:"1px dashed var(--border)" }}>{m} ½</span>
                                 ))}
-                                {ex.note && (
-                                  <button
-                                    onClick={e => { e.stopPropagation(); toggleNote(session.id, ex.id); }}
-                                    title={expandedNotes.has(session.id + ":" + ex.id) ? "Masquer la note" : "Afficher la note"}
-                                    style={{ background:"none", border:"none", cursor:"pointer", padding:"1px 4px",
-                                      borderRadius:4, color:"var(--text-faint)", fontSize:"0.62rem",
-                                      fontFamily:"inherit", lineHeight:1, transition:"color 0.1s",
-                                      display:"flex", alignItems:"center", gap:2 }}>
-                                    <span style={{ fontSize:"0.65rem" }}>
-                                      {expandedNotes.has(session.id + ":" + ex.id) ? "▲" : "▼"}
-                                    </span>
-                                    <span style={{ fontSize:"0.6rem", fontWeight:600 }}>note</span>
-                                  </button>
-                                )}
                               </div>
                             )}
 
-                            {/* Note expandable */}
-                            {ex.note && expandedNotes.has(session.id + ":" + ex.id) && (
+                            {/* Note — toujours visible si renseignée */}
+                            {ex.note && (
                               <div style={{ fontSize:"0.72rem", color:"var(--text-muted)", lineHeight:1.5,
-                                whiteSpace:"pre-wrap", borderLeft:"2px solid var(--border)",
-                                paddingLeft:8, marginTop:2 }}>
+                                whiteSpace:"pre-wrap", borderLeft:"2px solid var(--border-light)",
+                                paddingLeft:8 }}>
                                 {ex.note}
                               </div>
                             )}
