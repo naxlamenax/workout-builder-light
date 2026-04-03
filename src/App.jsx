@@ -1566,40 +1566,36 @@ export default function WorkoutDashboard() {
     ));
   }
 
-  function onDrop(targetDayId, targetIdx) {
+  function onDrop(targetDayId, insertIdx) {
     if (!dragSrc) return;
     const { dayId:srcId, exIdx:srcIdx } = dragSrc;
     setDragSrc(null);
     setDragOver(null);
     updateWeek(w => {
-      // Find and extract the dragged exercise
       const srcSlot = w.find(s => s?.id === srcId);
       if (!srcSlot) return w;
       const moved = srcSlot.exercises[srcIdx];
       if (!moved) return w;
 
       if (srcId === targetDayId) {
-        // Same session — reorder in place
+        // Same session reorder
         const exs = [...srcSlot.exercises];
         exs.splice(srcIdx, 1);
-        // Adjust targetIdx since we removed an element before it
-        const adjustedIdx = srcIdx < targetIdx ? targetIdx - 1 : targetIdx;
-        exs.splice(adjustedIdx, 0, moved);
-        return w.map(slot => slot?.id === srcId ? { ...slot, exercises: exs } : slot);
+        const adj = srcIdx < insertIdx ? insertIdx - 1 : insertIdx;
+        exs.splice(adj, 0, moved);
+        return w.map(s => s?.id === srcId ? { ...s, exercises: exs } : s);
       }
 
-      // Different sessions — remove from source, insert into target
-      return w.map(slot => {
-        if (slot?.id === srcId) {
-          const exs = slot.exercises.filter((_, i) => i !== srcIdx);
-          return { ...slot, exercises: exs };
+      // Cross-session: remove from source, insert into target
+      return w.map(s => {
+        if (s?.id === srcId) return { ...s, exercises: s.exercises.filter((_, i) => i !== srcIdx) };
+        if (s?.id === targetDayId) {
+          const exs = [...s.exercises];
+          const safeIdx = Math.min(insertIdx, exs.length);
+          exs.splice(safeIdx, 0, moved);
+          return { ...s, exercises: exs };
         }
-        if (slot?.id === targetDayId) {
-          const exs = [...slot.exercises];
-          exs.splice(targetIdx, 0, moved);
-          return { ...slot, exercises: exs };
-        }
-        return slot;
+        return s;
       });
     });
   }
@@ -1970,10 +1966,8 @@ export default function WorkoutDashboard() {
                   onDragOver={e => {
                     e.preventDefault();
                     if (sessionDragSrc !== null) return;
-                    // Only set dragOver to end if not already hovering a specific exercise
-                    if (!dragOver || dragOver.dayId !== session.id) {
-                      setDragOver({ dayId:session.id, exIdx:session.exercises.length });
-                    }
+                    // Default: insert at end. ex-row onDragOver overrides with specific index.
+                    setDragOver({ dayId:session.id, insertIdx:session.exercises.length });
                   }}
                   onDragLeave={e => { if (!e.currentTarget.contains(e.relatedTarget)) setDragOver(null); }}
                   onDrop={e => {
@@ -1983,11 +1977,13 @@ export default function WorkoutDashboard() {
                       setSessionDragSrc(null);
                       return;
                     }
-                    // Only handle drops that weren't caught by a child ex-row
-                    // (those call onDrop themselves via stopPropagation)
-                    if (dragSrc && dragSrc.dayId !== session.id) {
-                      // Cross-session drop on the column itself → append at end
-                      onDrop(session.id, session.exercises.length);
+                    // ex-row stopPropagation means this fires only when dropping
+                    // on the column background (empty area or empty session)
+                    if (dragSrc) {
+                      const insertAt = dragOver?.dayId === session.id && dragOver?.insertIdx != null
+                        ? dragOver.insertIdx
+                        : session.exercises.length;
+                      onDrop(session.id, insertAt);
                     }
                   }}>
 
@@ -2060,7 +2056,7 @@ export default function WorkoutDashboard() {
                   <div className="ex-list">
                     {session.exercises.map((ex, exIdx) => {
                       const exData = exerciseDb[ex.name];
-                      const isDropTarget = dragOver?.dayId === session.id && dragOver?.exIdx === exIdx;
+                      const isDropTarget = dragOver?.dayId === session.id && dragOver?.insertIdx === exIdx;
                       // Superset detection
                       const isSsLeader   = !!ex.supersetWith;
                       const isSsFollower = session.exercises.some(e => e.supersetWith === ex.id);
@@ -2081,8 +2077,8 @@ export default function WorkoutDashboard() {
                               background:C.blue, borderRadius:1, zIndex:10 }} />
                           )}
                           <div className="ex-row"
-                            onDragOver={e => { e.preventDefault(); e.stopPropagation(); setDragOver({ dayId:session.id, exIdx:exIdx }); }}
-                            onDrop={e => { e.stopPropagation(); onDrop(session.id, exIdx); }}>
+                            onDragOver={e => { e.preventDefault(); e.stopPropagation(); setDragOver({ dayId:session.id, insertIdx:exIdx }); }}
+                            onDrop={e => { e.stopPropagation(); e.preventDefault(); onDrop(session.id, exIdx); }}>
 
                           <span className="drag-handle"
                             draggable
@@ -2209,7 +2205,7 @@ export default function WorkoutDashboard() {
                       );
                     })}
 
-                    {dragOver?.dayId === session.id && dragOver?.insertIdx >= session.exercises.length && (
+                    {dragOver?.dayId === session.id && (dragOver?.insertIdx ?? -1) >= session.exercises.length && (
                       <div style={{ height:3, background:"var(--accent)", borderRadius:2, margin:"0 10px 2px", opacity:0.8 }} />
                     )}
                     <button className="add-ex-btn"
