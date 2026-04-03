@@ -1572,16 +1572,34 @@ export default function WorkoutDashboard() {
     setDragSrc(null);
     setDragOver(null);
     updateWeek(w => {
-      let moved = null;
-      const step = w.map(slot => {
-        if (slot?.id !== srcId) return slot;
-        const exs = [...slot.exercises]; [moved] = exs.splice(srcIdx, 1);
-        return {...slot, exercises: exs};
-      });
-      return step.map(slot => {
-        if (slot?.id !== targetDayId) return slot;
-        const exs = [...slot.exercises]; exs.splice(targetIdx, 0, moved);
-        return {...slot, exercises: exs};
+      // Find and extract the dragged exercise
+      const srcSlot = w.find(s => s?.id === srcId);
+      if (!srcSlot) return w;
+      const moved = srcSlot.exercises[srcIdx];
+      if (!moved) return w;
+
+      if (srcId === targetDayId) {
+        // Same session — reorder in place
+        const exs = [...srcSlot.exercises];
+        exs.splice(srcIdx, 1);
+        // Adjust targetIdx since we removed an element before it
+        const adjustedIdx = srcIdx < targetIdx ? targetIdx - 1 : targetIdx;
+        exs.splice(adjustedIdx, 0, moved);
+        return w.map(slot => slot?.id === srcId ? { ...slot, exercises: exs } : slot);
+      }
+
+      // Different sessions — remove from source, insert into target
+      return w.map(slot => {
+        if (slot?.id === srcId) {
+          const exs = slot.exercises.filter((_, i) => i !== srcIdx);
+          return { ...slot, exercises: exs };
+        }
+        if (slot?.id === targetDayId) {
+          const exs = [...slot.exercises];
+          exs.splice(targetIdx, 0, moved);
+          return { ...slot, exercises: exs };
+        }
+        return slot;
       });
     });
   }
@@ -1591,19 +1609,22 @@ export default function WorkoutDashboard() {
     const { dayId:srcId, exIdx:srcIdx } = dragSrc;
     setDragSrc(null);
     setDragOver(null);
-    let moved = null;
     updateWeek(w => {
-      const step = w.map(slot => {
-        if (slot?.id !== srcId) return slot;
-        const exs = [...slot.exercises]; [moved] = exs.splice(srcIdx, 1);
-        return {...slot, exercises: exs};
+      const srcSlot = w.find(s => s?.id === srcId);
+      if (!srcSlot) return w;
+      const moved = srcSlot.exercises[srcIdx];
+      if (!moved) return w;
+
+      return w.map((slot, i) => {
+        if (slot?.id === srcId) {
+          return { ...slot, exercises: slot.exercises.filter((_, j) => j !== srcIdx) };
+        }
+        if (i === dayIndex) {
+          const target = slot ?? { id:uid(), name:DAY_LONG[dayIndex], exercises:[] };
+          return { ...target, exercises: [...target.exercises, moved] };
+        }
+        return slot;
       });
-      const updated = [...step];
-      if (!updated[dayIndex]) {
-        updated[dayIndex] = { id:uid(), name:DAY_LONG[dayIndex], exercises:[] };
-      }
-      updated[dayIndex] = { ...updated[dayIndex], exercises:[...updated[dayIndex].exercises, moved] };
-      return updated;
     });
   }
 
@@ -1948,20 +1969,26 @@ export default function WorkoutDashboard() {
                   style={sessionColor ? { borderColor: sessionColor.border } : {}}
                   onDragOver={e => {
                     e.preventDefault();
-                    if (sessionDragSrc !== null) return; // session drag handled separately
-                    setDragOver({ dayId:session.id, exIdx:session.exercises.length });
+                    if (sessionDragSrc !== null) return;
+                    // Only set dragOver to end if not already hovering a specific exercise
+                    if (!dragOver || dragOver.dayId !== session.id) {
+                      setDragOver({ dayId:session.id, exIdx:session.exercises.length });
+                    }
                   }}
                   onDragLeave={e => { if (!e.currentTarget.contains(e.relatedTarget)) setDragOver(null); }}
                   onDrop={e => {
                     e.preventDefault();
                     if (sessionDragSrc !== null) {
-                      // Session-level drop
                       moveSession(sessionDragSrc, idx);
                       setSessionDragSrc(null);
                       return;
                     }
-                    const dropIdx = (dragOver && dragOver.dayId === session.id && dragOver.exIdx != null) ? dragOver.exIdx : session.exercises.length;
-                    onDrop(session.id, dropIdx);
+                    // Only handle drops that weren't caught by a child ex-row
+                    // (those call onDrop themselves via stopPropagation)
+                    if (dragSrc && dragSrc.dayId !== session.id) {
+                      // Cross-session drop on the column itself → append at end
+                      onDrop(session.id, session.exercises.length);
+                    }
                   }}>
 
                   {sessionColor && (
